@@ -1,0 +1,77 @@
+array(8) {
+  ["invoicenum"]=>
+  string(19) "I001220180519021430"
+  ["employeecode"]=>
+  string(6) "112332"
+  ["invoicedate"]=>
+  string(19) "2018-05-19 02:14:30"
+  ["shopcode"]=>
+  string(4) "HQ01"
+  ["customer"]=>
+  string(7) "C150401"
+  ["items"]=>
+  [
+    [0]=>
+    [
+      ["uid"]=>"3"
+      ["item_code"]=>"Pentax"
+      ["eng_name"]=>
+      string(0) ""
+      ["chi_name"]=>
+      string(13) "Pentax 水泵"
+      ["desc"]=>
+      string(4) "null"
+      ["price"]=>
+      string(7) "1100.00"
+      ["price_special"]=>
+      string(4) "0.00"
+      ["type_id"]=>
+      string(3) "PDT"
+      ["unit_code"]=>
+      string(0) ""
+      ["create_date"]=>
+      string(19) "0000-00-00 00:00:00"
+      ["modify_date"]=>
+      string(19) "0000-00-00 00:00:00"
+      ["qty"]=>
+      int(1)
+      ["total"]=>
+      string(7) "1100.00"
+      ["index"]=>
+      int(1)
+    ]
+    [1]=>
+    array(14) {
+      ["uid"]=>
+      string(1) "4"
+      ["item_code"]=>
+      string(6) "DA0110"
+      ["eng_name"]=>
+      string(19) "Graese Trap Cleaner"
+      ["chi_name"]=>
+      string(29) "Drain Away 隔油池化油劑"
+      ["desc"]=>
+      string(4) "null"
+      ["price"]=>
+      string(6) "328.00"
+      ["price_special"]=>
+      string(4) "0.00"
+      ["type_id"]=>
+      string(3) "PDT"
+      ["unit_code"]=>
+      string(0) ""
+      ["create_date"]=>
+      string(19) "0000-00-00 00:00:00"
+      ["modify_date"]=>
+      string(19) "0000-00-00 00:00:00"
+      ["qty"]=>
+      int(1)
+      ["total"]=>
+      string(6) "328.00"
+      ["index"]=>
+      int(2)
+    }
+  }
+  ["total"] => "1428.00"
+  ["remark"] => "ddadasd"
+]

@@ -1,0 +1,88 @@
+{"invoicenum":"I001220180519021430","employeecode":"112332","invoicedate":"2018-05-19 02:14:30","shopcode":"HQ01","customer":"C150401","items":[{"uid":"3","item_code":"Pentax","eng_name":"","chi_name":"Pentax 水泵","desc":"null","price":"1100.00","price_special":"0.00","type_id":"PDT","unit_code":"","create_date":"0000-00-00 00:00:00","modify_date":"0000-00-00 00:00:00","qty":1,"total":"1100.00","index":1},{"uid":"4","item_code":"DA0110","eng_name":"Graese Trap Cleaner","chi_name":"Drain Away 隔油池化油劑","desc":"null","price":"328.00","price_special":"0.00","type_id":"PDT","unit_code":"","create_date":"0000-00-00 00:00:00","modify_date":"0000-00-00 00:00:00","qty":1,"total":"328.00","index":2}],"total":"1428.00","remark":"ddadasd"}
+
+
+
+SELECT * FROM `t_transaction_h` as th left join `t_transaction_t` as tt on th.trans_code = tt.trans_code left join `t_transaction_d` as td on tt.trans_code = td.trans_code WHERE th.trans_code = 'INV2018062408' 
+
+
+array(8) {
+  ["invoicenum"]=>
+  string(19) "I001220180519021430"
+  ["employeecode"]=>
+  string(6) "112332"
+  ["invoicedate"]=>
+  string(19) "2018-05-19 02:14:30"
+  ["shopcode"]=>
+  string(4) "HQ01"
+  ["customer"]=>
+  string(7) "C150401"
+  ["items"]=>
+  array(2) {
+    [0]=>
+    array(14) {
+      ["uid"]=>
+      string(1) "3"
+      ["item_code"]=>
+      string(6) "Pentax"
+      ["eng_name"]=>
+      string(0) ""
+      ["chi_name"]=>
+      string(13) "Pentax 水泵"
+      ["desc"]=>
+      string(4) "null"
+      ["price"]=>
+      string(7) "1100.00"
+      ["price_special"]=>
+      string(4) "0.00"
+      ["type_id"]=>
+      string(3) "PDT"
+      ["unit_code"]=>
+      string(0) ""
+      ["create_date"]=>
+      string(19) "0000-00-00 00:00:00"
+      ["modify_date"]=>
+      string(19) "0000-00-00 00:00:00"
+      ["qty"]=>
+      int(1)
+      ["total"]=>
+      string(7) "1100.00"
+      ["index"]=>
+      int(1)
+    }
+    [1]=>
+    array(14) {
+      ["uid"]=>
+      string(1) "4"
+      ["item_code"]=>
+      string(6) "DA0110"
+      ["eng_name"]=>
+      string(19) "Graese Trap Cleaner"
+      ["chi_name"]=>
+      string(29) "Drain Away 隔油池化油劑"
+      ["desc"]=>
+      string(4) "null"
+      ["price"]=>
+      string(6) "328.00"
+      ["price_special"]=>
+      string(4) "0.00"
+      ["type_id"]=>
+      string(3) "PDT"
+      ["unit_code"]=>
+      string(0) ""
+      ["create_date"]=>
+      string(19) "0000-00-00 00:00:00"
+      ["modify_date"]=>
+      string(19) "0000-00-00 00:00:00"
+      ["qty"]=>
+      int(1)
+      ["total"]=>
+      string(6) "328.00"
+      ["index"]=>
+      int(2)
+    }
+  }
+  ["total"]=>
+  string(7) "1428.00"
+  ["remark"]=>
+  string(7) "ddadasd"
+}
