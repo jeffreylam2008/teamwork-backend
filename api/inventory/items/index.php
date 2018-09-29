@@ -99,27 +99,40 @@ $app->patch('/{item_code}', function(Request $request, Response $response, array
     // // POST Data here
     $body = json_decode($request->getBody(), true);
     
-    $db->beginTransaction();
-    $q = $db->prepare("UPDATE `t_items` SET (
-        `eng_name` = ".$body['i-engname'].",
-        `chi_name` = ".$body['i-chiname'].",
-        `desc` = ".$body['i-desc'].",
-        `price` = ".$body['i-price'].",
-        `price_special` = ".$body['i-specialprice'].",
-        `cate_code` = ".$body['i-category'].",
-        `unit` = ".$body['i-unit'].",
-    ) WHERE item_code = '".$item_code."';");
-    $q->execute();
-    $dbData = $q->fetch();
-    $err = $q->errorinfo();
-    $db->commit();
-    
+    // $db->beginTransaction();
+    // $q = $db->prepare("UPDATE `t_items` SET (
+    //     `eng_name` = ".$body['i-engname'].",
+    //     `chi_name` = ".$body['i-chiname'].",
+    //     `desc` = ".$body['i-desc'].",
+    //     `price` = ".$body['i-price'].",
+    //     `price_special` = ".$body['i-specialprice'].",
+    //     `cate_code` = ".$body['i-category'].",
+    //     `unit` = ".$body['i-unit'].",
+    // ) WHERE item_code = '".$item_code."';");
+    $q = >>> UPDATE `t_items` SET 
+    `eng_name` = '".$body['i-engname']."', 
+    `chi_name` = '".$body['i-chiname']."', 
+    `desc` ='".$body['i-desc']."',
+    `price`= '".$body['i-price']."',
+    `price_special` = '".$body['i-specialprice']."',
+    `cate_code` = '".$body['i-category']."', 
+    `unit` = '".$body['i-unit']."' 
+    WHERE `item_code` = '".$item_code."';"
+    EOF;
+    // $q->execute();
+    // $dbData = $q->fetch();
+    // $err = $q->errorinfo();
+    // $db->commit();
+    // $callback = [
+    //     "query" => $dbData,
+    //     "error" => ["code" => $err[0], "message" => $err[2]]
+    // ];
     $callback = [
-        "query" => $body,
+        "query" => $q,
         //"error" => ["code" => $err[0], "message" => $err[2]]
     ];
 
-    return $response->withJson($body, 200);
+    return $response->withJson($callback, 200);
 });
 
 /**
