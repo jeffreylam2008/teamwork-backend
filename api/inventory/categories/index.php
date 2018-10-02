@@ -52,4 +52,25 @@ $app->get('/{cate_code}', function(Request $request, Response $response, array $
 
     return $response->withJson($callback, 200);
 });
+
+$app->patch('/{cate_code}', function(Request $request, Response $repoonse, array $args){
+    $body = json_decode($request->getBody(), true);
+    return $repoonse->withJson($body,200);
+});
+$app->post('', function(Request $request, Response $reponse, array $args){
+    $err = [];
+    $db = connect_db();
+    // POST Data here
+    $body = json_decode($request->getBody(), true);
+    $_now = date('Y-m-d H:i:s');
+    $q = $db->prepare("insert into t_items_category (`cate_code`, `desc`, `create_date`)
+        values (
+            '".$body['cate_code']."',
+            '".$body['desc']."',
+            '".$_now."'
+        );
+    ");
+    //$db->beginTransaction();
+    //$db->commit();
+});
 $app->run();

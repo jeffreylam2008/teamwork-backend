@@ -35,11 +35,11 @@ $app->get('/', function(Request $request, Response $response, array $args) {
         return $response->withJson($callback, 200);
     }
 });
-$app->get('/{custcode}', function(Request $request, Response $response, array $args){
-    $_custcode = $args['custcode'];
+$app->get('/{cust_code}', function(Request $request, Response $response, array $args){
+    $_cust_code = $args['cust_code'];
     $err = "";
     $db = connect_db();
-    $q = $db->prepare("select * from `t_customers` where cust_code = '".$_custcode."';");
+    $q = $db->prepare("select * from `t_customers` where cust_code = '".$_cust_code."';");
     $q->execute();
     $err = $q->errorinfo();
     $res = $q->fetchAll(PDO::FETCH_ASSOC);
