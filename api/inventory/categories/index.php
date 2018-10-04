@@ -55,6 +55,8 @@ $app->get('/{cate_code}', function(Request $request, Response $response, array $
 
 $app->patch('/{cate_code}', function(Request $request, Response $response, array $args){
     $body = json_decode($request->getBody(), true);
+    
+
     return $repoonse->withJson($body,200);
 });
 $app->post('/', function(Request $request, Response $response, array $args){
