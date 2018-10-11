@@ -104,7 +104,6 @@ $app->group('/api/v1/inventory/categories', function () {
         
     });
 });
-
 /**
  * Items
  */
@@ -129,7 +128,37 @@ $app->group('/api/v1/inventory/items', function () {
     
         if($err[0] == "00000")
             return $response->withJson($callback, 200);
-        
+    });
+    /**
+     * Varify categories in item table
+     */
+    $this->get('/has/category/{cate_code}', function(Request $request, Response $response, array $args){
+        $err=[];
+        $cate_code = $args['cate_code'];
+        $db = connect_db();
+        $q = $db->prepare("select count(*) as counter from `t_items` WHERE cate_code = '".$cate_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+        $callback = [
+            "query" => "",
+            "error" => []
+        ];
+        if($dbData['counter'] === 0)
+        {
+            $callback = [
+                "query" => false,
+                "error" => ["code" => 10001, "message" => "No Dependence"]
+            ];
+        }
+        else
+        {
+            $callback = [
+                "query" => true,
+                "error" => ["code" => $err[0], "message" => $dbData['counter']." Item/s in used this category"]
+            ];
+        }
+        return $response->withJson($callback, 200);
     });
     /**
      * Items Method GET with ID
@@ -244,7 +273,6 @@ $app->group('/api/v1/inventory/items', function () {
     });
 
 });
-
 /**
  * Customer
  */
@@ -748,7 +776,6 @@ $app->group('/api/v1/inventory/invoices', function () {
         });
     });
 });
-
 /**
  * employee
  */
@@ -771,7 +798,6 @@ $app->group('/api/v1/systems/employee', function () {
         }
     });
 });
-
 /** 
  * Menu 
  */
