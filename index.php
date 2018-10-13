@@ -100,8 +100,20 @@ $app->group('/api/v1/inventory/categories', function () {
     /**
      * Categories Method DELETE
      */
-    $this->delete('/', function(Request $request, Response $response, array $args){
-        
+    $this->delete('/{cate_code}', function(Request $request, Response $response, array $args){
+        $cate_code = $args['cate_code'];
+        $db = connect_db();
+        $q = $db->prepare("DELETE FROM `t_items_category` WHERE cate_code = '".$cate_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+    
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+    
+        return $response->withJson($callback, 200);
     });
 });
 /**
@@ -155,7 +167,7 @@ $app->group('/api/v1/inventory/items', function () {
         {
             $callback = [
                 "query" => true,
-                "error" => ["code" => $err[0], "message" => $dbData['counter']." Item/s in used this category"]
+                "error" => ["code" => $err[0], "message" => $dbData['counter']." Item/s in use on this category"]
             ];
         }
         return $response->withJson($callback, 200);
