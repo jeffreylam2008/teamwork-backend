@@ -826,8 +826,8 @@ $app->group('/api/v1/systems/menu', function () {
             ["order" => 1, "id" => 32, "parent_id" => 65, "name" => "Create", "isParent" => "", "slug"=>"invoices/donew"],
             ["order" => 2, "id" => 22, "parent_id" => "", "name" => "Administration", "isParent" => "", "slug"=>""],
             ["order" => 1, "id" => 71, "parent_id" => 22, "name" => "Settings", "isParent" => "", "slug"=>"administration/settings"],
-            ["order" => 1, "id" => 555, "parent_id" => 44, "name" => "test item 2", "isParent" => "", "slug"=>"test/test/test_item2"],
-            ["order" => 1, "id" => 44, "parent_id" => 71, "name" => "test item1", "isParent" => "", "slug"=>"test/test_item1"],
+            ["order" => 1, "id" => 32, "parent_id" => 22, "name" => "Shop", "isParent" => "", "slug"=>"administration/shop"],
+            ["order" => 1, "id" => 555, "parent_id" => 44, "name" => "User", "isParent" => "", "slug"=>""],
             ["order" => 1, "id" => 26, "parent_id" => 65, "name" => "List", "isParent" => "", "slug"=>"invoices/list"]
         ];
         return $response->withJson($data, 200);
@@ -862,6 +862,7 @@ $app->group('/api/v1/systems/shop', function () {
     $this->post('/', function (Request $request, Response $response, array $args) {
         // POST Data here
     });
+
 });
 
 $app->run();
