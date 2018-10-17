@@ -818,7 +818,7 @@ $app->group('/api/v1/systems/menu', function () {
         $data = [
             ["order" => 0, "id" => 1, "parent_id" => "", "name" => "login", "isParent" => "", "slug"=>"login"],
             ["order" => 0, "id" => 2, "parent_id" => "", "name" => "Dushboard", "isParent" => "", "slug"=>"dushboard"],
-            ["order" => 0, "id" => 5, "parent_id" => "", "name" => "Customers", "isParent" => "", "slug"=>""],
+            ["order" => 0, "id" => 5, "parent_id" => "", "name" => "Customers", "isParent" => "", "slug"=>"customers"],
             ["order" => 0, "id" => 3, "parent_id" => "", "name" => "Products", "isParent" => "", "slug"=>""],
             ["order" => 0, "id" => 4, "parent_id" => "", "name" => "Inventory", "isParent" => "", "slug"=>""],
             ["order" => 0, "id" => 23, "parent_id" => 3, "name" => "Items", "isParent" => "", "slug"=>"products/items"],		
