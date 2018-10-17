@@ -789,7 +789,7 @@ $app->group('/api/v1/inventory/invoices', function () {
     });
 });
 /**
- * employee
+ * Employee
  */
 $app->group('/api/v1/systems/employee', function () {
     $this->get('/{username}', function (Request $request, Response $response, array $args) {
@@ -816,19 +816,22 @@ $app->group('/api/v1/systems/employee', function () {
 $app->group('/api/v1/systems/menu', function () {
     $this->get('/side', function (Request $request, Response $response, array $args) {
         $data = [
-            ["order" => 2, "id" => 1, "parent_id" => "", "name" => "login", "isParent" => "", "slug"=>"login"],
-            ["order" => 1, "id" => 2, "parent_id" => "", "name" => "Dushboard", "isParent" => "", "slug"=>"dushboard"],
-            ["order" => 3, "id" => 3, "parent_id" => "", "name" => "Product", "isParent" => "", "slug"=>""],
-            ["order" => 3, "id" => 4, "parent_id" => "", "name" => "Inventory", "isParent" => "", "slug"=>""],
-            ["order" => 3, "id" => 23, "parent_id" => 3, "name" => "Items", "isParent" => "", "slug"=>"products/items"],		
-            ["order" => 1, "id" => 54, "parent_id" => 3, "name" => "Categories", "isParent" => "", "slug"=>"products/categories"],
-            ["order" => 1, "id" => 65, "parent_id" => 4, "name" => "Invoices", "isParent" => "", "slug"=>"invoices"],
-            ["order" => 1, "id" => 32, "parent_id" => 65, "name" => "Create", "isParent" => "", "slug"=>"invoices/donew"],
-            ["order" => 2, "id" => 22, "parent_id" => "", "name" => "Administration", "isParent" => "", "slug"=>""],
-            ["order" => 1, "id" => 71, "parent_id" => 22, "name" => "Settings", "isParent" => "", "slug"=>"administration/settings"],
-            ["order" => 1, "id" => 32, "parent_id" => 22, "name" => "Shop", "isParent" => "", "slug"=>"administration/shop"],
-            ["order" => 1, "id" => 555, "parent_id" => 44, "name" => "User", "isParent" => "", "slug"=>""],
-            ["order" => 1, "id" => 26, "parent_id" => 65, "name" => "List", "isParent" => "", "slug"=>"invoices/list"]
+            ["order" => 0, "id" => 1, "parent_id" => "", "name" => "login", "isParent" => "", "slug"=>"login"],
+            ["order" => 0, "id" => 2, "parent_id" => "", "name" => "Dushboard", "isParent" => "", "slug"=>"dushboard"],
+            ["order" => 0, "id" => 5, "parent_id" => "", "name" => "Customers", "isParent" => "", "slug"=>""],
+            ["order" => 0, "id" => 3, "parent_id" => "", "name" => "Products", "isParent" => "", "slug"=>""],
+            ["order" => 0, "id" => 4, "parent_id" => "", "name" => "Inventory", "isParent" => "", "slug"=>""],
+            
+            ["order" => 0, "id" => 23, "parent_id" => 3, "name" => "Items", "isParent" => "", "slug"=>"products/items"],		
+            ["order" => 0, "id" => 54, "parent_id" => 3, "name" => "Categories", "isParent" => "", "slug"=>"products/categories"],
+            ["order" => 0, "id" => 65, "parent_id" => 4, "name" => "Invoices", "isParent" => "", "slug"=>"invoices"],
+            ["order" => 0, "id" => 32, "parent_id" => 65, "name" => "Create", "isParent" => "", "slug"=>"invoices/donew"],
+            ["order" => 0, "id" => 22, "parent_id" => "", "name" => "Administration", "isParent" => "", "slug"=>""],
+            ["order" => 0, "id" => 71, "parent_id" => 22, "name" => "Settings", "isParent" => "", "slug"=>"administration/settings"],
+            ["order" => 0, "id" => 32, "parent_id" => 22, "name" => "Shop", "isParent" => "", "slug"=>"administration/shops"],
+            ["order" => 0, "id" => 555, "parent_id" => 44, "name" => "User", "isParent" => "", "slug"=>""],
+            ["order" => 0, "id" => 6, "parent_id" => 22, "name" => "Employee", "isParent" => "", "slug"=>"administration/shops"],
+            ["order" => 0, "id" => 26, "parent_id" => 65, "name" => "List", "isParent" => "", "slug"=>"invoices/list"]
         ];
         return $response->withJson($data, 200);
     });
@@ -842,7 +845,7 @@ $app->group('/api/v1/systems/menu', function () {
 /**
  * Shop
  */
-$app->group('/api/v1/systems/shop', function () {
+$app->group('/api/v1/systems/shops', function () {
     $this->get('/', function (Request $request, Response $response, array $args) {
         $err = "";
         $db = connect_db();
@@ -859,10 +862,11 @@ $app->group('/api/v1/systems/shop', function () {
         ];
         return $response->withJson($callback, 200);
     });
-    $this->post('/', function (Request $request, Response $response, array $args) {
-        // POST Data here
-    });
+});
+/**
+ * 
+ */
+$app->group('', function() {
 
 });
-
 $app->run();
