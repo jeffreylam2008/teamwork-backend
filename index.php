@@ -827,11 +827,12 @@ $app->group('/api/v1/systems/menu', function () {
             ["order" => 0, "id" => 32, "parent_id" => 65, "name" => "Create", "isParent" => "", "slug"=>"invoices/donew"],
             ["order" => 0, "id" => 22, "parent_id" => "", "name" => "Administration", "isParent" => "", "slug"=>""],
             ["order" => 0, "id" => 71, "parent_id" => 22, "name" => "Settings", "isParent" => "", "slug"=>"administration/settings"],
-            ["order" => 0, "id" => 35, "parent_id" => 22, "name" => "Shop", "isParent" => "", "slug"=>"administration/shops"],
-            ["order" => 0, "id" => 555, "parent_id" => 44, "name" => "User", "isParent" => "", "slug"=>""],
-            ["order" => 0, "id" => 6, "parent_id" => 22, "name" => "Employees", "isParent" => "", "slug"=>"administration/employees"],
+            ["order" => 0, "id" => 35, "parent_id" => 71, "name" => "Shop", "isParent" => "", "slug"=>"administration/shops"],
+            ["order" => 0, "id" => 6, "parent_id" => 71, "name" => "Employees", "isParent" => "", "slug"=>"administration/employees"],
             ["order" => 0, "id" => 33, "parent_id" => 4, "name" => "Quotations", "isParent" => "", "slug"=>"quotations"],
-            ["order" => 0, "id" => 26, "parent_id" => 65, "name" => "List", "isParent" => "", "slug"=>"invoices/list"]
+            ["order" => 0, "id" => 26, "parent_id" => 65, "name" => "List", "isParent" => "", "slug"=>"invoices/list"],
+            ["order" => 0, "id" => 333, "parent_id" => 33, "name" => "Create", "isParent" => "", "slug"=>"quotations/donew"],
+            ["order" => 0, "id" => 332, "parent_id" => 33, "name" => "List", "isParent" => "", "slug"=>"quotations/list"]
         ];
         return $response->withJson($data, 200);
     });
