@@ -721,46 +721,6 @@ $app->group('/api/v1/inventory/invoices', function () {
         ];
         return $response->withJson($callback,200);
      });
-    
-    /**
-     * Tender
-     */
-    $this->group('/tender',function(){
-        $this->get('/', function (Request $request, Response $response, array $args) {
-            $db = connect_db();
-            $sql = "select * from `t_payment_method`; ";
-            $q = $db->prepare($sql);
-            $q->execute();
-            $err = $q->errorinfo();
-            $result = $q->fetchAll();
-            //var_dump($result);
-            $new = [];
-            foreach($result as $k => $v)
-            {
-                extract($v);
-                $new[$pm_code] = $v;
-            }
-            $err = $q->errorinfo();
-            $callback = [
-                "query" => $new,
-                "error" => ["code" => $err[0], "message" => $err[2]]
-            ];
-            return $response->withJson($callback,200);
-        });
-        $this->post('/', function (Request $request, Response $response, array $args) {
-            // $err="";
-            
-            
-            // // POST Data here
-            // $body = json_decode($request->getBody(), true);
-            // //var_dump($data);
-        
-            // $callback = [
-            //     "code" => "", "message" => ""
-            // ];
-            // return $response->withJson($callback,200);
-        });
-    });
 
     /**
      * Check transaction_d item exist
@@ -786,6 +746,45 @@ $app->group('/api/v1/inventory/invoices', function () {
         $this->post('/', function (Request $request, Response $response, array $args) {
            
         });
+    });
+});
+/**
+ * Tender
+ */
+$app->group('/api/v1/systems/payments',function(){
+    $this->get('/', function (Request $request, Response $response, array $args) {
+        $db = connect_db();
+        $sql = "select * from `t_payment_method`; ";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $err = $q->errorinfo();
+        $result = $q->fetchAll();
+        //var_dump($result);
+        $new = [];
+        foreach($result as $k => $v)
+        {
+            extract($v);
+            $new[$pm_code] = $v;
+        }
+        $err = $q->errorinfo();
+        $callback = [
+            "query" => $new,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+        return $response->withJson($callback,200);
+    });
+    $this->post('/', function (Request $request, Response $response, array $args) {
+        // $err="";
+        
+        
+        // // POST Data here
+        // $body = json_decode($request->getBody(), true);
+        // //var_dump($data);
+    
+        // $callback = [
+        //     "code" => "", "message" => ""
+        // ];
+        // return $response->withJson($callback,200);
     });
 });
 /**
