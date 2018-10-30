@@ -20,7 +20,7 @@ $app = new \Slim\App($c);
 /**
  * Categories
  */
-$app->group('/api/v1/inventory/categories', function () {
+$app->group('/api/v1/products/categories', function () {
     /**
      * Categories Method GET
      * 
@@ -69,10 +69,24 @@ $app->group('/api/v1/inventory/categories', function () {
      * 
      */
     $this->patch('/{cate_code}', function(Request $request, Response $response, array $args){
+        $err = [];
+        $cate_code = $args['cate_code'];
+        $db = connect_db();
+        // POST Data here
         $body = json_decode($request->getBody(), true);
+        $_now = date('Y-m-d H:i:s');
+        $db->beginTransaction();
+        $q = $db->prepare("UPDATE t_items_category SET `cate_code` = '".$body["i-catecode"]."', `desc` = '".$body["i-desc"]."', `create_date` = '".$_now."' WHERE `cate_code` = '".$cate_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+        $db->commit();
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+        return $response->withJson($callback,200);
         
-    
-        return $repoonse->withJson($body,200);
     });
     /**
      * Categories Method POST
@@ -119,7 +133,7 @@ $app->group('/api/v1/inventory/categories', function () {
 /**
  * Items
  */
-$app->group('/api/v1/inventory/items', function () {
+$app->group('/api/v1/products/items', function () {
     /**
      * Items Method GET
      * 
