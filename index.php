@@ -664,77 +664,78 @@ $app->group('/api/v1/inventory/quotations', function () {
      * 
      * Add new record to DB
      */
-    // $this->post('/', function (Request $request, Response $response, array $args) {
-    //     $err="";
-    //     $db = connect_db();
+    $this->post('/', function (Request $request, Response $response, array $args) {
+        $err="";
+        $db = connect_db();
         
-    //     // POST Data here
-    //     $body = json_decode($request->getBody(), true);
-    //     extract($body);
+        // POST Data here
+        $body = json_decode($request->getBody(), true);
+        extract($body);
+        
+        return $response->withJson($body,200);
+        // $db->beginTransaction();
     
-    //     $db->beginTransaction();
+        // $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, create_date) 
+        //     values (
+        //         '".$invoicenum."',
+        //         '".$customer['cust_code']."',
+        //         '".$quotation."',
+        //         '".$prefix."',
+        //         '".$total."',
+        //         '".$employeecode."',
+        //         '".$shopcode."',
+        //         '".$remark."',
+        //         '".$invoicedate."'
+        //     );
+        // ";
+        // $q = $db->prepare($sql);
+        // $q->execute();
+        // $err = $q->errorinfo();
     
-    //     $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, create_date) 
-    //         values (
-    //             '".$invoicenum."',
-    //             '".$customer['cust_code']."',
-    //             '".$quotation."',
-    //             '".$prefix."',
-    //             '".$total."',
-    //             '".$employeecode."',
-    //             '".$shopcode."',
-    //             '".$remark."',
-    //             '".$invoicedate."'
-    //         );
-    //     ";
-    //     $q = $db->prepare($sql);
-    //     $q->execute();
-    //     $err = $q->errorinfo();
+        // if($err[2]==null)
+        // {
+        //     foreach($items as $k => $v)
+        //     {
+        //         $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
+        //             values (
+        //                 '".$invoicenum."',
+        //                 '".$v['item_code']."',
+        //                 '".$v['eng_name']."' ,
+        //                 '".$v['chi_name']."' ,
+        //                 '".$v['qty']."',
+        //                 '".$v['unit']."',
+        //                 '".$v['price']."',
+        //                 '',
+        //                 '".$invoicedate."'
+        //             );
+        //         ");
+        //         $q->execute();
+        //     }
+        //     $err[] = $q->errorinfo();
+        //     // tender information input here
+        //     $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
+        //         values (
+        //             '".$invoicenum."',
+        //             '".$paymentmethod."',
+        //             '".$total."',
+        //             '".$invoicedate."'
+        //         );
+        //     ");
+        //     $tr->execute();
+        //     $err[] = $tr->errorinfo();
+        // }
+        // $db->commit();
     
-    //     if($err[2]==null)
-    //     {
-    //         foreach($items as $k => $v)
-    //         {
-    //             $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
-    //                 values (
-    //                     '".$invoicenum."',
-    //                     '".$v['item_code']."',
-    //                     '".$v['eng_name']."' ,
-    //                     '".$v['chi_name']."' ,
-    //                     '".$v['qty']."',
-    //                     '".$v['unit']."',
-    //                     '".$v['price']."',
-    //                     '',
-    //                     '".$invoicedate."'
-    //                 );
-    //             ");
-    //             $q->execute();
-    //         }
-    //         $err[] = $q->errorinfo();
-    //         // tender information input here
-    //         $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
-    //             values (
-    //                 '".$invoicenum."',
-    //                 '".$paymentmethod."',
-    //                 '".$total."',
-    //                 '".$invoicedate."'
-    //             );
-    //         ");
-    //         $tr->execute();
-    //         $err[] = $tr->errorinfo();
-    //     }
-    //     $db->commit();
+        // if($err[2] == null)
+        // {
+        //     $err[2] = "Record inserted!";
+        // }
     
-    //     if($err[2] == null)
-    //     {
-    //         $err[2] = "Record inserted!";
-    //     }
-    
-    //     $callback = [
-    //         "code" => $err[0], "message" => $err[2]
-    //     ];
-    //     return $response->withJson($callback,200);
-    //  });
+        // $callback = [
+        //     "code" => $err[0], "message" => $err[2]
+        // ];
+        // return $response->withJson($callback,200);
+     });
 
     /**
      * Check transaction_d item exist
