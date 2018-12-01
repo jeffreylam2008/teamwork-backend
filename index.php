@@ -371,7 +371,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $db = connect_db();
         $sql = "
             SELECT * FROM `t_transaction_h` as th
-            left join `t_transaction_t` as tt on th.trans_code = tt.trans_code ;
+            LEFT JOIN `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'QTA';
         ";
         $sql2 = "
             SELECT pm_code, payment_method FROM `t_payment_method`;
@@ -441,107 +441,106 @@ $app->group('/api/v1/inventory/quotations', function () {
     /**
      * GET request 
      *
-     * Get invoices by ID
+     * Get quotation by ID
      */
-    // $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
-    //     // inital variable
-    //     $_callback = [];
-    //     $_query = [];
-    //     $_callback['has'] = false;
-    //     $trans_code= $args['trans_code'];
-    //     $_err = [];
-    //     $_err2 = [];
-    //     $_err3 = [];
-    //     $_customers = [];
+    $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
+        // inital variable
+        $_callback = [];
+        $_query = [];
+        $_callback['has'] = false;
+        $trans_code= $args['trans_code'];
+        $_err = [];
+        $_err2 = [];
+        $_err3 = [];
+        $_customers = [];
     
-    //     $db = connect_db();
-    //     $sql = "
-    //         SELECT 
-    //             th.trans_code as 'invoicenum',
-    //             th.create_date as 'invoicedate',
-    //             th.employee_code as 'employee_code',
-    //             th.modify_date as 'modifydate',
-    //             tt.pm_code as 'paymentmethod',
-    //             th.prefix as 'prefix',
-    //             th.quotation_code as 'quotation',
-    //             th.remark as 'remark',
-    //             th.shop_code as 'shopcode',
-    //             th.cust_code as 'cust_code',
-    //             th.total as 'total'
-    //         FROM `t_transaction_h` as th
-    //         left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.trans_code = '".$trans_code."';
-    //     ";
-    //     $sql2 = "
-    //         SELECT 
-    //             item_code,
-    //             eng_name,
-    //             chi_name,
-    //             qty,
-    //             unit,
-    //             price,
-    //             discount
-    //         FROM `t_transaction_d` WHERE trans_code = '".$trans_code."';
-    //     ";
-    //     $sql3 = "
-    //         SELECT * FROM `t_customers`;
-    //     ";
-    //     // execute SQL Statement 1
-    //     $q = $db->prepare($sql);
-    //     $q->execute();
-    //     $_err = $q->errorinfo();
-    //     $res = $q->fetchAll(PDO::FETCH_ASSOC);
-    //     // execute SQL statement 2
-    //     $q = $db->prepare($sql2);
-    //     $q->execute();
-    //     $_err2 = $q->errorinfo();
-    //     $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
-    //     // execute SQL statement 3
-    //     $q = $db->prepare($sql3);
-    //     $q->execute();
-    //     $_err3 = $q->errorinfo();
-    //     $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
+        $db = connect_db();
+        $sql = "
+            SELECT 
+                th.trans_code as 'quotationnum',
+                th.create_date as 'date',
+                th.employee_code as 'employee_code',
+                th.modify_date as 'modifydate',
+                tt.pm_code as 'paymentmethod',
+                th.prefix as 'prefix',
+                th.remark as 'remark',
+                th.shop_code as 'shopcode',
+                th.cust_code as 'cust_code',
+                th.total as 'total'
+            FROM `t_transaction_h` as th
+            left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.trans_code = '".$trans_code."';
+        ";
+        $sql2 = "
+            SELECT 
+                item_code,
+                eng_name,
+                chi_name,
+                qty,
+                unit,
+                price,
+                discount
+            FROM `t_transaction_d` WHERE trans_code = '".$trans_code."';
+        ";
+        $sql3 = "
+            SELECT * FROM `t_customers`;
+        ";
+        // execute SQL Statement 1
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        // execute SQL statement 2
+        $q = $db->prepare($sql2);
+        $q->execute();
+        $_err2 = $q->errorinfo();
+        $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+        // execute SQL statement 3
+        $q = $db->prepare($sql3);
+        $q->execute();
+        $_err3 = $q->errorinfo();
+        $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
         
     
-    //     // export data
-    //     if(!empty($res))
-    //     {
-    //         $_query = $res[0];        
-    //         foreach ($res2 as $key => $val) {
-    //              $_query["items"] = $res2;
-    //         }
-    //         // Get customer data from DB
-    //         foreach($res3 as $k => $v)
-    //         {
-    //             extract($v);
-    //             $_customers[$cust_code] = $v;
-    //         }
-    //         // customer data marge
-    //         if(array_key_exists($_query['cust_code'], $_customers))
-    //         {
-    //             $_query['customer'] = [
-    //                 "cust_code" => $_query['cust_code'],
-    //                 "name" => $_customers[$_query['cust_code']]['name']
-    //             ];
-    //         }
-    //         // calcuate subtotal
-    //         foreach($_query["items"] as $k => $v)
-    //         {
-    //             extract($v);
-    //             $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
-    //         }
-    //         //var_dump($_query);
-    //         $_callback['query'] = $_query;
-    //         $_callback['has'] = true;
-    //     }
-    //     else
-    //     {
-    //         $_callback['query'] = $_query;
-    //         $_callback['has'] = false;
-    //     }
-    //     $_callback["error"]["code"] = $_err[0];
-    //     $_callback["error"]["message"] = $_err[2];
-    //     return $response->withJson($_callback, 200);
-    // });
+        // export data
+        if(!empty($res))
+        {
+            $_query = $res[0];        
+            foreach ($res2 as $key => $val) {
+                 $_query["items"] = $res2;
+            }
+            // Get customer data from DB
+            foreach($res3 as $k => $v)
+            {
+                extract($v);
+                $_customers[$cust_code] = $v;
+            }
+            // customer data marge
+            if(array_key_exists($_query['cust_code'], $_customers))
+            {
+                $_query['customer'] = [
+                    "cust_code" => $_query['cust_code'],
+                    "name" => $_customers[$_query['cust_code']]['name']
+                ];
+            }
+            // calcuate subtotal
+            foreach($_query["items"] as $k => $v)
+            {
+                extract($v);
+                $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
+            }
+            //var_dump($_query);
+            $_callback['query'] = $_query;
+            $_callback['has'] = true;
+        }
+        else
+        {
+            $_callback['query'] = $_query;
+            $_callback['has'] = false;
+        }
+        $_callback["error"]["code"] = $_err[0];
+        $_callback["error"]["message"] = $_err[2];
+        return $response->withJson($_callback, 200);
+    });
     
     /** 
      * PATCH request
@@ -671,7 +670,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
-        var_dump($body);
+        //var_dump($body);
         
         $db->beginTransaction();
     
