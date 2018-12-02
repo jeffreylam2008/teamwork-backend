@@ -457,7 +457,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $db = connect_db();
         $sql = "
             SELECT 
-                th.trans_code as 'quotationnum',
+                th.trans_code as 'quotation',
                 th.create_date as 'date',
                 th.employee_code as 'employee_code',
                 th.modify_date as 'modifydate',
@@ -676,7 +676,7 @@ $app->group('/api/v1/inventory/quotations', function () {
     
         $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, create_date) 
             values (
-                '".$quotationnum."',
+                '".$quotation."',
                 '".$customer['cust_code']."',
                 '',
                 '".$prefix."',
@@ -697,7 +697,7 @@ $app->group('/api/v1/inventory/quotations', function () {
             {
                 $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
                     values (
-                        '".$quotationnum."',
+                        '".$quotation."',
                         '".$v['item_code']."',
                         '".$v['eng_name']."' ,
                         '".$v['chi_name']."' ,
@@ -714,7 +714,7 @@ $app->group('/api/v1/inventory/quotations', function () {
             // tender information input here
             $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
                 values (
-                    '".$quotationnum."',
+                    '".$quotation."',
                     '".$paymentmethod."',
                     '".$total."',
                     '".$date."'
@@ -865,7 +865,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $sql = "
             SELECT 
                 th.trans_code as 'invoicenum',
-                th.create_date as 'invoicedate',
+                th.create_date as 'date',
                 th.employee_code as 'employee_code',
                 th.modify_date as 'modifydate',
                 tt.pm_code as 'paymentmethod',
@@ -1037,7 +1037,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                             '".$v['unit']."',
                             '".$v['price']."',
                             '',
-                            '".$invoicedate."'
+                            '".$date."'
                         );";
                     //echo $sql_d."\n";
                     $q = $db->prepare($sql_d);
@@ -1091,7 +1091,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 '".$employeecode."',
                 '".$shopcode."',
                 '".$remark."',
-                '".$invoicedate."'
+                '".$date."'
             );
         ";
         $q = $db->prepare($sql);
@@ -1112,7 +1112,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                         '".$v['unit']."',
                         '".$v['price']."',
                         '',
-                        '".$invoicedate."'
+                        '".$date."'
                     );
                 ");
                 $q->execute();
@@ -1124,7 +1124,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                     '".$invoicenum."',
                     '".$paymentmethod."',
                     '".$total."',
-                    '".$invoicedate."'
+                    '".$date."'
                 );
             ");
             $tr->execute();
