@@ -1,315 +1,1285 @@
 <?php
+use \Psr\Http\Message\ServerRequestInterface as Request;
+use \Psr\Http\Message\ResponseInterface as Response;
+
+require_once './vendor/autoload.php';
+require_once './lib/db.php';
+$c = new \Slim\Container(); //Create Your container
+
+//Override the default Not Found Handler
+$c['notFoundHandler'] = function ($c) {
+    return function ($request, $response) use ($c) {
+        $data = [ 
+            "message" => "param not define" 
+        ];
+        return $c['response']->withJson($data,404);
+    };
+};
+$app = new \Slim\App($c);
+
 /**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
+ * Categories
  */
-
-/*
- *---------------------------------------------------------------
- * APPLICATION ENVIRONMENT
- *---------------------------------------------------------------
- *
- * You can load different configurations depending on your
- * current environment. Setting the environment also influences
- * things like logging and error reporting.
- *
- * This can be set to anything, but default usage is:
- *
- *     development
- *     testing
- *     production
- *
- * NOTE: If you change these, also change the error_reporting() code below
+$app->group('/api/v1/products/categories', function () {
+    /**
+     * Categories Method GET
+     * 
+     */
+    $this->get('/', function (Request $request, Response $response, array $args) {
+        $err="";
+        $db = connect_db();
+        $q = $db->prepare("SELECT * FROM `t_items_category` ORDER BY 'cate_code';");
+        $q->execute();
+        $err = $q->errorinfo();
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
+            $dbData[] = $val;
+        }
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+    
+        if($err[0] == "00000")
+            return $response->withJson($callback, 200);
+        
+    });
+    /**
+     * Categories Method GET with ID
+     * 
+     */
+    $this->get('/{cate_code}', function(Request $request, Response $response, array $args){
+        $err="";
+        $cate_code = $args['cate_code'];
+        $db = connect_db();
+    
+        $q = $db->prepare("select * from `t_items_category` WHERE cate_code = '".$cate_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+    
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+    
+        return $response->withJson($callback, 200);
+    });
+    /**
+     * Categories Method PATCH
+     * 
+     */
+    $this->patch('/{cate_code}', function(Request $request, Response $response, array $args){
+        $err = [];
+        $cate_code = $args['cate_code'];
+        $db = connect_db();
+        // POST Data here
+        $body = json_decode($request->getBody(), true);
+        $_now = date('Y-m-d H:i:s');
+        $db->beginTransaction();
+        $q = $db->prepare("UPDATE t_items_category SET `cate_code` = '".$body["i-catecode"]."', `desc` = '".$body["i-desc"]."', `create_date` = '".$_now."' WHERE `cate_code` = '".$cate_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+        $db->commit();
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+        return $response->withJson($callback,200);
+        
+    });
+    /**
+     * Categories Method POST
+     * 
+     */
+    $this->post('/', function(Request $request, Response $response, array $args){
+        $err = [];
+        $db = connect_db();
+        // POST Data here
+        $body = json_decode($request->getBody(), true);
+        $_now = date('Y-m-d H:i:s');
+    
+        $db->beginTransaction();
+        $q = $db->prepare("insert into t_items_category (`cate_code`, `desc`, `create_date`) values ('".$body['i-catecode']."', '".$body['i-desc']."', '".$_now."');");
+        $q->execute();
+        $err = $q->errorinfo();
+        $db->commit();
+        
+        $callback = [
+            "code" => $err[0], 
+            "message" => $err[2]
+        ];
+        return $response->withJson($callback, 200);
+    });
+    /**
+     * Categories Method DELETE
+     */
+    $this->delete('/{cate_code}', function(Request $request, Response $response, array $args){
+        $cate_code = $args['cate_code'];
+        $db = connect_db();
+        $q = $db->prepare("DELETE FROM `t_items_category` WHERE cate_code = '".$cate_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+    
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+    
+        return $response->withJson($callback, 200);
+    });
+});
+/**
+ * Items
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+$app->group('/api/v1/products/items', function () {
+    /**
+     * Items Method GET
+     * 
+     */
+    $this->get('/', function (Request $request, Response $response, array $args) {
+        $err=[];
+        $db = connect_db();
+        $q = $db->prepare("SELECT * FROM `t_items` ORDER BY 'item_code';");
+        $q->execute();
+        $err = $q->errorinfo();
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
+            $dbData[] = $val;
+        }
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+    
+        if($err[0] == "00000")
+            return $response->withJson($callback, 200);
+    });
+    /**
+     * Varify categories in item table
+     */
+    $this->get('/has/category/{cate_code}', function(Request $request, Response $response, array $args){
+        $err=[];
+        $cate_code = $args['cate_code'];
+        $db = connect_db();
+        $q = $db->prepare("select count(*) as counter from `t_items` WHERE cate_code = '".$cate_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+        $callback = [
+            "query" => "",
+            "error" => []
+        ];
+        if($dbData['counter'] === 0)
+        {
+            $callback = [
+                "query" => false,
+                "error" => ["code" => 10001, "message" => "No Dependence"]
+            ];
+        }
+        else
+        {
+            $callback = [
+                "query" => true,
+                "error" => ["code" => $err[0], "message" => $dbData['counter']." Item/s in use on this category"]
+            ];
+        }
+        return $response->withJson($callback, 200);
+    });
+    /**
+     * Items Method GET with ID
+     * 
+     */
+    $this->get('/{item_code}', function(Request $request, Response $response, array $args){
+        $err=[];
+        $item_code = $args['item_code'];
+        $db = connect_db();
+        $q = $db->prepare("select * from `t_items` WHERE item_code = '".$item_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+    
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+    
+        return $response->withJson($callback, 200);
+    });
+    /**
+     * Items Method POST
+     * 
+     */
+    $this->post('/',function(Request $request, Response $response, array $args){
+        $err=[];
+        $db = connect_db();
+        
+    
+        // POST Data here
+        $body = json_decode($request->getBody(), true);
+        //extract($body);
+        $db->beginTransaction();
+        
+        $_now = date('Y-m-d H:i:s');
+        $q = $db->prepare("insert into t_items (`item_code`, `eng_name` ,`chi_name`, `desc`, `price`, `price_special`, `cate_code`,`unit`, `create_date`) 
+            values (
+                '".$body['i-itemcode']."',
+                '".$body['i-chiname']."',
+                '".$body['i-engname']."',
+                '".$body['i-desc']."',
+                '".$body['i-price']."',
+                '".$body['i-specialprice']."',
+                '".$body['i-category']."',
+                '".$body['i-unit']."',
+                '".$_now."'
+            );
+        ");
+        $q->execute();
+        $err = $q->errorinfo();
+        $db->commit();
+        $callback = [
+            "code" => $err[0], 
+            "message" => $err[2]
+        ];
+        return $response->withJson($callback,200);
+    });
+    /**
+     * Items Method PATCH
+     * 
+     * edit item record to DB
+     */
+    $this->patch('/{item_code}', function(Request $request, Response $response, array $args){
+        
+        $item_code = $args['item_code'];
+        $db = connect_db();
+    
+        // // POST Data here
+        $body = json_decode($request->getBody(), true);
+        $db->beginTransaction();
+        $q = $db->prepare("
+        UPDATE `t_items` SET 
+        `eng_name` = '".$body['i-engname']."', 
+        `chi_name` = '".$body['i-chiname']."', 
+        `desc` = '".$body['i-desc']."',
+        `price` = '".$body['i-price']."', 
+        `price_special` = '".$body['i-specialprice']."',
+        `cate_code` = '".$body['i-category']."', 
+        `unit`= '".$body['i-unit']."'  
+        WHERE `item_code` = '".$item_code."';");
+        
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+        $db->commit();
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+        return $response->withJson($callback, 200);
+    });
+    /**
+     * Items Delete with items code
+     * 
+     * delete record to DB
+     */
+    $this->delete('/{item_code}', function (Request $request, Response $response, array $args) {
+        $item_code = $args['item_code'];
+        $db = connect_db();
+        $q = $db->prepare("DELETE FROM `t_items` WHERE item_code = '".$item_code."';");
+        $q->execute();
+        $dbData = $q->fetch();
+        $err = $q->errorinfo();
+    
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+    
+        return $response->withJson($callback, 200);
+    });
 
-/*
- *---------------------------------------------------------------
- * ERROR REPORTING
- *---------------------------------------------------------------
- *
- * Different environments will require different levels of error reporting.
- * By default development will show errors but testing and live will hide them.
+});
+/**
+ * Customer
  */
-switch (ENVIRONMENT)
-{
-	case 'development':
-		error_reporting(-1);
-		ini_set('display_errors', 1);
-	break;
-
-	case 'testing':
-	case 'production':
-		ini_set('display_errors', 0);
-		if (version_compare(PHP_VERSION, '5.3', '>='))
-		{
-			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT & ~E_USER_NOTICE & ~E_USER_DEPRECATED);
-		}
-		else
-		{
-			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_USER_NOTICE);
-		}
-	break;
-
-	default:
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'The application environment is not set correctly.';
-		exit(1); // EXIT_ERROR
-}
-
-/*
- *---------------------------------------------------------------
- * SYSTEM DIRECTORY NAME
- *---------------------------------------------------------------
- *
- * This variable must contain the name of your "system" directory.
- * Set the path if it is not in the same directory as this file.
+$app->group('/api/v1/inventory/customers', function () {
+    /**
+     * GET Request
+     */
+    $this->get('/', function(Request $request, Response $response, array $args) {
+        $err = "";
+        $db = connect_db();
+        $q = $db->prepare("select * from `t_customers`;");
+        $q->execute();
+        $err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        if(!empty($res))
+        {
+            foreach ($res as $key => $val) {
+                $dbData[] = $val;
+            }
+            $callback = [
+                "query" => $dbData,
+                "error" => ["code" => $err[0], "message" => $err[2]]
+            ];
+            return $response->withJson($callback, 200);
+        }
+    });
+    /**
+     * GET Request with cust code
+     */
+    $this->get('/{cust_code}', function(Request $request, Response $response, array $args){
+        $_cust_code = $args['cust_code'];
+        $err = "";
+        $db = connect_db();
+        $q = $db->prepare("select * from `t_customers` where cust_code = '".$_cust_code."';");
+        $q->execute();
+        $err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        //var_dump($res);
+        if(!empty($res))
+        {
+            foreach ($res as $key => $val) {
+                $dbData[] = $val;
+            }
+            $callback = [
+                "query" => $dbData,
+                "error" => ["code" => $err[0], "message" => $err[2]]
+            ];
+            return $response->withJson($callback, 200);
+        }
+    });
+    /**
+     *  POST Request
+     */
+    $this->post("/", function(Request $request, Response $response, array $args){
+       
+    });
+});
+/**
+ * Quotation
  */
-	$system_path = 'system';
+$app->group('/api/v1/inventory/quotations', function () {
+    $this->get('/', function (Request $request, Response $response, array $args) {
+        $_callback = [];
+        $_err = [];
+        $_err2 = [];
+        $_err3 = [];
+        $_pm = [];
+        $_cust = [];
+        $_query = [];
+        $db = connect_db();
+        $sql = "
+            SELECT * FROM `t_transaction_h` as th
+            LEFT JOIN `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'QTA';
+        ";
+        $sql2 = "
+            SELECT pm_code, payment_method FROM `t_payment_method`;
+        ";
+        $sql3 = "
+            SELECT * FROM `t_customers`;
+        ";
+        // execute SQL Statement
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+    
+        // execute SQL Statement
+        $q = $db->prepare($sql2);
+        $q->execute();
+        $_err2 = $q->errorinfo();
+        $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+        // execute SQL Statement
+        $q = $db->prepare($sql3);
+        $q->execute();
+        $_err3 = $q->errorinfo();
+        $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
+    
+        // convert payment_method to key and value array
+        foreach($res2 as $k => $v)
+        {  
+            extract($v);
+            $_pm[$pm_code] = $payment_method;
+        }
+        // convert customer to key and value array
+        foreach($res3 as $k => $v)
+        {
+            extract($v);
+            $_cust[$cust_code] = $v;
+        }
+        // Map payment_method to array
+        foreach($res as $k => $v)
+        {
+            if(array_key_exists($v['pm_code'],$_pm))
+            {
+                $res[$k]['payment_method'] = $_pm[$v['pm_code']];
+            }
+            if(array_key_exists($v['cust_code'], $_cust))
+            {
+                $res[$k]['customer'] = $_cust[$v['cust_code']]['name'];
+            }
+        }
+    
+        //var_dump($_cust);
+    
+        // export data
+        if(!empty($res))
+        {
+            foreach ($res as $key => $val) {
+                $_query[] = $val;
+            }
+            $_callback = [
+                "query" => $_query,
+                "error" => ["code" => $_err[0], "message" => $_err[2]]
+            ];
+            return $response->withJson($_callback, 200);
+        }
+    });
+    
+    /**
+     * GET request 
+     *
+     * Get quotation by ID
+     */
+    $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
+        // inital variable
+        $_callback = [];
+        $_query = [];
+        $_callback['has'] = false;
+        $trans_code= $args['trans_code'];
+        $_err = [];
+        $_err2 = [];
+        $_err3 = [];
+        $_customers = [];
+    
+        $db = connect_db();
+        $sql = "
+            SELECT 
+                th.trans_code as 'quotation',
+                th.create_date as 'date',
+                th.employee_code as 'employee_code',
+                th.modify_date as 'modifydate',
+                tt.pm_code as 'paymentmethod',
+                th.prefix as 'prefix',
+                th.remark as 'remark',
+                th.shop_code as 'shopcode',
+                th.cust_code as 'cust_code',
+                th.total as 'total'
+            FROM `t_transaction_h` as th
+            left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.trans_code = '".$trans_code."';
+        ";
+        $sql2 = "
+            SELECT 
+                item_code,
+                eng_name,
+                chi_name,
+                qty,
+                unit,
+                price,
+                discount
+            FROM `t_transaction_d` WHERE trans_code = '".$trans_code."';
+        ";
+        $sql3 = "
+            SELECT * FROM `t_customers`;
+        ";
+        // execute SQL Statement 1
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        // execute SQL statement 2
+        $q = $db->prepare($sql2);
+        $q->execute();
+        $_err2 = $q->errorinfo();
+        $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+        // execute SQL statement 3
+        $q = $db->prepare($sql3);
+        $q->execute();
+        $_err3 = $q->errorinfo();
+        $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+    
+        // export data
+        if(!empty($res))
+        {
+            $_query = $res[0];        
+            foreach ($res2 as $key => $val) {
+                 $_query["items"] = $res2;
+            }
+            // Get customer data from DB
+            foreach($res3 as $k => $v)
+            {
+                extract($v);
+                $_customers[$cust_code] = $v;
+            }
+            // customer data marge
+            if(array_key_exists($_query['cust_code'], $_customers))
+            {
+                $_query['customer'] = [
+                    "cust_code" => $_query['cust_code'],
+                    "name" => $_customers[$_query['cust_code']]['name']
+                ];
+            }
+            // calcuate subtotal
+            foreach($_query["items"] as $k => $v)
+            {
+                extract($v);
+                $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
+            }
+            //var_dump($_query);
+            $_callback['query'] = $_query;
+            $_callback['has'] = true;
+        }
+        else
+        {
+            $_callback['query'] = $_query;
+            $_callback['has'] = false;
+        }
+        $_callback["error"]["code"] = $_err[0];
+        $_callback["error"]["message"] = $_err[2];
+        return $response->withJson($_callback, 200);
+    });
+    
+    /** 
+     * PATCH request
+     * 
+     * to update input to database
+     */
+    
+    // $this->patch('/{trans_code}', function(Request $request, Response $response, array $args)
+    // {
+    //     $err = [];
+    //     $db = connect_db();
+    //     //$sql_d = "";
+    //     // POST Data here
+    //     $body = json_decode($request->getBody(), true);
+    //     extract($body);
+    
+    //     $trans_code = $args['trans_code'];
+    //     $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$trans_code."';";
+    //     $q = $db->prepare($sql);
+    //     $q->execute();
+    //     $err = $q->errorinfo();
+    //     $res = $q->fetchAll(PDO::FETCH_ASSOC);
+    //     extract($res);
+    
+    //     foreach($res as $k => $v)
+    //     {
+    //         $_new_res[$v['item_code']] = $res[$k];
+    //     }
+        
+    //     $db->beginTransaction();
+    
+    //     $_now = date('Y-m-d H:i:s');
+        
+    //     $q = $db->prepare("UPDATE `t_transaction_h` SET 
+    //         cust_code = '".$customer['cust_code']."',
+    //         quotation_code = '".$quotation."', 
+    //         total = '".$total."', 
+    //         employee_code = '".$employeecode."', 
+    //         shop_code = '".$shopcode."', 
+    //         remark = '".$remark."', 
+    //         modify_date =  '".$_now."'
+    //         WHERE trans_code = '".$trans_code."';"
+    //     );
+    //     $q->execute();
+    //     $err = $q->errorinfo();
+        
+    //     if($err[2]==null)
+    //     {
+    //         foreach($_new_res as $k => $v)
+    //         {
+    //             if(!array_key_exists($v["item_code"],$items))
+    //             {
+    //                 $sql_d = "DELETE FROM `t_transaction_d` WHERE item_code = '".$v["item_code"]."'";
+    //                 $q = $db->prepare($sql_d);
+    //                 $q->execute();
+    //                 $err = $q->errorinfo();
+    //                 //echo $sql_d."\n";
+    //             }
+    //         }
+    //         foreach($items as $k => $v)
+    //         {
+    //             // Items saved as before
+    //             if(array_key_exists($v["item_code"],$_new_res))
+    //             {
+    //                 $sql_d = "UPDATE `t_transaction_d` SET
+    //                     qty = '".$v['qty']."',
+    //                     unit = '".$v['unit']."',
+    //                     price = '".$v['price']."',
+    //                     modify_date = '".$_now."'
+    //                     WHERE trans_code = '".$trans_code."' AND item_code = '".$k."';";
+    //                 //echo $sql_d."\n";
+    //                 $q = $db->prepare($sql_d);
+    //                 $q->execute();
+    //                 $err = $q->errorinfo();
+    //             }
+    //             // New add items
+    //             else
+    //             {
+    //                 $sql_d = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
+    //                     values (
+    //                         '".$invoicenum."',
+    //                         '".$v['item_code']."',
+    //                         '".$v['eng_name']."' ,
+    //                         '".$v['chi_name']."' ,
+    //                         '".$v['qty']."',
+    //                         '".$v['unit']."',
+    //                         '".$v['price']."',
+    //                         '',
+    //                         '".$invoicedate."'
+    //                     );";
+    //                 //echo $sql_d."\n";
+    //                 $q = $db->prepare($sql_d);
+    //                 $q->execute();
+    //                 $err = $q->errorinfo();
+    //             }   
+    //         }
+            
+    //         // tender information input here
+    //         $sql ="UPDATE `t_transaction_t` SET 
+    //             pm_code = '".$paymentmethod."',
+    //             total = '".$total."',
+    //             modify_date = '".$_now."'
+    //             WHERE trans_code = '".$trans_code."';";
+    //         $q = $db->prepare($sql);
+    //         $q->execute();
+    //         $err = $q->errorinfo();
+    //     }
+    //     $db->commit();
+    
+    //     $callback = [
+    //         "code" => $err[0], 
+    //         "message" => $err[2]
+    //     ];
+    //     return $response->withJson($callback,200);
+    // });
+    
+    
+    /**
+     * POST request
+     * 
+     * Add new record to DB
+     */
+    $this->post('/', function (Request $request, Response $response, array $args) {
+        $err="";
+        $db = connect_db();
+        
+        // POST Data here
+        $body = json_decode($request->getBody(), true);
+        extract($body);
+        //var_dump($body);
+        
+        $db->beginTransaction();
+    
+        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, create_date) 
+            values (
+                '".$quotation."',
+                '".$customer['cust_code']."',
+                '',
+                '".$prefix."',
+                '".$total."',
+                '".$employeecode."',
+                '".$shopcode."',
+                '".$remark."',
+                '".$date."'
+            );
+        ";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $err = $q->errorinfo();
+    
+        if($err[2]==null)
+        {
+            foreach($items as $k => $v)
+            {
+                $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
+                    values (
+                        '".$quotation."',
+                        '".$v['item_code']."',
+                        '".$v['eng_name']."' ,
+                        '".$v['chi_name']."' ,
+                        '".$v['qty']."',
+                        '".$v['unit']."',
+                        '".$v['price']."',
+                        '',
+                        '".$date."'
+                    );
+                ");
+                $q->execute();
+            }
+            $err[] = $q->errorinfo();
+            // tender information input here
+            $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
+                values (
+                    '".$quotation."',
+                    '".$paymentmethod."',
+                    '".$total."',
+                    '".$date."'
+                );
+            ");
+            $tr->execute();
+            $err[] = $tr->errorinfo();
+        }
+        $db->commit();
+    
+        if($err[2] == null)
+        {
+            $err[2] = "Record inserted!";
+        }
+    
+        $callback = [
+            "code" => $err[0], "message" => $err[2]
+        ];
+        return $response->withJson($callback,200);
+     });
 
-/*
- *---------------------------------------------------------------
- * APPLICATION DIRECTORY NAME
- *---------------------------------------------------------------
- *
- * If you want this front controller to use a different "application"
- * directory than the default one you can set its name here. The directory
- * can also be renamed or relocated anywhere on your server. If you do,
- * use an absolute (full) server path.
- * For more info please see the user guide:
- *
- * https://codeigniter.com/user_guide/general/managing_apps.html
- *
- * NO TRAILING SLASH!
+    /**
+     * Check transaction_d item exist
+     */
+    // $this->group('/transaction/d',function(){
+    //     $this->get('/{item_code}', function (Request $request, Response $response, array $args) {
+    //         $item_code = $args['item_code'];
+    //         $db = connect_db();
+    //         $sql = "SELECT * FROM `t_transaction_d` where item_code = '". $item_code ."';";
+        
+    //         $q = $db->prepare($sql);
+    //         $q->execute();
+    //         $dbData = $q->fetch();
+    //         $err = $q->errorinfo();
+        
+    //         $callback = [
+    //             "query" => $dbData,
+    //             "error" => ["code" => $err[0], "message" => $err[2]]
+    //         ];
+        
+    //         return $response->withJson($callback, 200);
+    //     });
+    //     $this->post('/', function (Request $request, Response $response, array $args) {
+           
+    //     });
+    // });
+});
+/**
+ * Invoices
  */
-	$application_folder = 'application';
+$app->group('/api/v1/inventory/invoices', function () {
+    $this->get('/', function (Request $request, Response $response, array $args) {
+        $_callback = [];
+        $_err = [];
+        $_err2 = [];
+        $_err3 = [];
+        $_pm = [];
+        $_cust = [];
+        $_query = [];
+        $db = connect_db();
+        $sql = "
+            SELECT * FROM `t_transaction_h` as th
+            left join `t_transaction_t` as tt on th.trans_code = tt.trans_code
+            WHERE th.prefix = 'INV';
+        ";
+        $sql2 = "
+            SELECT pm_code, payment_method FROM `t_payment_method`;
+        ";
+        $sql3 = "
+            SELECT * FROM `t_customers`;
+        ";
+        // execute SQL Statement
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+    
+        // execute SQL Statement
+        $q = $db->prepare($sql2);
+        $q->execute();
+        $_err2 = $q->errorinfo();
+        $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+        // execute SQL Statement
+        $q = $db->prepare($sql3);
+        $q->execute();
+        $_err3 = $q->errorinfo();
+        $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
+    
+        // convert payment_method to key and value array
+        foreach($res2 as $k => $v)
+        {  
+            extract($v);
+            $_pm[$pm_code] = $payment_method;
+        }
+        // convert customer to key and value array
+        foreach($res3 as $k => $v)
+        {
+            extract($v);
+            $_cust[$cust_code] = $v;
+        }
+        // Map payment_method to array
+        foreach($res as $k => $v)
+        {
+            if(array_key_exists($v['pm_code'],$_pm))
+            {
+                $res[$k]['payment_method'] = $_pm[$v['pm_code']];
+            }
+            if(array_key_exists($v['cust_code'], $_cust))
+            {
+                $res[$k]['customer'] = $_cust[$v['cust_code']]['name'];
+            }
+        }
+    
+        //var_dump($_cust);
+    
+        // export data
+        if(!empty($res))
+        {
+            foreach ($res as $key => $val) {
+                $_query[] = $val;
+            }
+            $_callback = [
+                "query" => $_query,
+                "error" => ["code" => $_err[0], "message" => $_err[2]]
+            ];
+            return $response->withJson($_callback, 200);
+        }
+    });
+    
+    /**
+     * GET request 
+     *
+     * Get invoices by ID
+     */
+    $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
+        // inital variable
+        $_callback = [];
+        $_query = [];
+        $_callback['has'] = false;
+        $trans_code= $args['trans_code'];
+        $_err = [];
+        $_err2 = [];
+        $_err3 = [];
+        $_customers = [];
+    
+        $db = connect_db();
+        $sql = "
+            SELECT 
+                th.trans_code as 'invoicenum',
+                th.create_date as 'date',
+                th.employee_code as 'employee_code',
+                th.modify_date as 'modifydate',
+                tt.pm_code as 'paymentmethod',
+                th.prefix as 'prefix',
+                th.quotation_code as 'quotation',
+                th.remark as 'remark',
+                th.shop_code as 'shopcode',
+                th.cust_code as 'cust_code',
+                th.total as 'total'
+            FROM `t_transaction_h` as th
+            left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.trans_code = '".$trans_code."';
+        ";
+        $sql2 = "
+            SELECT 
+                item_code,
+                eng_name,
+                chi_name,
+                qty,
+                unit,
+                price,
+                discount
+            FROM `t_transaction_d` WHERE trans_code = '".$trans_code."';
+        ";
+        $sql3 = "
+            SELECT * FROM `t_customers`;
+        ";
+        // execute SQL Statement 1
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        // execute SQL statement 2
+        $q = $db->prepare($sql2);
+        $q->execute();
+        $_err2 = $q->errorinfo();
+        $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+        // execute SQL statement 3
+        $q = $db->prepare($sql3);
+        $q->execute();
+        $_err3 = $q->errorinfo();
+        $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+    
+        // export data
+        if(!empty($res))
+        {
+            $_query = $res[0];        
+            foreach ($res2 as $key => $val) {
+                 $_query["items"] = $res2;
+            }
+            // Get customer data from DB
+            foreach($res3 as $k => $v)
+            {
+                extract($v);
+                $_customers[$cust_code] = $v;
+            }
+            // customer data marge
+            if(array_key_exists($_query['cust_code'], $_customers))
+            {
+                $_query['customer'] = [
+                    "cust_code" => $_query['cust_code'],
+                    "name" => $_customers[$_query['cust_code']]['name']
+                ];
+            }
+            // calcuate subtotal
+            foreach($_query["items"] as $k => $v)
+            {
+                extract($v);
+                $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
+            }
+            //var_dump($_query);
+            $_callback['query'] = $_query;
+            $_callback['has'] = true;
+        }
+        else
+        {
+            $_callback['query'] = $_query;
+            $_callback['has'] = false;
+        }
+        $_callback["error"]["code"] = $_err[0];
+        $_callback["error"]["message"] = $_err[2];
+        return $response->withJson($_callback, 200);
+    });
+    
+    /** 
+     * PATCH request
+     * 
+     * to update input to database
+     */
+    
+    $this->patch('/{trans_code}', function(Request $request, Response $response, array $args)
+    {
+        $err = [];
+        $db = connect_db();
+        //$sql_d = "";
+        // POST Data here
+        $body = json_decode($request->getBody(), true);
+        extract($body);
+    
+        $trans_code = $args['trans_code'];
+        $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$trans_code."';";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        extract($res);
+    
+        foreach($res as $k => $v)
+        {
+            $_new_res[$v['item_code']] = $res[$k];
+        }
+        
+        $db->beginTransaction();
+    
+        $_now = date('Y-m-d H:i:s');
+        
+        $q = $db->prepare("UPDATE `t_transaction_h` SET 
+            cust_code = '".$customer['cust_code']."',
+            quotation_code = '".$quotation."', 
+            total = '".$total."', 
+            employee_code = '".$employeecode."', 
+            shop_code = '".$shopcode."', 
+            remark = '".$remark."', 
+            modify_date =  '".$_now."'
+            WHERE trans_code = '".$trans_code."';"
+        );
+        $q->execute();
+        $err = $q->errorinfo();
+        
+        if($err[2]==null)
+        {
+            foreach($_new_res as $k => $v)
+            {
+                if(!array_key_exists($v["item_code"],$items))
+                {
+                    $sql_d = "DELETE FROM `t_transaction_d` WHERE item_code = '".$v["item_code"]."'";
+                    $q = $db->prepare($sql_d);
+                    $q->execute();
+                    $err = $q->errorinfo();
+                    //echo $sql_d."\n";
+                }
+            }
+            foreach($items as $k => $v)
+            {
+                // Items saved as before
+                if(array_key_exists($v["item_code"],$_new_res))
+                {
+                    $sql_d = "UPDATE `t_transaction_d` SET
+                        qty = '".$v['qty']."',
+                        unit = '".$v['unit']."',
+                        price = '".$v['price']."',
+                        modify_date = '".$_now."'
+                        WHERE trans_code = '".$trans_code."' AND item_code = '".$k."';";
+                    //echo $sql_d."\n";
+                    $q = $db->prepare($sql_d);
+                    $q->execute();
+                    $err = $q->errorinfo();
+                }
+                // New add items
+                else
+                {
+                    $sql_d = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
+                        values (
+                            '".$invoicenum."',
+                            '".$v['item_code']."',
+                            '".$v['eng_name']."' ,
+                            '".$v['chi_name']."' ,
+                            '".$v['qty']."',
+                            '".$v['unit']."',
+                            '".$v['price']."',
+                            '',
+                            '".$date."'
+                        );";
+                    //echo $sql_d."\n";
+                    $q = $db->prepare($sql_d);
+                    $q->execute();
+                    $err = $q->errorinfo();
+                }   
+            }
+            
+            // tender information input here
+            $sql ="UPDATE `t_transaction_t` SET 
+                pm_code = '".$paymentmethod."',
+                total = '".$total."',
+                modify_date = '".$_now."'
+                WHERE trans_code = '".$trans_code."';";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $err = $q->errorinfo();
+        }
+        $db->commit();
+    
+        $callback = [
+            "code" => $err[0], 
+            "message" => $err[2]
+        ];
+        return $response->withJson($callback,200);
+    });
+    
+    
+    /**
+     * POST request
+     * 
+     * Add new record to DB
+     */
+    $this->post('/', function (Request $request, Response $response, array $args) {
+        $err="";
+        $db = connect_db();
+        
+        // POST Data here
+        $body = json_decode($request->getBody(), true);
+        extract($body);
+    
+        $db->beginTransaction();
+    
+        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, create_date) 
+            values (
+                '".$invoicenum."',
+                '".$customer['cust_code']."',
+                '".$quotation."',
+                '".$prefix."',
+                '".$total."',
+                '".$employeecode."',
+                '".$shopcode."',
+                '".$remark."',
+                '".$date."'
+            );
+        ";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $err = $q->errorinfo();
+    
+        if($err[2]==null)
+        {
+            foreach($items as $k => $v)
+            {
+                $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
+                    values (
+                        '".$invoicenum."',
+                        '".$v['item_code']."',
+                        '".$v['eng_name']."' ,
+                        '".$v['chi_name']."' ,
+                        '".$v['qty']."',
+                        '".$v['unit']."',
+                        '".$v['price']."',
+                        '',
+                        '".$date."'
+                    );
+                ");
+                $q->execute();
+            }
+            $err[] = $q->errorinfo();
+            // tender information input here
+            $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
+                values (
+                    '".$invoicenum."',
+                    '".$paymentmethod."',
+                    '".$total."',
+                    '".$date."'
+                );
+            ");
+            $tr->execute();
+            $err[] = $tr->errorinfo();
+        }
+        $db->commit();
+    
+        if($err[2] == null)
+        {
+            $err[2] = "Record inserted!";
+        }
+    
+        $callback = [
+            "code" => $err[0], "message" => $err[2]
+        ];
+        return $response->withJson($callback,200);
+     });
 
-/*
- *---------------------------------------------------------------
- * VIEW DIRECTORY NAME
- *---------------------------------------------------------------
- *
- * If you want to move the view directory out of the application
- * directory, set the path to it here. The directory can be renamed
- * and relocated anywhere on your server. If blank, it will default
- * to the standard location inside your application directory.
- * If you do move this, use an absolute (full) server path.
- *
- * NO TRAILING SLASH!
+    /**
+     * Check transaction_d item exist
+     */
+    $this->group('/transaction/d',function(){
+        $this->get('/{item_code}', function (Request $request, Response $response, array $args) {
+            $item_code = $args['item_code'];
+            $db = connect_db();
+            $sql = "SELECT * FROM `t_transaction_d` where item_code = '". $item_code ."';";
+        
+            $q = $db->prepare($sql);
+            $q->execute();
+            $dbData = $q->fetch();
+            $err = $q->errorinfo();
+        
+            $callback = [
+                "query" => $dbData,
+                "error" => ["code" => $err[0], "message" => $err[2]]
+            ];
+        
+            return $response->withJson($callback, 200);
+        });
+    });
+});
+/**
+ * Tender
  */
-	$view_folder = '';
-
-
-/*
- * --------------------------------------------------------------------
- * DEFAULT CONTROLLER
- * --------------------------------------------------------------------
- *
- * Normally you will set your default controller in the routes.php file.
- * You can, however, force a custom routing by hard-coding a
- * specific controller class/function here. For most applications, you
- * WILL NOT set your routing here, but it's an option for those
- * special instances where you might want to override the standard
- * routing in a specific front controller that shares a common CI installation.
- *
- * IMPORTANT: If you set the routing here, NO OTHER controller will be
- * callable. In essence, this preference limits your application to ONE
- * specific controller. Leave the function name blank if you need
- * to call functions dynamically via the URI.
- *
- * Un-comment the $routing array below to use this feature
+$app->group('/api/v1/systems/payments',function(){
+    $this->get('/', function (Request $request, Response $response, array $args) {
+        $db = connect_db();
+        $sql = "select * from `t_payment_method`; ";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $err = $q->errorinfo();
+        $result = $q->fetchAll();
+        //var_dump($result);
+        $new = [];
+        foreach($result as $k => $v)
+        {
+            extract($v);
+            $new[$pm_code] = $v;
+        }
+        $err = $q->errorinfo();
+        $callback = [
+            "query" => $new,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+        return $response->withJson($callback,200);
+    });
+    $this->post('/', function (Request $request, Response $response, array $args) {
+        // $err="";
+        
+        
+        // // POST Data here
+        // $body = json_decode($request->getBody(), true);
+        // //var_dump($data);
+    
+        // $callback = [
+        //     "code" => "", "message" => ""
+        // ];
+        // return $response->withJson($callback,200);
+    });
+});
+/**
+ * Employee
  */
-	// The directory name, relative to the "controllers" directory.  Leave blank
-	// if your controller is not in a sub-directory within the "controllers" one
-	// $routing['directory'] = '';
-
-	// The controller class file name.  Example:  mycontroller
-	// $routing['controller'] = '';
-
-	// The controller function you wish to be called.
-	// $routing['function']	= '';
-
-
-/*
- * -------------------------------------------------------------------
- *  CUSTOM CONFIG VALUES
- * -------------------------------------------------------------------
- *
- * The $assign_to_config array below will be passed dynamically to the
- * config class when initialized. This allows you to set custom config
- * items or override any default config values found in the config.php file.
- * This can be handy as it permits you to share one application between
- * multiple front controller files, with each file containing different
- * config values.
- *
- * Un-comment the $assign_to_config array below to use this feature
+$app->group('/api/v1/systems/employee', function () {
+    $this->get('/{username}', function (Request $request, Response $response, array $args) {
+        $username = $args['username'];
+        $db = connect_db();
+        if(isset($username) && !empty($username))
+        {
+            $sql = "select * from `t_employee` where username = '".$username."'; ";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $result = $q->fetch();
+            $err = $q->errorinfo();
+            $callback = [
+                "query" => $result,
+                "error" => ["code" => $err[0], "message" => $err[2]]
+            ];
+            return $response->withJson($callback,200);
+        }
+    });
+});
+/** 
+ * Menu 
  */
-	// $assign_to_config['name_of_config_item'] = 'value of config item';
-
-
-
-// --------------------------------------------------------------------
-// END OF USER CONFIGURABLE SETTINGS.  DO NOT EDIT BELOW THIS LINE
-// --------------------------------------------------------------------
-
-/*
- * ---------------------------------------------------------------
- *  Resolve the system path for increased reliability
- * ---------------------------------------------------------------
+$app->group('/api/v1/systems/menu', function () {
+    $this->get('/side', function (Request $request, Response $response, array $args) {
+        $data = [
+            ["order" => 0, "id" => 1, "parent_id" => "", "name" => "login", "isParent" => "", "slug"=>"login", "param" => "login/index" ],
+            ["order" => 0, "id" => 2, "parent_id" => "", "name" => "Dushboard", "isParent" => "", "slug"=>"dushboard", "param" => "dushboard/index"],
+            ["order" => 0, "id" => 5, "parent_id" => "", "name" => "Customers", "isParent" => "", "slug"=>"customers", "param" => "customers/index"],
+            ["order" => 0, "id" => 3, "parent_id" => "", "name" => "Products", "isParent" => "", "slug"=>"", "param" => "products/index"],
+            ["order" => 0, "id" => 4, "parent_id" => "", "name" => "Inventories", "isParent" => "", "slug"=>"", "param" => "inventories/index"],
+            ["order" => 0, "id" => 23, "parent_id" => 3, "name" => "Items", "isParent" => "", "slug"=>"products/items", "param" => "items/index"],		
+            ["order" => 0, "id" => 54, "parent_id" => 3, "name" => "Categories", "isParent" => "", "slug"=>"products/categories", "param" => "categories/index"],
+            ["order" => 0, "id" => 65, "parent_id" => 4, "name" => "Invoices", "isParent" => "", "slug"=>"invoices", "param" => "invoices"],
+            ["order" => 0, "id" => 32, "parent_id" => 65, "name" => "Create", "isParent" => "", "slug"=>"invoices/donew", "param" => "invoices/create"],
+            ["order" => 0, "id" => 22, "parent_id" => "", "name" => "Administration", "isParent" => "", "slug"=>"", "param" => "administration"],
+            ["order" => 0, "id" => 71, "parent_id" => 22, "name" => "Settings", "isParent" => "", "slug"=>"administration/settings", "param" => "administration/settings"],
+            ["order" => 0, "id" => 35, "parent_id" => 71, "name" => "Shop", "isParent" => "", "slug"=>"administration/shops", "param" => "shops/index"],
+            ["order" => 0, "id" => 6, "parent_id" => 71, "name" => "Employees", "isParent" => "", "slug"=>"administration/employees", "param" => "employees/index"],
+            ["order" => 0, "id" => 33, "parent_id" => 4, "name" => "Quotations", "isParent" => "", "slug"=>"quotations", "param" => "quotations"],
+            ["order" => 0, "id" => 26, "parent_id" => 65, "name" => "List", "isParent" => "", "slug"=>"invoices/list", "param" => "invoices/invlist"],
+            ["order" => 0, "id" => 333, "parent_id" => 33, "name" => "Create", "isParent" => "", "slug"=>"quotations/donew", "param" => "quotations/create"],
+            ["order" => 0, "id" => 332, "parent_id" => 33, "name" => "List", "isParent" => "", "slug"=>"quotations/list", "param" => "quotations/qualist"]
+        ];
+        return $response->withJson($data, 200);
+    });
+    $this->get('/top', function (Request $request, Response $response, array $args) {
+        $data = [
+            "message" => "this is menu top API"
+        ];
+        return $response->withJson($data, 200);
+    });
+});
+/**
+ * Shop
  */
+$app->group('/api/v1/systems/shops', function () {
+    $this->get('/', function (Request $request, Response $response, array $args) {
+        $err = "";
+        $db = connect_db();
+        $q = $db->prepare("select * from `t_shop`;");
+        $q->execute();
+        $err = $q->errorinfo();
+        //$result = $db->query( "select * from `t_shop`;");
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
+            $dbData[] = $val;
+        }
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[2]]
+        ];
+        return $response->withJson($callback, 200);
+    });
+});
 
-	// Set the current directory correctly for CLI requests
-	if (defined('STDIN'))
-	{
-		chdir(dirname(__FILE__));
-	}
-
-	if (($_temp = realpath($system_path)) !== FALSE)
-	{
-		$system_path = $_temp.DIRECTORY_SEPARATOR;
-	}
-	else
-	{
-		// Ensure there's a trailing slash
-		$system_path = strtr(
-			rtrim($system_path, '/\\'),
-			'/\\',
-			DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-		).DIRECTORY_SEPARATOR;
-	}
-
-	// Is the system path correct?
-	if ( ! is_dir($system_path))
-	{
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'Your system folder path does not appear to be set correctly. Please open the following file and correct this: '.pathinfo(__FILE__, PATHINFO_BASENAME);
-		exit(3); // EXIT_CONFIG
-	}
-
-/*
- * -------------------------------------------------------------------
- *  Now that we know the path, set the main path constants
- * -------------------------------------------------------------------
- */
-	// The name of THIS file
-	define('SELF', pathinfo(__FILE__, PATHINFO_BASENAME));
-
-	// Path to the system directory
-	define('BASEPATH', $system_path);
-
-	// Path to the front controller (this file) directory
-	define('FCPATH', dirname(__FILE__).DIRECTORY_SEPARATOR);
-
-	// Name of the "system" directory
-	define('SYSDIR', basename(BASEPATH));
-
-	// The path to the "application" directory
-	if (is_dir($application_folder))
-	{
-		if (($_temp = realpath($application_folder)) !== FALSE)
-		{
-			$application_folder = $_temp;
-		}
-		else
-		{
-			$application_folder = strtr(
-				rtrim($application_folder, '/\\'),
-				'/\\',
-				DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-			);
-		}
-	}
-	elseif (is_dir(BASEPATH.$application_folder.DIRECTORY_SEPARATOR))
-	{
-		$application_folder = BASEPATH.strtr(
-			trim($application_folder, '/\\'),
-			'/\\',
-			DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-		);
-	}
-	else
-	{
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'Your application folder path does not appear to be set correctly. Please open the following file and correct this: '.SELF;
-		exit(3); // EXIT_CONFIG
-	}
-
-	define('APPPATH', $application_folder.DIRECTORY_SEPARATOR);
-
-	// The path to the "views" directory
-	if ( ! isset($view_folder[0]) && is_dir(APPPATH.'views'.DIRECTORY_SEPARATOR))
-	{
-		$view_folder = APPPATH.'views';
-	}
-	elseif (is_dir($view_folder))
-	{
-		if (($_temp = realpath($view_folder)) !== FALSE)
-		{
-			$view_folder = $_temp;
-		}
-		else
-		{
-			$view_folder = strtr(
-				rtrim($view_folder, '/\\'),
-				'/\\',
-				DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-			);
-		}
-	}
-	elseif (is_dir(APPPATH.$view_folder.DIRECTORY_SEPARATOR))
-	{
-		$view_folder = APPPATH.strtr(
-			trim($view_folder, '/\\'),
-			'/\\',
-			DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-		);
-	}
-	else
-	{
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'Your view folder path does not appear to be set correctly. Please open the following file and correct this: '.SELF;
-		exit(3); // EXIT_CONFIG
-	}
-
-	define('VIEWPATH', $view_folder.DIRECTORY_SEPARATOR);
-
-/*
- * --------------------------------------------------------------------
- * LOAD THE BOOTSTRAP FILE
- * --------------------------------------------------------------------
- *
- * And away we go...
- */
-require_once BASEPATH.'core/CodeIgniter.php';
+$app->run();
