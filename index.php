@@ -325,7 +325,7 @@ $app->group('/api/v1/products/items', function () {
 /**
  * Customer API
  */
-$app->group('/api/v1/inventory/customers', function () {
+$app->group('/api/v1/customers', function () {
     /**
      * Customer GET Request
      * customer-get
@@ -1219,32 +1219,34 @@ $app->group('/api/v1/inventory/invoices', function () {
         return $response->withJson($callback,200);
      });
     
-    
-    
-    // Commend out for debug isolation, if no use can remove 
-
-    // /**
-    //  * Check transaction_d item exist
-    //  */
-    // $this->group('/transaction/d',function(){
-    //     $this->get('/{item_code}', function (Request $request, Response $response, array $args) {
-    //         $item_code = $args['item_code'];
-    //         $db = connect_db();
-    //         $sql = "SELECT * FROM `t_transaction_d` where item_code = '". $item_code ."';";
+    /**
+     * Check transaction_d item exist API
+     */
+    $this->group('/transaction/d',function(){
+        /**
+         * Transaction D GET Request
+         * Trans-d-get-by-code
+         * 
+         * To check items on transaction d table (use it on delete items)
+         */
+        $this->get('/{item_code}', function (Request $request, Response $response, array $args) {
+            $item_code = $args['item_code'];
+            $db = connect_db();
+            $sql = "SELECT * FROM `t_transaction_d` where item_code = '". $item_code ."';";
         
-    //         $q = $db->prepare($sql);
-    //         $q->execute();
-    //         $dbData = $q->fetch();
-    //         $err = $q->errorinfo();
+            $q = $db->prepare($sql);
+            $q->execute();
+            $dbData = $q->fetch();
+            $err = $q->errorinfo();
         
-    //         $callback = [
-    //             "query" => $dbData,
-    //             "error" => ["code" => $err[0], "message" => $err[2]]
-    //         ];
+            $callback = [
+                "query" => $dbData,
+                "error" => ["code" => $err[0], "message" => $err[2]]
+            ];
         
-    //         return $response->withJson($callback, 200);
-    //     });
-    // });
+            return $response->withJson($callback, 200);
+        });
+    });
 });
 /**
  * Payment API
