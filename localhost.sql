@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Dec 09, 2018 at 06:02 AM
+-- Generation Time: Dec 09, 2018 at 06:51 AM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -466,7 +466,28 @@ CREATE TABLE `t_transaction_d` (
 INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `chi_name`, `qty`, `unit`, `price`, `discount`, `create_date`, `modify_date`) VALUES
 (1, 'QTA2018120948', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2018-12-09 03:57:48', '0000-00-00 00:00:00'),
 (2, 'INV2018120910', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '2.0', '20L', '80.00', '', '2018-12-09 04:07:10', '2018-12-09 04:17:59'),
-(3, 'INV2018120910', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2018-12-09 04:07:10', '0000-00-00 00:00:00');
+(3, 'INV2018120910', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2018-12-09 04:07:10', '0000-00-00 00:00:00'),
+(4, 'INV2018120912', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2018-12-09 05:54:12', '0000-00-00 00:00:00'),
+(5, 'QTA2018120925', 'Pentax', '', 'Pentax 水泵', '1.0', '', '1100.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(6, 'QTA2018120925', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(7, 'QTA2018120925', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(8, 'QTA2018120925', 'MFOLD', 'M-Fold Paper', '方型抹手紙 ', '1.0', '250 Pcs x 16 Pack / C', '150.48', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(9, 'QTA2018120925', 'MFTG', 'Micro Fiber  Cloth (Green)', 'M - Cloth 微纖布(綠色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(10, 'QTA2018120925', 'MFTB', 'Micro Fiber  Cloth (Blue)', 'M - Cloth 微纖布 (藍色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(11, 'QTA2018120925', 'MP0401', 'Multi Purposes Cleaner', 'MP-100 多用途清潔劑', '1.0', '4X1G', '110.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(12, 'QTA2018120925', 'uteoi', 'asdin', 'isnf', '2.0', '4X5', '213.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(13, 'QTA2018120925', 'NAS0200', 'NAS ', 'NAS', '1.0', 'Box set', '230.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(14, 'INV2018120947', 'Pentax', '', 'Pentax 水泵', '1.0', '', '1100.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(15, 'INV2018120947', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(16, 'INV2018120947', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(17, 'INV2018120947', 'MFOLD', 'M-Fold Paper', '方型抹手紙 ', '1.0', '250 Pcs x 16 Pack / C', '150.48', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(18, 'INV2018120947', 'MFTG', 'Micro Fiber  Cloth (Green)', 'M - Cloth 微纖布(綠色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(19, 'INV2018120947', 'MFTB', 'Micro Fiber  Cloth (Blue)', 'M - Cloth 微纖布 (藍色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(20, 'INV2018120947', 'MP0401', 'Multi Purposes Cleaner', 'MP-100 多用途清潔劑', '1.0', '4X1G', '110.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(21, 'INV2018120947', 'uteoi', 'asdin', 'isnf', '2.0', '4X5', '213.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(22, 'INV2018120947', 'NAS0200', 'NAS ', 'NAS', '1.0', 'Box set', '230.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(23, 'QTA2018120919', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2018-12-09 06:39:20', '0000-00-00 00:00:00'),
+(24, 'QTA2018120919', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2018-12-09 06:39:20', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -486,6 +507,7 @@ CREATE TABLE `t_transaction_h` (
   `shop_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
   `is_void` tinyint(1) NOT NULL,
+  `is_convert` tinyint(1) NOT NULL,
   `create_date` datetime NOT NULL,
   `modify_date` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -494,9 +516,12 @@ CREATE TABLE `t_transaction_h` (
 -- Dumping data for table `t_transaction_h`
 --
 
-INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `create_date`, `modify_date`) VALUES
-(1, 'QTA2018120948', 'C150404', '', 'QTA', '80.00', 110022, 'HQ02', 'Testing', 0, '2018-12-09 03:57:48', '0000-00-00 00:00:00'),
-(2, 'INV2018120910', 'C150404', 'QTA2018120948', 'INV', '280.00', 110022, 'HQ02', 'Testing', 0, '2018-12-09 04:07:10', '2018-12-09 04:17:59');
+INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `is_convert`, `create_date`, `modify_date`) VALUES
+(1, 'QTA2018120948', 'C150404', '', 'QTA', '80.00', 110022, 'HQ02', 'Testing', 0, 1, '2018-12-09 03:57:48', '2018-12-09 05:54:12'),
+(3, 'INV2018120912', 'C150404', 'QTA2018120948', 'INV', '80.00', 110022, 'HQ02', 'Testing', 0, 0, '2018-12-09 05:54:12', '0000-00-00 00:00:00'),
+(4, 'QTA2018120925', 'C150402', '', 'QTA', '2386.48', 110022, 'HQ02', '', 0, 1, '2018-12-09 06:19:25', '2018-12-09 06:20:47'),
+(5, 'INV2018120947', 'C150402', 'QTA2018120925', 'INV', '2386.48', 110022, 'HQ02', '', 0, 0, '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(6, 'QTA2018120919', 'C150402', '', 'QTA', '260.00', 110022, 'HQ02', '', 0, 0, '2018-12-09 06:39:20', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -520,7 +545,11 @@ CREATE TABLE `t_transaction_t` (
 
 INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_date`, `modify_date`) VALUES
 (1, 'QTA2018120948', 'PM002', '80.00', '2018-12-09 03:57:48', '0000-00-00 00:00:00'),
-(2, 'INV2018120910', 'PM002', '280.00', '2018-12-09 04:07:10', '2018-12-09 04:17:59');
+(2, 'INV2018120910', 'PM002', '280.00', '2018-12-09 04:07:10', '2018-12-09 04:17:59'),
+(3, 'INV2018120912', 'PM002', '80.00', '2018-12-09 05:54:12', '0000-00-00 00:00:00'),
+(4, 'QTA2018120925', 'PM003', '2386.48', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
+(5, 'INV2018120947', 'PM003', '2386.48', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
+(6, 'QTA2018120919', 'PM003', '260.00', '2018-12-09 06:39:20', '0000-00-00 00:00:00');
 
 --
 -- Indexes for dumped tables
@@ -710,19 +739,19 @@ ALTER TABLE `t_stock`
 -- AUTO_INCREMENT for table `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `t_transaction_h`
 --
 ALTER TABLE `t_transaction_h`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `t_transaction_t`
 --
 ALTER TABLE `t_transaction_t`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

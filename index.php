@@ -505,7 +505,8 @@ $app->group('/api/v1/inventory/quotations', function () {
                 th.remark as 'remark',
                 th.shop_code as 'shopcode',
                 th.cust_code as 'cust_code',
-                th.total as 'total'
+                th.total as 'total',
+                th.is_convert as 'is_convert'
             FROM `t_transaction_h` as th
             left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.trans_code = '".$_trans_code."';
         ";
@@ -1194,6 +1195,16 @@ $app->group('/api/v1/inventory/invoices', function () {
 
         // if has quotation
         if(!empty($quotation))
+        {
+            $sql = $db->prepare(
+                "UPDATE t_transaction_h SET
+                is_convert = 1, 
+                modify_date =  '".$date."'
+                WHERE trans_code = '".$quotation."';"
+            );
+            $sql->execute();
+            $err[] = $sql->errorinfo();
+        }
 
         $db->commit();
     
