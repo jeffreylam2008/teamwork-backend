@@ -18,12 +18,14 @@ $c['notFoundHandler'] = function ($c) {
 $app = new \Slim\App($c);
 
 /**
- * Categories
+ * Categories API
  */
 $app->group('/api/v1/products/categories', function () {
     /**
-     * Categories Method GET
+     * Categories GET Request
+     * categories-get
      * 
+     * To get all record
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $err="";
@@ -44,8 +46,10 @@ $app->group('/api/v1/products/categories', function () {
         
     });
     /**
-     * Categories Method GET with ID
+     * Categories GET Request
+     * categories-get-by-code
      * 
+     * To get single record base on code
      */
     $this->get('/{cate_code}', function(Request $request, Response $response, array $args){
         $err="";
@@ -65,8 +69,10 @@ $app->group('/api/v1/products/categories', function () {
         return $response->withJson($callback, 200);
     });
     /**
-     * Categories Method PATCH
+     * Categories PATCH Request
+     * categories-patch
      * 
+     * To update current record on DB
      */
     $this->patch('/{cate_code}', function(Request $request, Response $response, array $args){
         $err = [];
@@ -89,8 +95,10 @@ $app->group('/api/v1/products/categories', function () {
         
     });
     /**
-     * Categories Method POST
+     * Categories POST Request
+     * categories-post
      * 
+     * To create new record
      */
     $this->post('/', function(Request $request, Response $response, array $args){
         $err = [];
@@ -112,7 +120,10 @@ $app->group('/api/v1/products/categories', function () {
         return $response->withJson($callback, 200);
     });
     /**
-     * Categories Method DELETE
+     * Categories DELETE Request
+     * categories-delete
+     * 
+     * To remove record from DB
      */
     $this->delete('/{cate_code}', function(Request $request, Response $response, array $args){
         $_cate_code = $args['cate_code'];
@@ -131,12 +142,14 @@ $app->group('/api/v1/products/categories', function () {
     });
 });
 /**
- * Items
+ * Items API
  */
 $app->group('/api/v1/products/items', function () {
     /**
-     * Items Method GET
+     * Items GET Request
+     * item-get
      * 
+     * To get all items record
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $err=[];
@@ -156,7 +169,10 @@ $app->group('/api/v1/products/items', function () {
             return $response->withJson($callback, 200);
     });
     /**
-     * Varify categories in item table
+     * Items GET Request
+     * items-get-by-code
+     * 
+     * To verify current code record is exist
      */
     $this->get('/has/category/{cate_code}', function(Request $request, Response $response, array $args){
         $err=[];
@@ -187,8 +203,10 @@ $app->group('/api/v1/products/items', function () {
         return $response->withJson($callback, 200);
     });
     /**
-     * Items Method GET with ID
+     * Items GET Request
+     * items-get-by-code
      * 
+     * To get single items record based on the code
      */
     $this->get('/{item_code}', function(Request $request, Response $response, array $args){
         $err=[];
@@ -207,8 +225,10 @@ $app->group('/api/v1/products/items', function () {
         return $response->withJson($callback, 200);
     });
     /**
-     * Items Method POST
+     * Items POST Request
+     * items-post
      * 
+     * To create new items record 
      */
     $this->post('/',function(Request $request, Response $response, array $args){
         $err=[];
@@ -244,9 +264,10 @@ $app->group('/api/v1/products/items', function () {
         return $response->withJson($callback,200);
     });
     /**
-     * Items Method PATCH
+     * Items PATCH Request
+     * items-patch
      * 
-     * edit item record to DB
+     * To update existing record
      */
     $this->patch('/{item_code}', function(Request $request, Response $response, array $args){
         
@@ -279,9 +300,10 @@ $app->group('/api/v1/products/items', function () {
         return $response->withJson($callback, 200);
     });
     /**
-     * Items Delete with items code
+     * Items DELETE Request
+     * items-delete
      * 
-     * delete record to DB
+     * To delete items record from DB
      */
     $this->delete('/{item_code}', function (Request $request, Response $response, array $args) {
         $_item_code = $args['item_code'];
@@ -301,11 +323,14 @@ $app->group('/api/v1/products/items', function () {
 
 });
 /**
- * Customer
+ * Customer API
  */
 $app->group('/api/v1/inventory/customers', function () {
     /**
-     * GET Request
+     * Customer GET Request
+     * customer-get
+     * 
+     * To get all customer record
      */
     $this->get('/', function(Request $request, Response $response, array $args) {
         $err = "";
@@ -327,7 +352,10 @@ $app->group('/api/v1/inventory/customers', function () {
         }
     });
     /**
-     * GET Request with cust code
+     * Customer GET Request
+     * customer-get-by-code
+     * 
+     * To get single record based on the customer code
      */
     $this->get('/{cust_code}', function(Request $request, Response $response, array $args){
         $_cust_code = $args['cust_code'];
@@ -351,16 +379,25 @@ $app->group('/api/v1/inventory/customers', function () {
         }
     });
     /**
-     *  POST Request
+     * Customer POST Request
+     * customer-post
+     * 
+     * To create new record on customer table 
      */
     $this->post("/", function(Request $request, Response $response, array $args){
        
     });
 });
 /**
- * Quotation
+ * Quotation API
  */
 $app->group('/api/v1/inventory/quotations', function () {
+    /**
+     * Quotations GET Request
+     * quotations-get
+     * 
+     * To get all quotations record
+     */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $_callback = [];
         $_err = [];
@@ -440,9 +477,10 @@ $app->group('/api/v1/inventory/quotations', function () {
     });
     
     /**
-     * Quotation GET request 
-     *
-     * Get quotation by ID
+     * Quotation GET Request
+     * quotations-get-by-code
+     * 
+     * To get single quotations record
      */
     $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
         // inital variable
@@ -545,6 +583,8 @@ $app->group('/api/v1/inventory/quotations', function () {
     
     /** 
      * Quotation PATCH request
+     * quotations-patch
+     * @param body
      * 
      * to update input to database
      */
@@ -656,7 +696,9 @@ $app->group('/api/v1/inventory/quotations', function () {
     
     
     /**
-     * Quotation POST request
+     * Quotations POST request
+     * quotations-post
+     * @param body
      * 
      * Add new record to DB
      */
@@ -734,6 +776,16 @@ $app->group('/api/v1/inventory/quotations', function () {
      });
 
     /**
+     * Quotations Delete Request
+     * quotations-delete
+     * 
+     * To remove quotation record based on quotation code
+     */
+    $this->delete('/{trans_code}', function(Request $request, Response $response, array $args){
+        $_trans_code = $args['trans_code'];
+        return $response->withJson($_trans_code,200);
+    });
+    /**
      * Check transaction_d item exist
      */
     // $this->group('/transaction/d',function(){
@@ -759,10 +811,17 @@ $app->group('/api/v1/inventory/quotations', function () {
     //     });
     // });
 });
+    
 /**
- * Invoices
+ * Invoices API
  */
 $app->group('/api/v1/inventory/invoices', function () {
+    /**
+     * Invoices GET request
+     * invoices-get
+     * 
+     * To get all invoice record
+     */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $_callback = [];
         $_err = [];
@@ -843,8 +902,9 @@ $app->group('/api/v1/inventory/invoices', function () {
     });
     
     /**
-     * GET request 
-     *
+     * Invoices GET request 
+     * invoices-get-by-code
+     * 
      * Get invoices by ID
      */
     $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
@@ -949,6 +1009,8 @@ $app->group('/api/v1/inventory/invoices', function () {
     
     /** 
      * PATCH request
+     * invoices-patch-by-code
+     * @param body
      * 
      * to update input to database
      */
@@ -1065,6 +1127,8 @@ $app->group('/api/v1/inventory/invoices', function () {
     
     /**
      * POST request
+     * invoices-post
+     * @param body
      * 
      * Add new record to DB
      */
@@ -1077,7 +1141,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         extract($body);
     
         $db->beginTransaction();
-    
+        // insert record to transaction_h
         $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, create_date) 
             values (
                 '".$invoicenum."',
@@ -1094,7 +1158,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $q = $db->prepare($sql);
         $q->execute();
         $err = $q->errorinfo();
-    
+        // insert record to transaction_d
         if($err[2]==null)
         {
             foreach($items as $k => $v)
@@ -1127,6 +1191,10 @@ $app->group('/api/v1/inventory/invoices', function () {
             $tr->execute();
             $err[] = $tr->errorinfo();
         }
+
+        // if has quotation
+        if(!empty($quotation))
+
         $db->commit();
     
         if($err[2] == null)
@@ -1139,34 +1207,44 @@ $app->group('/api/v1/inventory/invoices', function () {
         ];
         return $response->withJson($callback,200);
      });
+    
+    
+    
+    // Commend out for debug isolation, if no use can remove 
 
-    /**
-     * Check transaction_d item exist
-     */
-    $this->group('/transaction/d',function(){
-        $this->get('/{item_code}', function (Request $request, Response $response, array $args) {
-            $item_code = $args['item_code'];
-            $db = connect_db();
-            $sql = "SELECT * FROM `t_transaction_d` where item_code = '". $item_code ."';";
+    // /**
+    //  * Check transaction_d item exist
+    //  */
+    // $this->group('/transaction/d',function(){
+    //     $this->get('/{item_code}', function (Request $request, Response $response, array $args) {
+    //         $item_code = $args['item_code'];
+    //         $db = connect_db();
+    //         $sql = "SELECT * FROM `t_transaction_d` where item_code = '". $item_code ."';";
         
-            $q = $db->prepare($sql);
-            $q->execute();
-            $dbData = $q->fetch();
-            $err = $q->errorinfo();
+    //         $q = $db->prepare($sql);
+    //         $q->execute();
+    //         $dbData = $q->fetch();
+    //         $err = $q->errorinfo();
         
-            $callback = [
-                "query" => $dbData,
-                "error" => ["code" => $err[0], "message" => $err[2]]
-            ];
+    //         $callback = [
+    //             "query" => $dbData,
+    //             "error" => ["code" => $err[0], "message" => $err[2]]
+    //         ];
         
-            return $response->withJson($callback, 200);
-        });
-    });
+    //         return $response->withJson($callback, 200);
+    //     });
+    // });
 });
 /**
- * Tender
+ * Payment API
  */
 $app->group('/api/v1/systems/payments',function(){
+    /**
+     * Payment GET Request
+     * payment-get
+     * 
+     * To get all payment record 
+     */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $db = connect_db();
         $sql = "select * from `t_payment_method`; ";
@@ -1203,9 +1281,16 @@ $app->group('/api/v1/systems/payments',function(){
     });
 });
 /**
- * Employee
+ * Employee API
  */
 $app->group('/api/v1/systems/employee', function () {
+    /**
+     * Employee GET Request
+     * employee-get-by-code
+     * 
+     * To get employee record
+     * 
+     */
     $this->get('/{username}', function (Request $request, Response $response, array $args) {
         $_username = $args['username'];
         $db = connect_db();
@@ -1228,6 +1313,12 @@ $app->group('/api/v1/systems/employee', function () {
  * Menu 
  */
 $app->group('/api/v1/systems/menu', function () {
+    /**
+     * Menu get request
+     * menu-get-sidebar
+     * 
+     * To get sidebar menu
+     */
     $this->get('/side', function (Request $request, Response $response, array $args) {
         $data = [
             ["order" => 0, "id" => 1, "parent_id" => "", "name" => "login", "isParent" => "", "slug"=>"login", "param" => "login/index" ],
@@ -1259,9 +1350,15 @@ $app->group('/api/v1/systems/menu', function () {
     });
 });
 /**
- * Shop
+ * Shop API
  */
 $app->group('/api/v1/systems/shops', function () {
+    /**
+     * Shop GET request
+     * shop-get
+     * 
+     * To get shop record 
+     */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $err = "";
         $db = connect_db();

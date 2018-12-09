@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Oct 10, 2018 at 05:55 PM
+-- Generation Time: Dec 09, 2018 at 06:02 AM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -24,6 +24,20 @@ SET time_zone = "+00:00";
 DROP DATABASE IF EXISTS `teamwork`;
 CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 USE `teamwork`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_audit_log`
+--
+
+DROP TABLE IF EXISTS `t_audit_log`;
+CREATE TABLE `t_audit_log` (
+  `uid` int(10) NOT NULL,
+  `date` datetime NOT NULL,
+  `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+  `event` varchar(255) COLLATE utf8_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -125,23 +139,6 @@ INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `defau
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_inventory`
---
-
-DROP TABLE IF EXISTS `t_inventory`;
-CREATE TABLE `t_inventory` (
-  `uid` int(10) NOT NULL,
-  `inv_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
-  `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
-  `qty` double NOT NULL,
-  `type` enum('in','out','hold','') COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `t_items`
 --
 
@@ -151,7 +148,7 @@ CREATE TABLE `t_items` (
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `eng_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `chi_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
-  `desc` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `desc` text COLLATE utf8_unicode_ci NOT NULL,
   `price` decimal(10,2) NOT NULL,
   `price_special` decimal(10,2) NOT NULL,
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
@@ -165,8 +162,8 @@ CREATE TABLE `t_items` (
 --
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
-(1, 'GIFT', 'GIFT', 'GIFT', '                                 ', '10.00', '0.00', 'PDT', '20PCS/PACK', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(2, 'GUS0120', 'Gel Urinal Screen1', '香味尿格1', '                                                                ', '110.00', '1.00', 'SVR', '20PCS/PACK1', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(1, 'GIFT', 'GIFT1', 'GIFT1', '                                                                                                 ', '10.00', '0.00', 'PDT', '20PCS/PACK', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(2, 'GUS0120', 'Gel Urinal Screen1', '香味尿格1', '', '110.00', '1.00', 'SVR', '20PCS/PACK1', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (3, 'Pentax', '', 'Pentax 水泵', '', '1100.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (4, 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '', '328.00', '0.00', 'PDT', '10 Ltr / Pail', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (6, 'DA0405', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '', '0.00', '0.00', 'PDT', '4X5L', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
@@ -291,7 +288,9 @@ INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `pric
 (126, 'icinddkmad', 'ksndej', 'kadksd', '', '23.00', '33.00', 'PDT', '4X3 L', '2018-09-15 16:54:17', '0000-00-00 00:00:00'),
 (127, 'uteoi', 'asdin', 'isnf', '', '213.00', '3213.00', 'SVR', '4X5', '2018-09-16 10:48:49', '0000-00-00 00:00:00'),
 (130, 'sadad', 'asda', 'dasd', '', '123.00', '123.00', 'SVR', '4X3', '2018-09-16 12:52:16', '0000-00-00 00:00:00'),
-(135, 'scjsdck', 'nskcn', 'jknksncknskc', '', '32.00', '32.00', 'PDT', '', '2018-09-16 18:20:00', '0000-00-00 00:00:00');
+(135, 'scjsdck', 'nskcn', 'jknksncknskc', '', '32.00', '32.00', 'PDT', '', '2018-09-16 18:20:00', '0000-00-00 00:00:00'),
+(136, 'NAS0200', 'NAS ', 'NAS', 'Network A Server', '230.00', '0.00', 'Can', 'Box set', '2018-10-15 16:55:51', '0000-00-00 00:00:00'),
+(139, 'GF703', 'eng', 'chinese', 'testing', '703.00', '0.00', 'MAT', '2dasd', '2018-12-06 08:38:34', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -313,12 +312,11 @@ CREATE TABLE `t_items_category` (
 --
 
 INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modify_date`) VALUES
-(1, 'PDT', 'Product', '2018-04-25 00:00:00', '2018-04-25 00:00:00'),
-(2, 'SVR', 'Service ', '2018-04-25 00:00:00', '2018-04-25 00:00:00'),
+(1, 'PDT1', 'wrwewsd', '2018-10-30 16:57:34', '2018-04-25 00:00:00'),
+(2, 'SVR', 'Service ', '2018-12-06 07:56:45', '2018-04-25 00:00:00'),
 (3, 'MAT', 'Maintenance', '2018-04-25 00:00:00', '2018-04-25 00:00:00'),
 (15, 'Can', 'a box of can gategory', '2018-10-03 17:29:33', '0000-00-00 00:00:00'),
-(16, 'try', 'trt', '2018-10-04 18:07:24', '0000-00-00 00:00:00'),
-(17, 'category1', 'testing item', '2018-10-08 18:46:35', '0000-00-00 00:00:00');
+(16, 'TRI', 'test code ', '2018-12-06 07:49:25', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -426,6 +424,23 @@ INSERT INTO `t_shop` (`uid`, `shop_code`, `name`, `phone`, `address1`, `address2
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `t_stock`
+--
+
+DROP TABLE IF EXISTS `t_stock`;
+CREATE TABLE `t_stock` (
+  `uid` int(10) NOT NULL,
+  `inv_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
+  `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
+  `qty` double NOT NULL,
+  `type` enum('in','out','hold','') COLLATE utf8_unicode_ci NOT NULL,
+  `create_date` datetime NOT NULL,
+  `modify_date` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `t_transaction_d`
 --
 
@@ -449,33 +464,9 @@ CREATE TABLE `t_transaction_d` (
 --
 
 INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `chi_name`, `qty`, `unit`, `price`, `discount`, `create_date`, `modify_date`) VALUES
-(6, 'INV2018080506', 'DR0120', 'Dishmachine Rinse Agent', 'DR-100 洗碗碟機催乾劑', '1.0', '20L', '130.00', '', '2018-08-05 08:37:07', '2018-09-24 19:36:58'),
-(11, 'INV2018080506', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '2.0', '20L', '80.00', '', '2018-08-05 08:37:07', '2018-09-24 19:36:58'),
-(13, 'INV2018080506', 'EC0112', 'Easy Clean', '易潔', '1.0', '12x500ml', '200.00', '', '2018-08-05 08:37:07', '2018-09-24 19:36:58'),
-(14, 'INV2018080506', 'EWP0404', 'High Concentrated Multi-Purpose Cleaner', 'Easy Wash Plus 超濃縮全能清潔劑', '1.0', '4x4 Ltr / C', '130.00', '', '2018-08-05 08:37:07', '2018-09-24 19:36:58'),
-(15, 'INV2018081451', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '3.0', '10 Ltr / Pail', '328.00', '', '2018-08-14 15:48:12', '2018-10-06 02:12:35'),
-(16, 'INV2018081451', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '3.0', '20L', '80.00', '', '2018-08-14 15:48:12', '2018-10-06 02:12:35'),
-(17, 'INV2018081442', 'DA0205', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '2x5 Ltr', '340.00', '', '2018-08-14 17:05:43', '2018-09-25 07:42:14'),
-(18, 'INV2018081442', 'MFOLD', 'M-Fold Paper', '方型抹手紙 ', '2.0', '250 Pcs x 16 Pack / C', '150.48', '', '2018-08-14 17:05:43', '2018-09-25 07:42:14'),
-(19, 'INV2018081442', 'SR0105', 'Stain Remover', 'SR-100 浸漬粉', '1.0', '5KG', '80.00', '', '2018-08-14 17:05:43', '2018-09-25 07:42:14'),
-(20, 'INV2018081425', 'MFTN', 'Micro Fiber  Cloth (Brown)', 'M - Cloth 微纖布 (啡色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-08-14 17:05:25', '2018-09-16 12:17:08'),
-(21, 'INV2018081425', 'DR01', 'Plate Rack', '洗碗碟機用針篩', '1.0', '1 Pcs', '60.00', '', '2018-08-14 17:05:25', '2018-09-16 12:17:08'),
-(22, 'INV2018081425', 'GT-CR1', 'G-Tek GT-CR1 Conveyor Type Dishwasher', 'G-Tek GT-CR1 運輸帶式洗碗碟機 ', '1.0', '', '47600.00', '', '2018-08-14 17:05:25', '2018-09-16 12:17:08'),
-(23, 'INV2018090305', 'DA0205', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '2x5 Ltr', '340.00', '', '2018-09-03 15:54:05', '0000-00-00 00:00:00'),
-(24, 'INV2018090305', 'F160205', 'Chlorinated Floor Cleaner', 'F-16 高濃縮氯性地面清潔劑', '1.0', '2x5 Ltr', '67.00', '', '2018-09-03 15:54:05', '0000-00-00 00:00:00'),
-(25, 'INV2018090305', 'GD-P', 'High Concentrated Grill Degreaser', 'GD-Plus 超濃縮扒爐水', '1.0', '4x1Gal', '170.00', '', '2018-09-03 15:54:05', '0000-00-00 00:00:00'),
-(26, 'INV2018090305', 'MP0401', 'Multi Purposes Cleaner', 'MP-100 多用途清潔劑', '1.0', '4X1G', '110.00', '', '2018-09-03 15:54:05', '0000-00-00 00:00:00'),
-(27, 'INV2018091852', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '2.0', '20L', '80.00', '', '2018-09-18 17:56:53', '0000-00-00 00:00:00'),
-(28, 'INV2018091852', 'GD0405', 'Grill Degreaser', '爐具清潔劑', '1.0', '4X5L', '340.00', '', '2018-09-18 17:56:53', '0000-00-00 00:00:00'),
-(29, 'INV2018091852', 'DM0105', 'Concentrated Oxygenic Stain Remover', 'Dip Master 高濃縮活氧浸漬粉', '2.0', '5 KGS / Pail', '80.00', '', '2018-09-18 17:56:53', '0000-00-00 00:00:00'),
-(30, 'INV2018091852', 'DM0404', 'Concentrated Oxygenic Stain Remover', 'Dip Master 高濃縮活氧浸漬粉', '4.0', '4x4 KGS / C', '310.00', '', '2018-09-18 17:56:53', '0000-00-00 00:00:00'),
-(31, 'INV2018100639', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '6.0', '20L', '80.00', '', '2018-10-06 02:01:39', '0000-00-00 00:00:00'),
-(32, 'INV2018100621', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2018-10-06 04:01:27', '0000-00-00 00:00:00'),
-(33, 'INV2018100619', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '34.0', '20L', '80.00', '', '2018-10-06 04:35:49', '0000-00-00 00:00:00'),
-(34, 'INV2018100619', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '6.0', '10 Ltr / Pail', '328.00', '', '2018-10-06 04:35:49', '0000-00-00 00:00:00'),
-(35, 'INV2018100845', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '7.0', '10 Ltr / Pail', '328.00', '', '2018-10-08 18:44:45', '0000-00-00 00:00:00'),
-(36, 'INV2018100845', 'DF0105', 'Concentrated Dishwasher Drying Agent', 'Dry Flash 高濃縮洗碗碟機快乾劑', '2.0', '5 Ltr / Bottle', '45.00', '', '2018-10-08 18:44:45', '0000-00-00 00:00:00'),
-(37, 'INV2018100845', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '2.0', '20 Ltr / Pail', '180.00', '', '2018-10-08 18:44:45', '0000-00-00 00:00:00');
+(1, 'QTA2018120948', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2018-12-09 03:57:48', '0000-00-00 00:00:00'),
+(2, 'INV2018120910', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '2.0', '20L', '80.00', '', '2018-12-09 04:07:10', '2018-12-09 04:17:59'),
+(3, 'INV2018120910', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2018-12-09 04:07:10', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -504,16 +495,8 @@ CREATE TABLE `t_transaction_h` (
 --
 
 INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `create_date`, `modify_date`) VALUES
-(1, 'INV2018080506', 'C150301', '', 'INV', '620.00', 110022, 'HQ01', 'test\ntesthttp://[::1]/webapp/invoices/edit/INV2018080506\n#20 	Dishmachine Rinse Agent 	DR-100 洗碗碟機催乾劑 	1.0 	20L 	130.00 	130.00 	\n2 	DD0120 	D', 0, '2018-08-05 08:37:07', '2018-09-24 19:36:58'),
-(2, 'INV2018081451', 'C150301', '', 'INV', '408.00', 110022, 'HQ01', 'test\n\ntest\n', 0, '2018-08-14 15:48:12', '2018-10-06 02:12:35'),
-(3, 'INV2018081442', 'C150403', '', 'INV', '720.96', 110022, 'HQ01', 'terrrwewe\ndefw\nfef\n\nfew', 0, '2018-08-14 17:05:43', '2018-09-25 07:42:14'),
-(4, 'INV2018081425', 'C150302', '', 'INV', '47695.00', 110022, 'HQ01', 'yeah\nunr\nad\n\nasd\nlarge price', 0, '2018-08-14 17:05:25', '2018-09-16 12:17:08'),
-(5, 'INV2018090305', 'C150404', '', 'INV', '687.00', 110022, 'HQ01', 'new test', 0, '2018-09-03 15:54:05', '0000-00-00 00:00:00'),
-(6, 'INV2018091852', 'C150408', '', 'INV', '1900.00', 110022, 'HQ01', 'test test', 0, '2018-09-18 17:56:53', '0000-00-00 00:00:00'),
-(7, 'INV2018100639', 'C150404', '', 'INV', '80.00', 110022, 'HQ02', 'test', 0, '2018-10-06 02:01:39', '0000-00-00 00:00:00'),
-(8, 'INV2018100621', 'C150403', '', 'INV', '80.00', 110022, 'HQ01', '', 0, '2018-10-06 04:01:27', '0000-00-00 00:00:00'),
-(9, 'INV2018100619', 'C150403', '', 'INV', '4688.00', 110022, 'HQ01', '', 0, '2018-10-06 04:35:49', '0000-00-00 00:00:00'),
-(10, 'INV2018100845', 'C150404', '', 'INV', '2746.00', 110022, 'HQ02', '', 0, '2018-10-08 18:44:45', '0000-00-00 00:00:00');
+(1, 'QTA2018120948', 'C150404', '', 'QTA', '80.00', 110022, 'HQ02', 'Testing', 0, '2018-12-09 03:57:48', '0000-00-00 00:00:00'),
+(2, 'INV2018120910', 'C150404', 'QTA2018120948', 'INV', '280.00', 110022, 'HQ02', 'Testing', 0, '2018-12-09 04:07:10', '2018-12-09 04:17:59');
 
 -- --------------------------------------------------------
 
@@ -536,20 +519,18 @@ CREATE TABLE `t_transaction_t` (
 --
 
 INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_date`, `modify_date`) VALUES
-(1, 'INV2018080506', 'PM001', '620.00', '2018-08-05 08:37:07', '2018-09-24 19:36:58'),
-(2, 'INV2018081451', 'PM001', '408.00', '2018-08-14 15:48:12', '2018-10-06 02:12:35'),
-(3, 'INV2018081442', 'PM001', '720.96', '2018-08-14 17:05:43', '2018-09-25 07:42:14'),
-(4, 'INV2018081425', 'PM002', '47695.00', '2018-08-14 17:05:25', '2018-09-16 12:17:08'),
-(5, 'INV2018090305', 'PM002', '687.00', '2018-09-03 15:54:05', '0000-00-00 00:00:00'),
-(6, 'INV2018091852', 'PM001', '1900.00', '2018-09-18 17:56:53', '0000-00-00 00:00:00'),
-(7, 'INV2018100639', 'PM002', '80.00', '2018-10-06 02:01:39', '0000-00-00 00:00:00'),
-(8, 'INV2018100621', 'PM001', '80.00', '2018-10-06 04:01:27', '0000-00-00 00:00:00'),
-(9, 'INV2018100619', 'PM001', '4688.00', '2018-10-06 04:35:49', '0000-00-00 00:00:00'),
-(10, 'INV2018100845', 'PM002', '2746.00', '2018-10-08 18:44:45', '0000-00-00 00:00:00');
+(1, 'QTA2018120948', 'PM002', '80.00', '2018-12-09 03:57:48', '0000-00-00 00:00:00'),
+(2, 'INV2018120910', 'PM002', '280.00', '2018-12-09 04:07:10', '2018-12-09 04:17:59');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `t_audit_log`
+--
+ALTER TABLE `t_audit_log`
+  ADD PRIMARY KEY (`uid`);
 
 --
 -- Indexes for table `t_customers`
@@ -572,14 +553,6 @@ ALTER TABLE `t_delivery`
 ALTER TABLE `t_employee`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `unique_employee_code` (`employee_code`);
-
---
--- Indexes for table `t_inventory`
---
-ALTER TABLE `t_inventory`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `uid_unique` (`inv_code`) USING BTREE,
-  ADD KEY `uid_index` (`inv_code`) USING BTREE;
 
 --
 -- Indexes for table `t_items`
@@ -630,6 +603,14 @@ ALTER TABLE `t_shop`
   ADD KEY `shopcode_index` (`shop_code`) USING BTREE;
 
 --
+-- Indexes for table `t_stock`
+--
+ALTER TABLE `t_stock`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `uid_unique` (`inv_code`) USING BTREE,
+  ADD KEY `uid_index` (`inv_code`) USING BTREE;
+
+--
 -- Indexes for table `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
@@ -660,6 +641,12 @@ ALTER TABLE `t_transaction_t`
 --
 
 --
+-- AUTO_INCREMENT for table `t_audit_log`
+--
+ALTER TABLE `t_audit_log`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `t_customers`
 --
 ALTER TABLE `t_customers`
@@ -678,22 +665,16 @@ ALTER TABLE `t_employee`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `t_inventory`
---
-ALTER TABLE `t_inventory`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `t_items`
 --
 ALTER TABLE `t_items`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=136;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140;
 
 --
 -- AUTO_INCREMENT for table `t_items_category`
 --
 ALTER TABLE `t_items_category`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `t_items_price`
@@ -720,22 +701,28 @@ ALTER TABLE `t_shop`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `t_stock`
+--
+ALTER TABLE `t_stock`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `t_transaction_h`
 --
 ALTER TABLE `t_transaction_h`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `t_transaction_t`
 --
 ALTER TABLE `t_transaction_t`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
