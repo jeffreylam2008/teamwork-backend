@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Dec 09, 2018 at 04:36 PM
+-- Generation Time: Dec 10, 2018 at 04:54 PM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -34,7 +34,7 @@ USE `teamwork`;
 DROP TABLE IF EXISTS `t_audit_log`;
 CREATE TABLE `t_audit_log` (
   `uid` int(10) NOT NULL,
-  `date` datetime NOT NULL,
+  `datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
   `event` varchar(255) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -75,18 +75,18 @@ CREATE TABLE `t_customers` (
 --
 
 INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `delivery_addr`, `attn_1`, `phone_1`, `fax_1`, `email_1`, `attn_2`, `phone_2`, `fax_2`, `email_2`, `statement_remark`, `name`, `group_name`, `pm_code`, `pt_code`, `remark`, `create_date`, `modify_date`) VALUES
-(1, 'C150301', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '豪哥', '9714', '0', '', '', '', '', '', '不用寄月結單', '峰飲食 MI-NE Restaurant', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(2, 'C150302', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '戴先生', '6797', '0', '', '', '', '', '', '', '孖寶車仔麵', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(3, 'C150401', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', 'Mo哥', '9125', '2527', '', '', '', '', '', '', '金蒂餐廳 Cinta-J', '', '', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(4, 'C150402', '香港柴灣利眾街24號東貿廣場6/F', '香港循理會-社會服務部香港北角百福道21號香港青年協會大廈1901室', '香港柴灣利眾街24號東貿廣場6/F', '蘇小姐(店長)', '9634', '0', '', '', '', '', '', '附上回郵信封', 'Fantastic Cafe (柴灣)', '香港循理會', 'PM003', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(5, 'C150403', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '李院長', '2474', '0', '', '', '', '', '', '', '基德(泰衡)護老院有限公司', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(6, 'C150404', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '波仔', '9813', '0', '', '', '', '', '', '', '好德來小籠包店', '', 'PM002', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(7, 'C150405', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', 'Angel', '9132', '0', '', '', '', '', '', '附上回郵信封', '福村日本料理', '', 'PM003', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(8, 'C150406', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '朱經理', '6236', '0', '', '', '', '', '', '', '粵來順 (旺角)', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(9, 'C150407', '香港太古城太古城道26號漢宮閣地下411號舖', '九龍灣常悅道1號 恩浩國際中心5樓D室', '香港太古城太古城道26號漢宮閣地下411號舖', '黃經理', '9870', '0', '', '', '', '', '', '附上回郵信封', '華昌粥麵', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(10, 'C150408', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '蘭姐', '9707', '0', '', '', '', '', '', '附上回郵信封', '讚記廚房 (西環店) A Plus Kitchen', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(11, 'C150409', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '蘭姐', '9707', '0', '', '', '', '', '', '附上回郵信封', '讚記 (尖沙咀店)   A Plus Kitchen', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(12, 'C150410', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '', '0', '0', '', '', '', '', '', '', 'OUT DART (尖沙咀)', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+(1, 'C150301', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '豪哥', '9714 8829', '0', '', '', '', '', '', '不用寄月結單', '峰飲食 MI-NE Restaurant', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(2, 'C150302', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '戴先生', '6797 8829', '0', '', '', '', '', '', '', '孖寶車仔麵', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(3, 'C150401', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', 'Mo哥', '9125 8829', '2345 1234', '', '', '', '', '', '', '金蒂餐廳 Cinta-J', '', '', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(4, 'C150402', '香港柴灣利眾街24號東貿廣場6/F', '香港循理會-社會服務部香港北角百福道21號香港青年協會大廈1901室', '香港柴灣利眾街24號東貿廣場6/F', '蘇小姐(店長)', '9634 8829', '3634 8829', '', '', '', '', '', '附上回郵信封', 'Fantastic Cafe (柴灣)', '香港循理會', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(5, 'C150403', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '李院長', '2474 8829', '0', '', '', '', '', '', '', '基德(泰衡)護老院有限公司', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(6, 'C150404', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '波仔', '9813 8829', '0', '', '', '', '', '', '', '好德來小籠包店', '', 'PM002', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(7, 'C150405', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', 'Angel', '9132 8829', '0', '', '', '', '', '', '附上回郵信封', '福村日本料理', '', 'PM002', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(8, 'C150406', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '朱經理', '6236 8829', '0', '', '', '', '', '', '', '粵來順 (旺角)', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(9, 'C150407', '香港太古城太古城道26號漢宮閣地下411號舖', '九龍灣常悅道1號 恩浩國際中心5樓D室', '香港太古城太古城道26號漢宮閣地下411號舖', '黃經理', '9870 8829', '0', '', '', '', '', '', '附上回郵信封', '華昌粥麵', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(10, 'C150408', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記廚房 (西環店) A Plus Kitchen', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(11, 'C150409', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記 (尖沙咀店)   A Plus Kitchen', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(12, 'C150410', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '', '2234 8829', '0', '', '', '', '', '', '', 'OUT DART (尖沙咀)', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -109,7 +109,9 @@ CREATE TABLE `t_delivery` (
   `attn2` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `fax2` int(10) NOT NULL,
   `location` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-  `remark` text COLLATE utf8_unicode_ci NOT NULL
+  `remark` text COLLATE utf8_unicode_ci NOT NULL,
+  `post_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -129,8 +131,8 @@ CREATE TABLE `t_employee` (
   `role` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `last_login` datetime NOT NULL,
   `status` tinyint(4) NOT NULL,
-  `crrate_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
+  `crrate_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -138,7 +140,7 @@ CREATE TABLE `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `status`, `crrate_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', '', 'HQ01', 5, 'sales', '2018-05-22 00:00:00', 1, '2018-05-22 00:00:00', '2018-05-22 00:00:00');
+(1, 123456, 'iamadmin', '', 'HQ01', 5, 'sales', '2018-05-22 00:00:00', 1, '2018-05-21 16:00:00', '2018-05-21 16:00:00');
 
 -- --------------------------------------------------------
 
@@ -157,8 +159,8 @@ CREATE TABLE `t_items` (
   `price_special` decimal(10,2) NOT NULL,
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `unit` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -166,7 +168,7 @@ CREATE TABLE `t_items` (
 --
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
-(1, 'GIFT', 'GIFT1', 'GIFT1 2', '', '10.00', '0.00', 'PDT1', '20PCS/PACK', '0000-00-00 00:00:00', '2018-12-09 15:01:58'),
+(1, 'GIFT', 'GIFT1', 'GIFT1 2', '', '10.00', '0.00', 'PDT1', '20PCS/PACK', '0000-00-00 00:00:00', '2018-12-09 07:01:58'),
 (2, 'GUS0120', 'Gel Urinal Screen1', '香味尿格1', '', '110.00', '1.00', 'SVR', '20PCS/PACK1', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (3, 'Pentax', '', 'Pentax 水泵', '', '1100.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (4, 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '', '328.00', '0.00', 'PDT', '10 Ltr / Pail', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
@@ -288,13 +290,13 @@ INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `pric
 (121, 'CSS', '', '清洗蒸櫃服務連除垢劑', '', '0.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (122, 'JOB', '', '洗碗機及杯機裝拆費用', '', '0.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (123, 'P00001', 'Inspection Fee', '洗碗碟機檢查費', '', '0.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(125, 'test1', 'test1', 'test1', '', '212.00', '334.00', 'PDT', '4X3', '2018-09-13 18:41:34', '0000-00-00 00:00:00'),
-(126, 'icinddkmad', 'ksndej', 'kadksd', '', '23.00', '33.00', 'PDT', '4X3 L', '2018-09-15 16:54:17', '0000-00-00 00:00:00'),
-(127, 'uteoi', 'asdin', 'isnf', '', '213.00', '3213.00', 'SVR', '4X5', '2018-09-16 10:48:49', '0000-00-00 00:00:00'),
-(130, 'sadad', 'asda', 'dasd', '', '123.00', '123.00', 'SVR', '4X3', '2018-09-16 12:52:16', '0000-00-00 00:00:00'),
-(135, 'scjsdck', 'nskcn', 'jknksncknskc', '', '32.00', '32.00', 'PDT', '', '2018-09-16 18:20:00', '0000-00-00 00:00:00'),
-(136, 'NAS0200', 'NAS ', 'NAS', 'Network A Server', '230.00', '0.00', 'Can', 'Box set', '2018-10-15 16:55:51', '0000-00-00 00:00:00'),
-(139, 'GF703', 'eng', 'chinese', 'testing', '703.00', '0.00', 'MAT', '2dasd', '2018-12-06 08:38:34', '0000-00-00 00:00:00');
+(125, 'test1', 'test1', 'test1', '', '212.00', '334.00', 'PDT', '4X3', '2018-09-13 10:41:34', '0000-00-00 00:00:00'),
+(126, 'icinddkmad', 'ksndej', 'kadksd', '', '23.00', '33.00', 'PDT', '4X3 L', '2018-09-15 08:54:17', '0000-00-00 00:00:00'),
+(127, 'uteoi', 'asdin', 'isnf', '', '213.00', '3213.00', 'SVR', '4X5', '2018-09-16 02:48:49', '0000-00-00 00:00:00'),
+(130, 'sadad', 'asda', 'dasd', '', '123.00', '123.00', 'SVR', '4X3', '2018-09-16 04:52:16', '0000-00-00 00:00:00'),
+(135, 'scjsdck', 'nskcn', 'jknksncknskc', '', '32.00', '32.00', 'PDT', '', '2018-09-16 10:20:00', '0000-00-00 00:00:00'),
+(136, 'NAS0200', 'NAS ', 'NAS', 'Network A Server', '230.00', '0.00', 'Can', 'Box set', '2018-10-15 08:55:51', '0000-00-00 00:00:00'),
+(139, 'GF703', 'eng', 'chinese', 'testing', '703.00', '0.00', 'MAT', '2dasd', '2018-12-06 00:38:34', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -307,8 +309,8 @@ CREATE TABLE `t_items_category` (
   `uid` int(10) NOT NULL,
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `desc` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -316,11 +318,11 @@ CREATE TABLE `t_items_category` (
 --
 
 INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modify_date`) VALUES
-(1, 'PDT1', 'wrwewsd', '2018-10-30 16:57:34', '2018-04-25 00:00:00'),
-(2, 'SVR', 'Service ', '2018-12-06 07:56:45', '2018-04-25 00:00:00'),
-(3, 'MAT', 'Maintenance', '2018-04-25 00:00:00', '2018-04-25 00:00:00'),
-(15, 'Can', 'a box of can gategory', '2018-10-03 17:29:33', '0000-00-00 00:00:00'),
-(16, 'TRI', 'test code ', '2018-12-06 07:49:25', '0000-00-00 00:00:00');
+(1, 'PDT1', 'wrwewsd', '2018-10-30 08:57:34', '2018-04-24 16:00:00'),
+(2, 'SVR', 'Service ', '2018-12-05 23:56:45', '2018-04-24 16:00:00'),
+(3, 'MAT', 'Maintenance', '2018-04-24 16:00:00', '2018-04-24 16:00:00'),
+(15, 'Can', 'a box of can gategory', '2018-10-03 09:29:33', '0000-00-00 00:00:00'),
+(16, 'TRI', 'test code ', '2018-12-05 23:49:25', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -333,8 +335,8 @@ CREATE TABLE `t_items_price` (
   `uid` int(10) NOT NULL,
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `price` decimal(10,2) NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -348,7 +350,7 @@ CREATE TABLE `t_payment_method` (
   `uid` int(10) NOT NULL,
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `payment_method` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -357,9 +359,8 @@ CREATE TABLE `t_payment_method` (
 --
 
 INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date`, `modify_date`) VALUES
-(1, 'PM001', 'Cash', '2018-05-19 00:00:00', '2018-05-19 10:18:24'),
-(2, 'PM002', 'C.O.D', '0000-00-00 00:00:00', '2018-05-28 16:13:26'),
-(3, 'PM003', 'Monthly', '0000-00-00 00:00:00', '2018-05-28 16:14:10');
+(1, 'PM001', 'Cash', '2018-05-18 16:00:00', '2018-05-19 10:18:24'),
+(4, 'PM002', 'VISA', '0000-00-00 00:00:00', '2018-12-10 14:59:55');
 
 -- --------------------------------------------------------
 
@@ -372,9 +373,17 @@ CREATE TABLE `t_payment_term` (
   `uid` int(11) NOT NULL,
   `pt_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `terms` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `t_payment_term`
+--
+
+INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_date`) VALUES
+(1, 'PT001', 'C.O.D', '2018-12-09 16:00:00', '0000-00-00 00:00:00'),
+(3, 'PT002', 'Monthly Payment', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -413,8 +422,8 @@ CREATE TABLE `t_shop` (
   `phone` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `address1` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `address2` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -438,8 +447,8 @@ CREATE TABLE `t_stock` (
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `qty` double NOT NULL,
   `type` enum('in','out','hold','') COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -617,7 +626,14 @@ ALTER TABLE `t_items_price`
 --
 ALTER TABLE `t_payment_method`
   ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `pm_unique` (`pm_code`);
+  ADD UNIQUE KEY `pmcode_unique` (`pm_code`) USING BTREE;
+
+--
+-- Indexes for table `t_payment_term`
+--
+ALTER TABLE `t_payment_term`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `ptcode_unique` (`pt_code`) USING BTREE;
 
 --
 -- Indexes for table `t_prefix`
@@ -719,7 +735,13 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_payment_method`
 --
 ALTER TABLE `t_payment_method`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `t_payment_term`
+--
+ALTER TABLE `t_payment_term`
+  MODIFY `uid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `t_prefix`
