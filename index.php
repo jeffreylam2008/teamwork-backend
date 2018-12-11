@@ -1334,9 +1334,8 @@ $app->group('/api/v1/systems/menu', function () {
      */
     $this->get('/side', function (Request $request, Response $response, array $args) {
         $data = [
-            ["order" => 0, "id" => 1, "parent_id" => "", "name" => "login", "isParent" => "", "slug"=>"login", "param" => "login/index" ],
             ["order" => 0, "id" => 2, "parent_id" => "", "name" => "Dushboard", "isParent" => "", "slug"=>"dushboard", "param" => "dushboard/index"],
-            ["order" => 0, "id" => 5, "parent_id" => "", "name" => "Customers", "isParent" => "", "slug"=>"customers/list", "param" => "customers/cuslist"],
+            ["order" => 0, "id" => 5, "parent_id" => "", "name" => "Customers", "isParent" => "", "slug"=>"customers", "param" => "customers/index"],
             ["order" => 0, "id" => 3, "parent_id" => "", "name" => "Products", "isParent" => "", "slug"=>"", "param" => "products/index"],
             ["order" => 0, "id" => 4, "parent_id" => "", "name" => "Inventories", "isParent" => "", "slug"=>"", "param" => "inventories/index"],
             ["order" => 0, "id" => 23, "parent_id" => 3, "name" => "Items", "isParent" => "", "slug"=>"products/items", "param" => "items/index"],		
