@@ -417,55 +417,71 @@ $app->group('/api/v1/inventory/quotations', function () {
         $sql3 = "
             SELECT * FROM `t_customers`;
         ";
-        // execute SQL Statement
+        // t_transaction_h SQL
         $q = $db->prepare($sql);
         $q->execute();
         $_err = $q->errorinfo();
-        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        $_res = $q->fetchAll(PDO::FETCH_ASSOC);
     
-        // execute SQL Statement
+        // t_payment_method SQL
         $q = $db->prepare($sql2);
         $q->execute();
         $_err2 = $q->errorinfo();
-        $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+        $_res2 = $q->fetchAll(PDO::FETCH_ASSOC);
         
-        // execute SQL Statement
+        // t_customer SQL
         $q = $db->prepare($sql3);
         $q->execute();
         $_err3 = $q->errorinfo();
-        $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
+        $_res3 = $q->fetchAll(PDO::FETCH_ASSOC);
     
+        // t_shop SQL
+        $q = $db->prepare("SELECT * FROM `t_shop`;");
+        $q->execute();
+        $_err4 = $q->errorinfo();
+        $_res4 = $q->fetchAll(PDO::FETCH_ASSOC);
+
         // convert payment_method to key and value array
-        foreach($res2 as $k => $v)
+        foreach($_res2 as $k => $v)
         {  
             extract($v);
             $_pm[$pm_code] = $payment_method;
         }
         // convert customer to key and value array
-        foreach($res3 as $k => $v)
+        foreach($_res3 as $k => $v)
         {
             extract($v);
             $_cust[$cust_code] = $v;
         }
+        // convert Shop to key and value array
+        foreach ($_res4 as $k => $v) {
+            extract($v);
+            $_shops[$shop_code] = $v;
+        }
         // Map payment_method to array
-        foreach($res as $k => $v)
+        foreach($_res as $k => $v)
         {
             if(array_key_exists($v['pm_code'],$_pm))
             {
-                $res[$k]['payment_method'] = $_pm[$v['pm_code']];
+                $_res[$k]['payment_method'] = $_pm[$v['pm_code']];
             }
             if(array_key_exists($v['cust_code'], $_cust))
             {
-                $res[$k]['customer'] = $_cust[$v['cust_code']]['name'];
+                $_res[$k]['customer'] = $_cust[$v['cust_code']]['name'];
             }
+            if(array_key_exists($v['shop_code'], $_shops))
+            {
+                $_res[$k]['shop_name'] = $_shops[$v['shop_code']]['name'];
+            }
+            $_res[$k]['is_convert'] == 1 ? $_res[$k]['is_convert'] = "No" : $_res[$k]['is_convert'] = "Yes";
         }
     
         //var_dump($_cust);
     
         // export data
-        if(!empty($res))
+        if(!empty($_res))
         {
-            foreach ($res as $key => $val) {
+            foreach ($_res as $key => $val) {
                 $_query[] = $val;
             }
             $_callback = [
@@ -832,66 +848,72 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_cust = [];
         $_query = [];
         $db = connect_db();
-        $sql = "
-            SELECT * FROM `t_transaction_h` as th
-            left join `t_transaction_t` as tt on th.trans_code = tt.trans_code
-            WHERE th.prefix = 'INV';
-        ";
-        $sql2 = "
-            SELECT pm_code, payment_method FROM `t_payment_method`;
-        ";
-        $sql3 = "
-            SELECT * FROM `t_customers`;
-        ";
-        // execute SQL Statement
-        $q = $db->prepare($sql);
+
+        // t_transaction_h SQL
+        $q = $db->prepare("SELECT * FROM `t_transaction_h` as th left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'INV';");
         $q->execute();
         $_err = $q->errorinfo();
-        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        $_res = $q->fetchAll(PDO::FETCH_ASSOC);
     
-        // execute SQL Statement
-        $q = $db->prepare($sql2);
+        // t_payment_method SQL
+        $q = $db->prepare("SELECT pm_code, payment_method FROM `t_payment_method`;");
         $q->execute();
         $_err2 = $q->errorinfo();
-        $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+        $_res2 = $q->fetchAll(PDO::FETCH_ASSOC);
         
-        // execute SQL Statement
-        $q = $db->prepare($sql3);
+        // t_customers SQL
+        $q = $db->prepare("SELECT * FROM `t_customers`;");
         $q->execute();
         $_err3 = $q->errorinfo();
-        $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
-    
+        $_res3 = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+        // t_shop SQL
+        $q = $db->prepare("SELECT * FROM `t_shop`;");
+        $q->execute();
+        $_err4 = $q->errorinfo();
+        $_res4 = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+
         // convert payment_method to key and value array
-        foreach($res2 as $k => $v)
+        foreach($_res2 as $k => $v)
         {  
             extract($v);
             $_pm[$pm_code] = $payment_method;
         }
         // convert customer to key and value array
-        foreach($res3 as $k => $v)
+        foreach($_res3 as $k => $v)
         {
             extract($v);
             $_cust[$cust_code] = $v;
         }
+
+        foreach ($_res4 as $k => $v) {
+            extract($v);
+            $_shops[$shop_code] = $v;
+        }
         // Map payment_method to array
-        foreach($res as $k => $v)
+        foreach($_res as $k => $v)
         {
             if(array_key_exists($v['pm_code'],$_pm))
             {
-                $res[$k]['payment_method'] = $_pm[$v['pm_code']];
+                $_res[$k]['payment_method'] = $_pm[$v['pm_code']];
             }
             if(array_key_exists($v['cust_code'], $_cust))
             {
-                $res[$k]['customer'] = $_cust[$v['cust_code']]['name'];
+                $_res[$k]['customer'] = $_cust[$v['cust_code']]['name'];
+            }
+            if(array_key_exists($v['shop_code'], $_shops))
+            {
+                $_res[$k]['shop_name'] = $_shops[$v['shop_code']]['name'];
             }
         }
     
         //var_dump($_cust);
     
         // export data
-        if(!empty($res))
+        if(!empty($_res))
         {
-            foreach ($res as $key => $val) {
+            foreach ($_res as $key => $val) {
                 $_query[] = $val;
             }
             $_callback = [
