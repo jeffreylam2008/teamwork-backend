@@ -1329,7 +1329,7 @@ $app->group('/api/v1/systems/employee', function () {
     $this->get('/{username}', function (Request $request, Response $response, array $args) {
         $_username = $args['username'];
         $db = connect_db();
-        if(isset($username) && !empty($username))
+        if(isset($_username) && !empty($_username))
         {
             $sql = "select * from `t_employee` where username = '".$_username."'; ";
             $q = $db->prepare($sql);
