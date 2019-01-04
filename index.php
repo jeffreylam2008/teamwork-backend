@@ -1318,32 +1318,134 @@ $app->group('/api/v1/systems/payments',function(){
 /**
  * Employee API
  */
-$app->group('/api/v1/systems/employee', function () {
+$app->group('/api/v1/systems/login', function () {
     /**
-     * Employee GET Request
+     * login GET Request
      * employee-get-by-code
      * 
      * To get employee record
      * 
      */
-    $this->get('/{username}', function (Request $request, Response $response, array $args) {
-        $_username = $args['username'];
-        $db = connect_db();
-        if(isset($_username) && !empty($_username))
+    $this->post('/', function (Request $request, Response $response, array $args) {
+        // POST Data here
+        // $body = json_decode($request->getBody(), true);
+        
+        $body = json_decode($request->getBody(), true);
+
+        var_dump( $body);
+
+     
+        // $db = connect_db();
+        // if(isset($_username) && !empty($_username))
+        // {
+        //     $sql = "select * from `t_employee` where username = '".$_username."'; ";
+        //     $q = $db->prepare($sql);
+        //     $q->execute();
+        //     $result = $q->fetch();
+        //     $err = $q->errorinfo();
+        //     $callback = [
+        //         "query" => $result,
+        //         "error" => ["code" => $err[0], "message" => $err[2]]
+        //     ];
+        //     return $response->withJson($callback,200);
+        // }
+
+
+/*
+
+        // Call database model
+        $res = $this->login->GetUserInfo($loginID);
+        // debug here
+        echo $loginID . " === > " .  crypt($password, $res['password']) ." ===> ". $rememberMe . " ===> ".$com_code ."====>".$this->input->ip_address()."<br>";
+        //echo "res:<br>";
+        //var_dump($res);
+
+        // Check if has this user
+        if(hash_equals($res['password'], crypt($password, $res['password'])))
         {
-            $sql = "select * from `t_employee` where username = '".$_username."'; ";
-            $q = $db->prepare($sql);
-            $q->execute();
-            $result = $q->fetch();
-            $err = $q->errorinfo();
-            $callback = [
-                "query" => $result,
-                "error" => ["code" => $err[0], "message" => $err[2]]
-            ];
-            return $response->withJson($callback,200);
+            // Gather Data
+            $theData = array(
+                // Gather data 
+                'username' => $res['username'],
+                "company_code" => $res['company_code'],
+                'log_date' => mdate('%Y-%m-%d %h:%i:%s',time()),
+                'ip_addr' => $this->input->ip_address(),
+                'is_login' => 1,
+                'token' => md5($res['username']."-".$res['company_code']."-".$this->input->ip_address())
+            );
+            // debug here
+            //echo "theData: <br>";
+            //var_dump($theData);
+            if($this->login->hasToken($theData['token']))
+            {
+                $this->login->Logout_Update($theData['token']);
+            }
+            // check concurrent user
+            $cur_sess_res = $this->login->GetUserLoginSession($res['company_code']);
+            $constant_sess_res = $this->login->GetUserLoginSessionLimit($res['company_code']);
+
+            if(empty($constant_sess_res))
+            {
+                echo "Company master data not set!";
+                exit();
+            }
+            // Check if has concurrent user record in database
+            empty($cur_sess_res) ? $concur_user = 0 : $concur_user = $cur_sess_res['num_login'];
+            // debug here
+            //var_dump($cur_sess_res);
+            //echo "concurr user = ".$concur_user;
+
+            if($concur_user <= $constant_sess_res['session'])
+            {
+                // allow login and write record to DB
+                if($this->login->hasToken($theData['token']))
+                {
+                    // increase 1 session login
+                    $this->login->Login_Update($theData['token']);
+                }
+                else
+                {
+                    // create new session on database
+                    $err = $this->login->Login_Insert($theData);
+                }
+
+                $theData['company_name'] = $res['company_name'];
+                $theData['dpm_code'] = $res['dpm_code'];
+                // write recode to session
+                if($rememberMe)
+                {	
+                    // Set user data
+                    $this->session->set_userdata("login_info", $theData);
+                    // Retrieve session data
+                    $sess_data = $this->session->userdata("login_info");
+
+                }
+                else {
+                    $this->session->set_tempdata('login_info', $theData, 86400);
+                    // Retrieve session data
+                    $sess_data = $this->session->userdata("login_info");
+                }
+                // debug here
+                //echo "Sess_data: <br>";
+                //var_dump($sess_data);
+                
+                header("location: ". base_url('dushboard'));
+            }
+            else
+            {	
+                // reject login
+                header("location: ".base_url('login/?err=454')); 
+            }
         }
+        else
+        {
+            header("location: ".base_url('login/?err=1').""); 
+        }
+        */
     });
+
 });
+
 /** 
  * Menu 
  */
