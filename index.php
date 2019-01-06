@@ -1333,7 +1333,62 @@ $app->group('/api/v1/systems/login', function () {
         $body = json_decode($request->getBody(), true);
 
         var_dump( $body);
+        if(!empty($body["loginid"]))
+        {
+            $err = "";
+            $db = connect_db();
+            // SQL statement here
+            $q = $db->prepare("select * from `t_employee` where `username` =  '".$body['loginid']."'; ");
+            $q->execute();
+            $err = $q->errorinfo();
+            $res = $q->fetch();
+           
+            if(!empty($res))
+            {
+                extract($res);
+                if(strcmp ( string $str1 , string $str2 )== 0)
+                {
+                    $callback = [
+                        "query" => "",
+                        "error" => ["code" => "00001", "message" => "successful login"]
+                    ];
+                   
+                }
+                else
+                {
+                    $callback = [
+                        "query" => "",
+                        "error" => ["code" => "00002", "message" => "Incorrect Username or Password"]
+                    ];
+                }
+            }
+            return $response->withJson($callback, 200);
+            
+            // $callback = [
+            //     "query" => $dbData,
+            //     "error" => ["code" => $err[0], "message" => $err[2]]
+            // ];
+            // return $response->withJson($callback, 200);
+        }
+        
 
+		// //$this->db->where("tu.password" , $password);
+		// $q = $this->db->get()->result_array();
+		// foreach($q as $key => $val)
+		// {
+		// 	foreach($val as $ik => $iv)
+		// 	{
+		// 		$tmp[$ik] = $iv;
+		// 	}
+        // }
+        
+        // // should be return token
+		// return $tmp;
+
+        // $loginID = $this->input->post('login_id');
+		// $password = $this->input->post('login_pwd');
+		// $com_code = $this->input->post("com_code");
+		// $rememberMe = $this->input->post("login_rem");
      
         // $db = connect_db();
         // if(isset($_username) && !empty($_username))

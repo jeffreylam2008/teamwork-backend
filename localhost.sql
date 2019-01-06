@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- 主機: 127.0.0.1
--- 產生時間： 2018-12-11 12:48:19
+-- 產生時間： 2019-01-06 15:31:41
 -- 伺服器版本: 5.6.17
 -- PHP 版本： 5.5.12
 
@@ -129,7 +129,7 @@ CREATE TABLE `t_employee` (
   `role` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `last_login` datetime NOT NULL,
   `status` tinyint(4) NOT NULL,
-  `crrate_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -137,7 +137,7 @@ CREATE TABLE `t_employee` (
 -- 資料表的匯出資料 `t_employee`
 --
 
-INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `status`, `crrate_date`, `modify_date`) VALUES
+INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `status`, `create_date`, `modify_date`) VALUES
 (1, 123456, 'iamadmin', '', 'HQ01', 5, 'sales', '2018-05-22 00:00:00', 1, '2018-05-21 16:00:00', '2018-05-21 16:00:00');
 
 -- --------------------------------------------------------
@@ -335,6 +335,20 @@ CREATE TABLE `t_items_price` (
   `price` decimal(10,2) NOT NULL,
   `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `t_login`
+--
+
+DROP TABLE IF EXISTS `t_login`;
+CREATE TABLE `t_login` (
+  `uid` int(10) NOT NULL,
+  `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `create_date` timestamp NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
