@@ -1332,36 +1332,64 @@ $app->group('/api/v1/systems/login', function () {
         
         $body = json_decode($request->getBody(), true);
 
-        var_dump( $body);
-        if(!empty($body["loginid"]))
+        // var_dump( $body);
+        if(!empty($body["username"]) && !empty($body['password']))
         {
             $err = "";
+            $salt = "password";
+            $token = "";
             $db = connect_db();
             // SQL statement here
-            $q = $db->prepare("select * from `t_employee` where `username` =  '".$body['loginid']."'; ");
+            $q = $db->prepare("select * from `t_employee` where `username` =  '".$body['username']."'; ");
             $q->execute();
             $err = $q->errorinfo();
             $res = $q->fetch();
            
             if(!empty($res))
             {
+                // extract data
                 extract($res);
-                if(strcmp ( string $str1 , string $str2 )== 0)
-                {
-                    $callback = [
-                        "query" => "",
-                        "error" => ["code" => "00001", "message" => "successful login"]
-                    ];
-                   
+                
+                // verify password
+                if(hash_equals($password, crypt($body['password'], $salt)))
+		        {   
+                    // here is login successful
+                    // if expire
+                    // renew token
+                    // else
+                    
+                    $token = md5($body['username'].$body['password'].date("Y-m-d H:i:s"));
+                    $q = $db->prepare(
+                        "insert into `t_login` (`uid`,`username`,`token`,`status`,`create_date`) 
+                        values ('', '".$body['username']."', '".$token."', 'IN' ,'".date('Y-m-d H:i:s')."');"
+                    );
+                    $q->execute();
+                    $err = $q->errorinfo();
+                    $callback = "successful";
                 }
                 else
                 {
-                    $callback = [
-                        "query" => "",
-                        "error" => ["code" => "00002", "message" => "Incorrect Username or Password"]
-                    ];
+                    // if not match
+                    $callback = "fail login";
                 }
+                // if(strcmp( $res['']) == 0)
+                // {
+                //     $callback = [
+                //         "query" => "",
+                //         "error" => ["code" => "00001", "message" => "successful login"]
+                //     ];
+                   
+                // }
+                // else
+                // {
+                //     $callback = [
+                //         "query" => "",
+                //         "error" => ["code" => "00002", "message" => "Incorrect Username or Password"]
+                //     ];
+                // }
+
             }
+            
             return $response->withJson($callback, 200);
             
             // $callback = [

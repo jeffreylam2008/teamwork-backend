@@ -1,13 +1,15 @@
 -- phpMyAdmin SQL Dump
--- version 4.5.4.1
--- http://www.phpmyadmin.net
+-- version 4.7.7
+-- https://www.phpmyadmin.net/
 --
--- 主機: 127.0.0.1
--- 產生時間： 2019-01-06 15:31:41
--- 伺服器版本: 5.6.17
--- PHP 版本： 5.5.12
+-- Host: localhost
+-- Generation Time: Jan 07, 2019 at 04:55 PM
+-- Server version: 10.1.30-MariaDB
+-- PHP Version: 7.2.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
 SET time_zone = "+00:00";
 
 
@@ -17,16 +19,16 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 資料庫： `teamwork`
+-- Database: `teamwork`
 --
-DROP DATABASE `teamwork`;
+DROP DATABASE IF EXISTS `teamwork`;
 CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 USE `teamwork`;
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_audit_log`
+-- Table structure for table `t_audit_log`
 --
 
 DROP TABLE IF EXISTS `t_audit_log`;
@@ -40,7 +42,7 @@ CREATE TABLE `t_audit_log` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_customers`
+-- Table structure for table `t_customers`
 --
 
 DROP TABLE IF EXISTS `t_customers`;
@@ -69,7 +71,7 @@ CREATE TABLE `t_customers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_customers`
+-- Dumping data for table `t_customers`
 --
 
 INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `delivery_addr`, `attn_1`, `phone_1`, `fax_1`, `email_1`, `attn_2`, `phone_2`, `fax_2`, `email_2`, `statement_remark`, `name`, `group_name`, `pm_code`, `pt_code`, `remark`, `create_date`, `modify_date`) VALUES
@@ -89,7 +91,7 @@ INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `delive
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_delivery`
+-- Table structure for table `t_delivery`
 --
 
 DROP TABLE IF EXISTS `t_delivery`;
@@ -115,7 +117,7 @@ CREATE TABLE `t_delivery` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_employee`
+-- Table structure for table `t_employee`
 --
 
 DROP TABLE IF EXISTS `t_employee`;
@@ -128,22 +130,23 @@ CREATE TABLE `t_employee` (
   `access_level` int(3) NOT NULL,
   `role` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `last_login` datetime NOT NULL,
+  `last_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` tinyint(4) NOT NULL,
   `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_employee`
+-- Dumping data for table `t_employee`
 --
 
-INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', '', 'HQ01', 5, 'sales', '2018-05-22 00:00:00', 1, '2018-05-21 16:00:00', '2018-05-21 16:00:00');
+INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2018-05-22 00:00:00', '', 1, '2019-01-07 14:01:49', '2019-01-07 14:01:49');
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_items`
+-- Table structure for table `t_items`
 --
 
 DROP TABLE IF EXISTS `t_items`;
@@ -162,7 +165,7 @@ CREATE TABLE `t_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_items`
+-- Dumping data for table `t_items`
 --
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
@@ -299,7 +302,7 @@ INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `pric
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_items_category`
+-- Table structure for table `t_items_category`
 --
 
 DROP TABLE IF EXISTS `t_items_category`;
@@ -312,7 +315,7 @@ CREATE TABLE `t_items_category` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_items_category`
+-- Dumping data for table `t_items_category`
 --
 
 INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modify_date`) VALUES
@@ -325,7 +328,7 @@ INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modi
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_items_price`
+-- Table structure for table `t_items_price`
 --
 
 DROP TABLE IF EXISTS `t_items_price`;
@@ -340,7 +343,7 @@ CREATE TABLE `t_items_price` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_login`
+-- Table structure for table `t_login`
 --
 
 DROP TABLE IF EXISTS `t_login`;
@@ -348,13 +351,24 @@ CREATE TABLE `t_login` (
   `uid` int(10) NOT NULL,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` timestamp NOT NULL
+  `status` enum('in','out') COLLATE utf8_unicode_ci NOT NULL,
+  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `expire_date` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `t_login`
+--
+
+INSERT INTO `t_login` (`uid`, `username`, `token`, `status`, `create_date`, `expire_date`) VALUES
+(6, 'iamadmin', 'e77df52f7a18f29fa7b16ae90bf82457', 'in', '2019-01-07 08:20:14', '0000-00-00 00:00:00'),
+(7, 'iamadmin', 'ac20d7e1c1c000f3cef8a5a78015b858', 'in', '2019-01-07 08:31:27', '0000-00-00 00:00:00'),
+(8, 'iamadmin', '0aefd5f04e56b45cb58024b0330e1b2a', 'in', '2019-01-07 08:40:49', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_payment_method`
+-- Table structure for table `t_payment_method`
 --
 
 DROP TABLE IF EXISTS `t_payment_method`;
@@ -367,7 +381,7 @@ CREATE TABLE `t_payment_method` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_payment_method`
+-- Dumping data for table `t_payment_method`
 --
 
 INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date`, `modify_date`) VALUES
@@ -377,7 +391,7 @@ INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_payment_term`
+-- Table structure for table `t_payment_term`
 --
 
 DROP TABLE IF EXISTS `t_payment_term`;
@@ -390,7 +404,7 @@ CREATE TABLE `t_payment_term` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_payment_term`
+-- Dumping data for table `t_payment_term`
 --
 
 INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_date`) VALUES
@@ -400,7 +414,7 @@ INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_prefix`
+-- Table structure for table `t_prefix`
 --
 
 DROP TABLE IF EXISTS `t_prefix`;
@@ -412,7 +426,7 @@ CREATE TABLE `t_prefix` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_prefix`
+-- Dumping data for table `t_prefix`
 --
 
 INSERT INTO `t_prefix` (`uid`, `prefix`, `desc`, `status`) VALUES
@@ -423,7 +437,7 @@ INSERT INTO `t_prefix` (`uid`, `prefix`, `desc`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_shop`
+-- Table structure for table `t_shop`
 --
 
 DROP TABLE IF EXISTS `t_shop`;
@@ -439,7 +453,7 @@ CREATE TABLE `t_shop` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_shop`
+-- Dumping data for table `t_shop`
 --
 
 INSERT INTO `t_shop` (`uid`, `shop_code`, `name`, `phone`, `address1`, `address2`, `create_date`, `modify_date`) VALUES
@@ -449,7 +463,7 @@ INSERT INTO `t_shop` (`uid`, `shop_code`, `name`, `phone`, `address1`, `address2
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_stock`
+-- Table structure for table `t_stock`
 --
 
 DROP TABLE IF EXISTS `t_stock`;
@@ -466,7 +480,7 @@ CREATE TABLE `t_stock` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_transaction_d`
+-- Table structure for table `t_transaction_d`
 --
 
 DROP TABLE IF EXISTS `t_transaction_d`;
@@ -485,7 +499,7 @@ CREATE TABLE `t_transaction_d` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_transaction_d`
+-- Dumping data for table `t_transaction_d`
 --
 
 INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `chi_name`, `qty`, `unit`, `price`, `discount`, `create_date`, `modify_date`) VALUES
@@ -517,7 +531,7 @@ INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `ch
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_transaction_h`
+-- Table structure for table `t_transaction_h`
 --
 
 DROP TABLE IF EXISTS `t_transaction_h`;
@@ -538,7 +552,7 @@ CREATE TABLE `t_transaction_h` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_transaction_h`
+-- Dumping data for table `t_transaction_h`
 --
 
 INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `is_convert`, `create_date`, `modify_date`) VALUES
@@ -551,7 +565,7 @@ INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_transaction_t`
+-- Table structure for table `t_transaction_t`
 --
 
 DROP TABLE IF EXISTS `t_transaction_t`;
@@ -565,7 +579,7 @@ CREATE TABLE `t_transaction_t` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_transaction_t`
+-- Dumping data for table `t_transaction_t`
 --
 
 INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_date`, `modify_date`) VALUES
@@ -577,24 +591,24 @@ INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_
 (6, 'QTA2018120919', 'PM001', '260.00', '2018-12-09 06:39:20', '0000-00-00 00:00:00');
 
 --
--- 已匯出資料表的索引
+-- Indexes for dumped tables
 --
 
 --
--- 資料表索引 `t_audit_log`
+-- Indexes for table `t_audit_log`
 --
 ALTER TABLE `t_audit_log`
   ADD PRIMARY KEY (`uid`);
 
 --
--- 資料表索引 `t_customers`
+-- Indexes for table `t_customers`
 --
 ALTER TABLE `t_customers`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `custcode_unique` (`cust_code`);
 
 --
--- 資料表索引 `t_delivery`
+-- Indexes for table `t_delivery`
 --
 ALTER TABLE `t_delivery`
   ADD PRIMARY KEY (`uid`),
@@ -602,14 +616,14 @@ ALTER TABLE `t_delivery`
   ADD KEY `delivery_code_index` (`delivery_code`) USING BTREE;
 
 --
--- 資料表索引 `t_employee`
+-- Indexes for table `t_employee`
 --
 ALTER TABLE `t_employee`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `unique_employee_code` (`employee_code`);
 
 --
--- 資料表索引 `t_items`
+-- Indexes for table `t_items`
 --
 ALTER TABLE `t_items`
   ADD PRIMARY KEY (`uid`),
@@ -617,7 +631,7 @@ ALTER TABLE `t_items`
   ADD KEY `uid_index` (`item_code`) USING BTREE;
 
 --
--- 資料表索引 `t_items_category`
+-- Indexes for table `t_items_category`
 --
 ALTER TABLE `t_items_category`
   ADD PRIMARY KEY (`uid`),
@@ -626,7 +640,7 @@ ALTER TABLE `t_items_category`
   ADD KEY `uid_index` (`uid`) USING BTREE;
 
 --
--- 資料表索引 `t_items_price`
+-- Indexes for table `t_items_price`
 --
 ALTER TABLE `t_items_price`
   ADD PRIMARY KEY (`uid`),
@@ -634,21 +648,27 @@ ALTER TABLE `t_items_price`
   ADD KEY `uid_index` (`uid`) USING BTREE;
 
 --
--- 資料表索引 `t_payment_method`
+-- Indexes for table `t_login`
+--
+ALTER TABLE `t_login`
+  ADD UNIQUE KEY `uid` (`uid`);
+
+--
+-- Indexes for table `t_payment_method`
 --
 ALTER TABLE `t_payment_method`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `pmcode_unique` (`pm_code`) USING BTREE;
 
 --
--- 資料表索引 `t_payment_term`
+-- Indexes for table `t_payment_term`
 --
 ALTER TABLE `t_payment_term`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `ptcode_unique` (`pt_code`) USING BTREE;
 
 --
--- 資料表索引 `t_prefix`
+-- Indexes for table `t_prefix`
 --
 ALTER TABLE `t_prefix`
   ADD PRIMARY KEY (`uid`),
@@ -656,7 +676,7 @@ ALTER TABLE `t_prefix`
   ADD KEY `uid_index` (`uid`) USING BTREE;
 
 --
--- 資料表索引 `t_shop`
+-- Indexes for table `t_shop`
 --
 ALTER TABLE `t_shop`
   ADD PRIMARY KEY (`uid`),
@@ -664,7 +684,7 @@ ALTER TABLE `t_shop`
   ADD KEY `shopcode_index` (`shop_code`) USING BTREE;
 
 --
--- 資料表索引 `t_stock`
+-- Indexes for table `t_stock`
 --
 ALTER TABLE `t_stock`
   ADD PRIMARY KEY (`uid`),
@@ -672,7 +692,7 @@ ALTER TABLE `t_stock`
   ADD KEY `uid_index` (`inv_code`) USING BTREE;
 
 --
--- 資料表索引 `t_transaction_d`
+-- Indexes for table `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
   ADD PRIMARY KEY (`uid`),
@@ -680,7 +700,7 @@ ALTER TABLE `t_transaction_d`
   ADD KEY `transcode_unique` (`trans_code`) USING BTREE;
 
 --
--- 資料表索引 `t_transaction_h`
+-- Indexes for table `t_transaction_h`
 --
 ALTER TABLE `t_transaction_h`
   ADD PRIMARY KEY (`uid`) USING BTREE,
@@ -689,7 +709,7 @@ ALTER TABLE `t_transaction_h`
   ADD KEY `transcode_index` (`trans_code`) USING BTREE;
 
 --
--- 資料表索引 `t_transaction_t`
+-- Indexes for table `t_transaction_t`
 --
 ALTER TABLE `t_transaction_t`
   ADD PRIMARY KEY (`uid`) USING BTREE,
@@ -698,84 +718,106 @@ ALTER TABLE `t_transaction_t`
   ADD KEY `uid_index` (`uid`) USING BTREE;
 
 --
--- 在匯出的資料表使用 AUTO_INCREMENT
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- 使用資料表 AUTO_INCREMENT `t_audit_log`
+-- AUTO_INCREMENT for table `t_audit_log`
 --
 ALTER TABLE `t_audit_log`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_customers`
+-- AUTO_INCREMENT for table `t_customers`
 --
 ALTER TABLE `t_customers`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_delivery`
+-- AUTO_INCREMENT for table `t_delivery`
 --
 ALTER TABLE `t_delivery`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_employee`
+-- AUTO_INCREMENT for table `t_employee`
 --
 ALTER TABLE `t_employee`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_items`
+-- AUTO_INCREMENT for table `t_items`
 --
 ALTER TABLE `t_items`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_items_category`
+-- AUTO_INCREMENT for table `t_items_category`
 --
 ALTER TABLE `t_items_category`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_items_price`
+-- AUTO_INCREMENT for table `t_items_price`
 --
 ALTER TABLE `t_items_price`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_payment_method`
+-- AUTO_INCREMENT for table `t_login`
+--
+ALTER TABLE `t_login`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT for table `t_payment_method`
 --
 ALTER TABLE `t_payment_method`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_payment_term`
+-- AUTO_INCREMENT for table `t_payment_term`
 --
 ALTER TABLE `t_payment_term`
   MODIFY `uid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_prefix`
+-- AUTO_INCREMENT for table `t_prefix`
 --
 ALTER TABLE `t_prefix`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_shop`
+-- AUTO_INCREMENT for table `t_shop`
 --
 ALTER TABLE `t_shop`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_stock`
+-- AUTO_INCREMENT for table `t_stock`
 --
 ALTER TABLE `t_stock`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_transaction_d`
+-- AUTO_INCREMENT for table `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_transaction_h`
+-- AUTO_INCREMENT for table `t_transaction_h`
 --
 ALTER TABLE `t_transaction_h`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
 --
--- 使用資料表 AUTO_INCREMENT `t_transaction_t`
+-- AUTO_INCREMENT for table `t_transaction_t`
 --
 ALTER TABLE `t_transaction_t`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
