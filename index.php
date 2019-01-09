@@ -1321,117 +1321,86 @@ $app->group('/api/v1/systems/payments',function(){
 $app->group('/api/v1/systems/login', function () {
     /**
      * login GET Request
-     * employee-get-by-code
+     * login-post
      * 
-     * To get employee record
+     * To post employee record and get token
      * 
+     * Return login token
      */
     $this->post('/', function (Request $request, Response $response, array $args) {
         // POST Data here
         // $body = json_decode($request->getBody(), true);
         
-        $body = json_decode($request->getBody(), true);
+        $_body = json_decode($request->getBody(), true);
 
         // var_dump( $body);
-        if(!empty($body["username"]) && !empty($body['password']))
+        if(!empty($_body["username"]) && !empty($_body['password']))
         {
-            $err = "";
-            $salt = "password";
-            $token = "";
+            $_err = "";
+            $_salt = "password";
+            $_token = "";
+            $_callback = [];
             $db = connect_db();
             // SQL statement here
-            $q = $db->prepare("select * from `t_employee` where `username` =  '".$body['username']."'; ");
+            $q = $db->prepare("select * from `t_employee` where `username` =  '".$_body['username']."'; ");
             $q->execute();
-            $err = $q->errorinfo();
-            $res = $q->fetch();
+            $_err = $q->errorinfo();
+            $_res = $q->fetch();
            
-            if(!empty($res))
+            if(!empty($_res))
             {
                 // extract data
-                extract($res);
-                
+                extract($_res);
+                // current time
+                $_now = date('Y-m-d H:i:s');
                 // verify password
-                if(hash_equals($password, crypt($body['password'], $salt)))
+                if(hash_equals($password, crypt($_body['password'], $_salt)))
 		        {   
                     // here is login successful
                     // if expire
-                    // renew token
-                    // else
-                    
-                    $token = md5($body['username'].$body['password'].date("Y-m-d H:i:s"));
+                    $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s"));
                     $q = $db->prepare(
                         "insert into `t_login` (`uid`,`username`,`token`,`status`,`create_date`) 
-                        values ('', '".$body['username']."', '".$token."', 'IN' ,'".date('Y-m-d H:i:s')."');"
+                        values ('', '".$_body['username']."', '".$_token."', 'IN' ,'".$_now."');"
                     );
                     $q->execute();
-                    $err = $q->errorinfo();
-                    $callback = "successful";
+                    $_err = $q->errorinfo();
+                    $_dbData = $_token;
+                    $_err[0] = "00001";
+                    $_err[2] = "Login Successful";
                 }
                 else
                 {
                     // if not match
-                    $callback = "fail login";
-                }
-                // if(strcmp( $res['']) == 0)
-                // {
-                //     $callback = [
-                //         "query" => "",
-                //         "error" => ["code" => "00001", "message" => "successful login"]
-                //     ];
-                   
-                // }
-                // else
-                // {
-                //     $callback = [
-                //         "query" => "",
-                //         "error" => ["code" => "00002", "message" => "Incorrect Username or Password"]
-                //     ];
-                // }
-
+                    $_dbData = "";
+                    $_err[0] = "10002";
+                    $_err[2] = "Password Incorrect";
+                }   
             }
-            
-            return $response->withJson($callback, 200);
-            
-            // $callback = [
-            //     "query" => $dbData,
-            //     "error" => ["code" => $err[0], "message" => $err[2]]
-            // ];
-            // return $response->withJson($callback, 200);
+            else
+            {
+                $_dbData = "";
+                $_err[0] = "10001";
+                $_err[2] = "Username or Password Incorrect";
+            }
+            $_callback = [
+                "query" => $_dbData,
+                "error" => ["code" => $_err[0], "message" => $_err[2]]
+            ];
+            return $response->withJson($_callback, 200);
         }
-        
+    });   
+    /**
+     * login patch Request
+     * login-patch
+     * 
+     * To update login status
+     * 
+     * Return 
+     */
+    $this->patch('/', function (Request $request, Response $response, array $args) {
 
-		// //$this->db->where("tu.password" , $password);
-		// $q = $this->db->get()->result_array();
-		// foreach($q as $key => $val)
-		// {
-		// 	foreach($val as $ik => $iv)
-		// 	{
-		// 		$tmp[$ik] = $iv;
-		// 	}
-        // }
-        
-        // // should be return token
-		// return $tmp;
-
-        // $loginID = $this->input->post('login_id');
-		// $password = $this->input->post('login_pwd');
-		// $com_code = $this->input->post("com_code");
-		// $rememberMe = $this->input->post("login_rem");
-     
-        // $db = connect_db();
-        // if(isset($_username) && !empty($_username))
-        // {
-        //     $sql = "select * from `t_employee` where username = '".$_username."'; ";
-        //     $q = $db->prepare($sql);
-        //     $q->execute();
-        //     $result = $q->fetch();
-        //     $err = $q->errorinfo();
-        //     $callback = [
-        //         "query" => $result,
-        //         "error" => ["code" => $err[0], "message" => $err[2]]
-        //     ];
-        //     return $response->withJson($callback,200);
-        // }
+    });
 
 
 /*
@@ -1524,9 +1493,7 @@ $app->group('/api/v1/systems/login', function () {
         {
             header("location: ".base_url('login/?err=1').""); 
         }
-        */
-    });
-
+*/
 });
 
 /** 

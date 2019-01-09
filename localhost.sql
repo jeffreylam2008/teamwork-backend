@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 07, 2019 at 04:55 PM
+-- Generation Time: Jan 09, 2019 at 05:01 PM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -362,8 +362,12 @@ CREATE TABLE `t_login` (
 
 INSERT INTO `t_login` (`uid`, `username`, `token`, `status`, `create_date`, `expire_date`) VALUES
 (6, 'iamadmin', 'e77df52f7a18f29fa7b16ae90bf82457', 'in', '2019-01-07 08:20:14', '0000-00-00 00:00:00'),
-(7, 'iamadmin', 'ac20d7e1c1c000f3cef8a5a78015b858', 'in', '2019-01-07 08:31:27', '0000-00-00 00:00:00'),
-(8, 'iamadmin', '0aefd5f04e56b45cb58024b0330e1b2a', 'in', '2019-01-07 08:40:49', '0000-00-00 00:00:00');
+(9, 'iamadmin', '98d4f229078dd9d00df0c4bb49375057', 'in', '2019-01-09 08:52:09', '0000-00-00 00:00:00'),
+(10, 'iamadmin', '24a534f0fb49cfca99302d8cc4218138', 'in', '2019-01-09 08:57:09', '0000-00-00 00:00:00'),
+(11, 'iamadmin', '6ab99227d7abd01cbadf75f71e6d0de6', 'in', '2019-01-09 08:57:24', '0000-00-00 00:00:00'),
+(12, 'iamadmin', '013f0c3005f42d0b6005f93f4b557575', 'in', '2019-01-09 08:58:03', '0000-00-00 00:00:00'),
+(13, 'iamadmin', '55a3ac7f7dd8634e706facc9d931e3dd', 'in', '2019-01-09 08:58:35', '0000-00-00 00:00:00'),
+(14, 'iamadmin', 'a66c5674f40dab86d2d967fb96954285', 'in', '2019-01-09 08:59:04', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -767,7 +771,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`
