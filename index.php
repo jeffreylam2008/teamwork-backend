@@ -1378,39 +1378,34 @@ $app->group('/api/v1/systems/login', function () {
                         );
                         $q->execute();
                         $_err['sql'][] = $q->errorinfo();
-
-                        $q = $db->prepare(
-                            "insert into `t_login` (`uid`,`username`,`token`,`status`,`create_date`) 
-                            values ('', '".$_body['username']."', '".$_token."', 'IN' ,'".$_now."');"
-                        );
-                        $q->execute();
-                        $_err['sql'][] = $q->errorinfo();
-                        $db->commit();
-                    }
+                    $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s"));
+                    $q = $db->prepare(
+                        "insert into `t_login` (`uid`,`username`,`token`,`status`,`create_date`) 
+                        values ('', '".$_body['username']."', '".$_token."', 'IN' ,'".$_now."');"
+                    );
+                    $q->execute();
+                    $_err = $q->errorinfo();
                     $_dbData = $_token;
-                    $_err['api']['code'] = "00001";
-                    $_err['api']['msg'] = "Login Successful";
+                    $_err[0] = "00001";
+                    $_err[2] = "Login Successful";
                 }
                 else
                 {
                     // if not match
                     $_dbData = "";
-                    $_err['api']['code'] = "10002";
-                    $_err['api']['msg'] = "Password Incorrect";
+                    $_err[0] = "10002";
+                    $_err[2] = "Password Incorrect";
                 }   
             }
             else
             {
                 $_dbData = "";
-                $_err['api']['code'] = "10001";
-                $_err['api']['msg'] = "Username or Password Incorrect";
+                $_err[0] = "10001";
+                $_err[2] = "Username or Password Incorrect";
             }
             $_callback = [
                 "query" => $_dbData,
-                "error" => [
-                    "code" => $_err['api']['code'], 
-                    "message" => $_err['api']['msg']
-                ]
+                "error" => ["code" => $_err[0], "message" => $_err[2]]
             ];
             return $response->withJson($_callback, 200);
         }
@@ -1426,7 +1421,6 @@ $app->group('/api/v1/systems/login', function () {
     $this->patch('/', function (Request $request, Response $response, array $args) {
 
     });
-
 
 });
 
