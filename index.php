@@ -1321,183 +1321,112 @@ $app->group('/api/v1/systems/payments',function(){
 $app->group('/api/v1/systems/login', function () {
     /**
      * login GET Request
-     * employee-get-by-code
+     * login-post
      * 
-     * To get employee record
+     * To post employee record and get token
      * 
+     * Return login token
      */
     $this->post('/', function (Request $request, Response $response, array $args) {
         // POST Data here
         // $body = json_decode($request->getBody(), true);
         
-        $body = json_decode($request->getBody(), true);
+        $_body = json_decode($request->getBody(), true);
 
-        var_dump( $body);
-        if(!empty($body["loginid"]))
+        // var_dump( $body);
+        if(!empty($_body["username"]) && !empty($_body['password']))
         {
-            $err = "";
+            $_err = "";
+            $_salt = "password";
+            $_token = "";
+            $_callback = [];
             $db = connect_db();
             // SQL statement here
-            $q = $db->prepare("select * from `t_employee` where `username` =  '".$body['loginid']."'; ");
+            $q = $db->prepare("select * from `t_employee` where `username` =  '".$_body['username']."'; ");
             $q->execute();
-            $err = $q->errorinfo();
-            $res = $q->fetch();
+            $_err = $q->errorinfo();
+            $_res = $q->fetch();
            
-            if(!empty($res))
+            if(!empty($_res))
             {
-                extract($res);
-                if(strcmp ( string $str1 , string $str2 )== 0)
-                {
-                    $callback = [
-                        "query" => "",
-                        "error" => ["code" => "00001", "message" => "successful login"]
-                    ];
-                   
+                // extract data
+                extract($_res);
+                // current time
+                $_now = date('Y-m-d H:i:s');
+                // verify password
+                if(hash_equals($password, crypt($_body['password'], $_salt)))
+		        {   
+                    // here is login successful
+                    // if expire
+
+                    if(!empty($last_login))
+                    {
+                        // check expire
+                        echo strtotime($last_login);
+                        echo "<br>";
+                        echo strtotime($_now);
+                        $diff =  (strtotime($_now) - strtotime($last_login));
+                        echo "time - now = ".$diff;
+                    }
+                    else
+                    {
+                        // create new login token
+                        $db->beginTransaction();
+                        $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s"));
+                        $q = $db->prepare(
+                            "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."'; "
+                        );
+                        $q->execute();
+                        $_err['sql'][] = $q->errorinfo();
+
+                        $q = $db->prepare(
+                            "insert into `t_login` (`uid`,`username`,`token`,`status`,`create_date`) 
+                            values ('', '".$_body['username']."', '".$_token."', 'IN' ,'".$_now."');"
+                        );
+                        $q->execute();
+                        $_err['sql'][] = $q->errorinfo();
+                        $db->commit();
+                    }
+                    $_dbData = $_token;
+                    $_err['api']['code'] = "00001";
+                    $_err['api']['msg'] = "Login Successful";
                 }
                 else
                 {
-                    $callback = [
-                        "query" => "",
-                        "error" => ["code" => "00002", "message" => "Incorrect Username or Password"]
-                    ];
-                }
-            }
-            return $response->withJson($callback, 200);
-            
-            // $callback = [
-            //     "query" => $dbData,
-            //     "error" => ["code" => $err[0], "message" => $err[2]]
-            // ];
-            // return $response->withJson($callback, 200);
-        }
-        
-
-		// //$this->db->where("tu.password" , $password);
-		// $q = $this->db->get()->result_array();
-		// foreach($q as $key => $val)
-		// {
-		// 	foreach($val as $ik => $iv)
-		// 	{
-		// 		$tmp[$ik] = $iv;
-		// 	}
-        // }
-        
-        // // should be return token
-		// return $tmp;
-
-        // $loginID = $this->input->post('login_id');
-		// $password = $this->input->post('login_pwd');
-		// $com_code = $this->input->post("com_code");
-		// $rememberMe = $this->input->post("login_rem");
-     
-        // $db = connect_db();
-        // if(isset($_username) && !empty($_username))
-        // {
-        //     $sql = "select * from `t_employee` where username = '".$_username."'; ";
-        //     $q = $db->prepare($sql);
-        //     $q->execute();
-        //     $result = $q->fetch();
-        //     $err = $q->errorinfo();
-        //     $callback = [
-        //         "query" => $result,
-        //         "error" => ["code" => $err[0], "message" => $err[2]]
-        //     ];
-        //     return $response->withJson($callback,200);
-        // }
-
-
-/*
-
-        // Call database model
-        $res = $this->login->GetUserInfo($loginID);
-        // debug here
-        echo $loginID . " === > " .  crypt($password, $res['password']) ." ===> ". $rememberMe . " ===> ".$com_code ."====>".$this->input->ip_address()."<br>";
-        //echo "res:<br>";
-        //var_dump($res);
-
-        // Check if has this user
-        if(hash_equals($res['password'], crypt($password, $res['password'])))
-        {
-            // Gather Data
-            $theData = array(
-                // Gather data 
-                'username' => $res['username'],
-                "company_code" => $res['company_code'],
-                'log_date' => mdate('%Y-%m-%d %h:%i:%s',time()),
-                'ip_addr' => $this->input->ip_address(),
-                'is_login' => 1,
-                'token' => md5($res['username']."-".$res['company_code']."-".$this->input->ip_address())
-            );
-            // debug here
-            //echo "theData: <br>";
-            //var_dump($theData);
-            if($this->login->hasToken($theData['token']))
-            {
-                $this->login->Logout_Update($theData['token']);
-            }
-            // check concurrent user
-            $cur_sess_res = $this->login->GetUserLoginSession($res['company_code']);
-            $constant_sess_res = $this->login->GetUserLoginSessionLimit($res['company_code']);
-
-            if(empty($constant_sess_res))
-            {
-                echo "Company master data not set!";
-                exit();
-            }
-            // Check if has concurrent user record in database
-            empty($cur_sess_res) ? $concur_user = 0 : $concur_user = $cur_sess_res['num_login'];
-            // debug here
-            //var_dump($cur_sess_res);
-            //echo "concurr user = ".$concur_user;
-
-            if($concur_user <= $constant_sess_res['session'])
-            {
-                // allow login and write record to DB
-                if($this->login->hasToken($theData['token']))
-                {
-                    // increase 1 session login
-                    $this->login->Login_Update($theData['token']);
-                }
-                else
-                {
-                    // create new session on database
-                    $err = $this->login->Login_Insert($theData);
-                }
-
-                $theData['company_name'] = $res['company_name'];
-                $theData['dpm_code'] = $res['dpm_code'];
-                // write recode to session
-                if($rememberMe)
-                {	
-                    // Set user data
-                    $this->session->set_userdata("login_info", $theData);
-                    // Retrieve session data
-                    $sess_data = $this->session->userdata("login_info");
-
-                }
-                else {
-                    $this->session->set_tempdata('login_info', $theData, 86400);
-                    // Retrieve session data
-                    $sess_data = $this->session->userdata("login_info");
-                }
-                // debug here
-                //echo "Sess_data: <br>";
-                //var_dump($sess_data);
-                
-                header("location: ". base_url('dushboard'));
+                    // if not match
+                    $_dbData = "";
+                    $_err['api']['code'] = "10002";
+                    $_err['api']['msg'] = "Password Incorrect";
+                }   
             }
             else
-            {	
-                // reject login
-                header("location: ".base_url('login/?err=454')); 
+            {
+                $_dbData = "";
+                $_err['api']['code'] = "10001";
+                $_err['api']['msg'] = "Username or Password Incorrect";
             }
+            $_callback = [
+                "query" => $_dbData,
+                "error" => [
+                    "code" => $_err['api']['code'], 
+                    "message" => $_err['api']['msg']
+                ]
+            ];
+            return $response->withJson($_callback, 200);
         }
-        else
-        {
-            header("location: ".base_url('login/?err=1').""); 
-        }
-        */
+    });   
+    /**
+     * login patch Request
+     * login-patch
+     * 
+     * To update login status
+     * 
+     * Return 
+     */
+    $this->patch('/', function (Request $request, Response $response, array $args) {
+
     });
+
 
 });
 
