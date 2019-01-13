@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 09, 2019 at 05:01 PM
+-- Generation Time: Jan 14, 2019 at 12:54 AM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -141,7 +141,7 @@ CREATE TABLE `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2018-05-22 00:00:00', '', 1, '2019-01-07 14:01:49', '2019-01-07 14:01:49');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-01-13 23:29:03', 'f0a98db5946a4a9f29ac15457ea89bca', 1, '2019-01-13 15:29:03', '2019-01-13 15:29:03');
 
 -- --------------------------------------------------------
 
@@ -353,21 +353,15 @@ CREATE TABLE `t_login` (
   `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` enum('in','out') COLLATE utf8_unicode_ci NOT NULL,
   `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `expire_date` datetime NOT NULL
+  `modify_date` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Dumping data for table `t_login`
 --
 
-INSERT INTO `t_login` (`uid`, `username`, `token`, `status`, `create_date`, `expire_date`) VALUES
-(6, 'iamadmin', 'e77df52f7a18f29fa7b16ae90bf82457', 'in', '2019-01-07 08:20:14', '0000-00-00 00:00:00'),
-(9, 'iamadmin', '98d4f229078dd9d00df0c4bb49375057', 'in', '2019-01-09 08:52:09', '0000-00-00 00:00:00'),
-(10, 'iamadmin', '24a534f0fb49cfca99302d8cc4218138', 'in', '2019-01-09 08:57:09', '0000-00-00 00:00:00'),
-(11, 'iamadmin', '6ab99227d7abd01cbadf75f71e6d0de6', 'in', '2019-01-09 08:57:24', '0000-00-00 00:00:00'),
-(12, 'iamadmin', '013f0c3005f42d0b6005f93f4b557575', 'in', '2019-01-09 08:58:03', '0000-00-00 00:00:00'),
-(13, 'iamadmin', '55a3ac7f7dd8634e706facc9d931e3dd', 'in', '2019-01-09 08:58:35', '0000-00-00 00:00:00'),
-(14, 'iamadmin', 'a66c5674f40dab86d2d967fb96954285', 'in', '2019-01-09 08:59:04', '0000-00-00 00:00:00');
+INSERT INTO `t_login` (`uid`, `username`, `token`, `status`, `create_date`, `modify_date`) VALUES
+(25, 'iamadmin', 'f0a98db5946a4a9f29ac15457ea89bca', 'in', '2019-01-13 15:29:03', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -771,7 +765,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`
