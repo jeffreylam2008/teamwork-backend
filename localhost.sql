@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 14, 2019 at 12:54 AM
+-- Generation Time: Jan 16, 2019 at 12:48 AM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -141,7 +141,7 @@ CREATE TABLE `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-01-13 23:29:03', 'f0a98db5946a4a9f29ac15457ea89bca', 1, '2019-01-13 15:29:03', '2019-01-13 15:29:03');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-01-16 00:47:00', 'f9a5d315c5429cf6a779f1480a926cb7', 1, '2019-01-15 16:47:00', '2019-01-15 16:47:00');
 
 -- --------------------------------------------------------
 
@@ -350,6 +350,7 @@ DROP TABLE IF EXISTS `t_login`;
 CREATE TABLE `t_login` (
   `uid` int(10) NOT NULL,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `shop_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` enum('in','out') COLLATE utf8_unicode_ci NOT NULL,
   `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -360,8 +361,10 @@ CREATE TABLE `t_login` (
 -- Dumping data for table `t_login`
 --
 
-INSERT INTO `t_login` (`uid`, `username`, `token`, `status`, `create_date`, `modify_date`) VALUES
-(25, 'iamadmin', 'f0a98db5946a4a9f29ac15457ea89bca', 'in', '2019-01-13 15:29:03', '0000-00-00 00:00:00');
+INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `create_date`, `modify_date`) VALUES
+(26, 'iamadmin', '', 'a3b22bdf3684acfeb105804d15c271cd', 'out', '2019-01-14 14:48:34', '2019-01-14 22:48:34'),
+(27, 'iamadmin', '', '73d82d94e19c2d27215cd41cca2eb71b', 'out', '2019-01-15 16:47:00', '2019-01-16 00:47:00'),
+(28, 'iamadmin', '', 'f9a5d315c5429cf6a779f1480a926cb7', 'in', '2019-01-15 16:47:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -765,7 +768,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`

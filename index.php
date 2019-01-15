@@ -1370,14 +1370,14 @@ $app->group('/api/v1/systems/login', function () {
                             $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s"));
                             
                             $q = $db->prepare(
-                                "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."'; "
+                                "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."';"
                             );
                             $q->execute();
                             $_err['sql'][] = $q->errorinfo();
 
                             $q = $db->prepare(
-                                "insert into `t_login` (`uid`,`username`,`token`,`status`,`create_date`) 
-                                values ('', '".$_body['username']."', '".$_token."', 'IN' ,'".$_now."');"
+                                "insert into `t_login` (`uid`,`username`,`shop_code`,`token`,`status`,`create_date`) 
+                                values ('', '".$_body['username']."', '".$_body['default_shopcode']."', '".$_token."', 'IN' ,'".$_now."');"
                             );
                             $q->execute();
                             $_err['sql'][] = $q->errorinfo();
@@ -1398,7 +1398,7 @@ $app->group('/api/v1/systems/login', function () {
                         $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s"));
                         // logout last token
                         $q = $db->prepare(
-                            "update `t_login` set `status` = 'OUT' WHERE `token` = '".$last_token."';"
+                            "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$last_token."';"
                         );
                         $q->execute();
                         $_err['sql'][] = $q->errorinfo();
@@ -1410,8 +1410,8 @@ $app->group('/api/v1/systems/login', function () {
                         $_err['sql'][] = $q->errorinfo();
                         // login new token
                         $q = $db->prepare(
-                            "insert into `t_login` (`uid`,`username`,`token`,`status`,`create_date`) 
-                            values ('', '".$_body['username']."', '".$_token."', 'IN' ,'".$_now."');"
+                            "insert into `t_login` (`uid`,`username`,`shop_code`,`token`,`status`,`create_date`) 
+                            values ('', '".$_body['username']."', '".$_body['default_shopcode']."', '".$_token."', 'IN' ,'".$_now."');"
                         );
                         $q->execute();
                         $_err['sql'][] = $q->errorinfo();
