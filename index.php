@@ -1165,7 +1165,7 @@ $app->group('/api/v1/inventory/invoices', function () {
     
         $db->beginTransaction();
         // insert record to transaction_h
-        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date, modify_date) 
+        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, create_date) 
             values (
                 '".$invoicenum."',
                 '".$customer['cust_code']."',
@@ -1175,10 +1175,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 '".$employeecode."',
                 '".$shopcode."',
                 '".$remark."',
-                '0',
-                '0',
-                '".$date."',
-                '0000-00-00 00:00:00'
+                '".$date."'
             );
         ";
         $q = $db->prepare($sql);
