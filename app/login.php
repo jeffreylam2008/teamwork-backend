@@ -40,37 +40,78 @@ $app->group('/api/v1/systems/login', function () {
                 // verify password
                 if(hash_equals($password, crypt($_body['password'], $_salt)))
 		        {
-                    // check expire
-                    $lasttime = strtotime( $last_login );
-                    $curtime = strtotime( $_now );
-                    // time difference
-                    $diff = $curtime - $lasttime;
-                    // within one day, return token 
-                    if($diff <= 86400)
+                    // check user status valid
+                    if($status === 1)
                     {
-                        // get back last token
-                        if(!empty($last_login))
+                        // check expire
+                        $lasttime = strtotime( $last_login );
+                        $curtime = strtotime( $_now );
+                        // time difference
+                        $diff = $curtime - $lasttime;
+                        // within one day, use old token 
+                        if($diff <= 86400)
                         {
-                            $_dbData = $last_token;
-                            $_err['api']['code'] = "00001";
-                            $_err['api']['msg'] = "Login Successful";
+                            if(!empty($last_token))
+                            {
+                                // get back last token
+                                $_dbData = $last_token;
+                                $_err['api']['code'] = "00001";
+                                $_err['api']['msg'] = "Login Successful";
+                            }
+                            // // last token not exist then renew token
+                            else
+                            {
+                                // create new login token
+                                $db->beginTransaction();
+                                $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s"));
+                                // logout last token
+                                $q = $db->prepare(
+                                    "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$last_token."';"
+                                );
+                                $q->execute();
+                                $_err['sql'][] = $q->errorinfo();
+                                // update new token
+                                $q = $db->prepare(
+                                    "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."'; "
+                                );
+                                $q->execute();
+                                $_err['sql'][] = $q->errorinfo();
+                                // login new token
+                                $q = $db->prepare(
+                                    "insert into `t_login` (`uid`,`username`,`shop_code`,`token`,`status`,`create_date`) 
+                                    values ('', '".$_body['username']."', '".$default_shopcode."', '".$_token."', 'IN' ,'".$_now."');"
+                                );
+                                $q->execute();
+                                $_err['sql'][] = $q->errorinfo();
+                                
+                                $db->commit();
+                                $_dbData = $_token;
+                                $_err['api']['code'] = "00001";
+                                $_err['api']['msg'] = "Login Successful";
+                            }   
                         }
-                        // last token not exist then renew token
+                        // token expire and use new token
                         else
                         {
-                             // create new login token
+                            // create new login token
                             $db->beginTransaction();
                             $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s"));
-                            
+                            // logout last token
                             $q = $db->prepare(
-                                "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."';"
+                                "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$last_token."';"
                             );
                             $q->execute();
                             $_err['sql'][] = $q->errorinfo();
-
+                            // update new token
+                            $q = $db->prepare(
+                                "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."'; "
+                            );
+                            $q->execute();
+                            $_err['sql'][] = $q->errorinfo();
+                            // login new token
                             $q = $db->prepare(
                                 "insert into `t_login` (`uid`,`username`,`shop_code`,`token`,`status`,`create_date`) 
-                                values ('', '".$_body['username']."', '".$_body['default_shopcode']."', '".$_token."', 'IN' ,'".$_now."');"
+                                values ('', '".$_body['username']."', '".$default_shopcode."', '".$_token."', 'IN' ,'".$_now."');"
                             );
                             $q->execute();
                             $_err['sql'][] = $q->errorinfo();
@@ -80,42 +121,15 @@ $app->group('/api/v1/systems/login', function () {
                             $_dbData = $_token;
                             $_err['api']['code'] = "00001";
                             $_err['api']['msg'] = "Login Successful";
-                        }
-
-                    }
-                    // token expire and renew
+                        } //end check timeout  
+                    } //end check status
                     else
                     {
-                        // create new login token
-                        $db->beginTransaction();
-                        $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s"));
-                        // logout last token
-                        $q = $db->prepare(
-                            "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$last_token."';"
-                        );
-                        $q->execute();
-                        $_err['sql'][] = $q->errorinfo();
-                        // update new token
-                        $q = $db->prepare(
-                            "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."'; "
-                        );
-                        $q->execute();
-                        $_err['sql'][] = $q->errorinfo();
-                        // login new token
-                        $q = $db->prepare(
-                            "insert into `t_login` (`uid`,`username`,`shop_code`,`token`,`status`,`create_date`) 
-                            values ('', '".$_body['username']."', '".$_body['default_shopcode']."', '".$_token."', 'IN' ,'".$_now."');"
-                        );
-                        $q->execute();
-                        $_err['sql'][] = $q->errorinfo();
-                        
-                        $db->commit();
-
-                        $_dbData = $_token;
-                        $_err['api']['code'] = "00001";
-                        $_err['api']['msg'] = "Login Successful";
+                        $_dbData = "";
+                        $_err['api']['code'] = "10002";
+                        $_err['api']['msg'] = "User Account Disabled";
                     }
-                }
+                } // end check password 
                 // password not match
                 else
                 {
@@ -139,5 +153,11 @@ $app->group('/api/v1/systems/login', function () {
             ];
             return $response->withJson($_callback, 200);
         }
-    });
+    }); // end POST
+
+    $this->get('/{token}', function (Request $request, Response $response, array $args) {
+        $_token = $args['token'];
+        $_callback = $_token;
+        return $response->withJson($_callback, 200);
+    }); // end 
 });

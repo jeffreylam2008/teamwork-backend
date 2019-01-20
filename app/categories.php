@@ -1,14 +1,13 @@
 <?php
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-
 $app->group('/api/v1/products/categories', function() use($app) {
 	/**
-		* Categories GET Request
-		* categories-get
-		* 
-		* To get all record
-		*/
+	 * Categories GET Request
+	 * categories-get
+	 * 
+	 * To get all record
+	 */
 	$app->get('/', function (Request $request, Response $response, array $args) {
 		$err="";
 		$db = connect_db();
@@ -22,16 +21,14 @@ $app->group('/api/v1/products/categories', function() use($app) {
 			"query" => $dbData,
 			"error" => ["code" => $err[0], "message" => $err[2]]
 		];
-
-		if($err[0] == "00000")
-			return $response->withJson($callback, 200);
+		return $response->withJson($callback, 200);
 	});
 	/**
-		* Categories GET Request
-		* categories-get-by-code
-		* 
-		* To get single record base on code
-		*/
+	 * Categories GET Request
+	 * categories-get-by-code
+	 * 
+	 * To get single record base on code
+	 */
 	$app->get('/{cate_code}', function(Request $request, Response $response, array $args){
 		$err="";
 		$_cate_code = $args['cate_code'];
@@ -46,15 +43,14 @@ $app->group('/api/v1/products/categories', function() use($app) {
 			"query" => $dbData,
 			"error" => ["code" => $err[0], "message" => $err[2]]
 		];
-
 		return $response->withJson($callback, 200);
 	});
 	/**
-		* Categories PATCH Request
-		* categories-patch
-		* 
-		* To update current record on DB
-		*/
+	 * Categories PATCH Request
+	 * categories-patch
+	 * 
+	 * To update current record on DB
+	 */
 	$app->patch('/{cate_code}', function(Request $request, Response $response, array $args){
 		$err = [];
 		$_cate_code = $args['cate_code'];

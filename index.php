@@ -1,7 +1,6 @@
 <?php
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-
 require_once './vendor/autoload.php';
 require_once './lib/db.php';
 $c = new \Slim\Container(); //Create Your container
