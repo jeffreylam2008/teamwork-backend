@@ -44,14 +44,14 @@ $app->group('/api/v1/systems/login', function () {
                     // check user status valid
                     if($status === 1)
                     {
-                        // // check expire
-                        // $lasttime = strtotime( $last_login );
-                        // $curtime = strtotime( $_now );
-                        // // time difference
-                        // $diff = $curtime - $lasttime;
-                        // // within one day, use old token 
-                        // if($diff <= 86400)
-                        // {
+                        // check expire
+                        $lasttime = strtotime( $last_login );
+                        $curtime = strtotime( $_now );
+                        // time difference
+                        $diff = $curtime - $lasttime;
+                        // within one day, use old token 
+                        if($diff <= 86400)
+                        {
                             if(!empty($last_token))
                             {
                                 // get back last token
@@ -90,39 +90,39 @@ $app->group('/api/v1/systems/login', function () {
                                 $_err['api']['code'] = "00001";
                                 $_err['api']['msg'] = "Login Successful";
                             }   
-                        // }
-                        // // token expire and use new token
-                        // else
-                        // {
-                        //     // create new login token
-                        //     $db->beginTransaction();
-                        //     $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['default_shopcode']);
-                        //     // logout last token
-                        //     $q = $db->prepare(
-                        //         "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$last_token."';"
-                        //     );
-                        //     $q->execute();
-                        //     $_err['sql'][] = $q->errorinfo();
-                        //     // update new token
-                        //     $q = $db->prepare(
-                        //         "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."'; "
-                        //     );
-                        //     $q->execute();
-                        //     $_err['sql'][] = $q->errorinfo();
-                        //     // login new token
-                        //     $q = $db->prepare(
-                        //         "insert into `t_login` (`uid`,`username`,`shop_code`,`token`,`status`,`create_date`) 
-                        //         values ('', '".$_body['username']."', '".$default_shopcode."', '".$_token."', 'IN' ,'".$_now."');"
-                        //     );
-                        //     $q->execute();
-                        //     $_err['sql'][] = $q->errorinfo();
+                        }
+                        // token expire and use new token
+                        else
+                        {
+                            // create new login token
+                            $db->beginTransaction();
+                            $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['default_shopcode']);
+                            // logout last token
+                            $q = $db->prepare(
+                                "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$last_token."';"
+                            );
+                            $q->execute();
+                            $_err['sql'][] = $q->errorinfo();
+                            // update new token
+                            $q = $db->prepare(
+                                "update `t_employee` set `last_login` = '".$_now."' ,`last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."'; "
+                            );
+                            $q->execute();
+                            $_err['sql'][] = $q->errorinfo();
+                            // login new token
+                            $q = $db->prepare(
+                                "insert into `t_login` (`uid`,`username`,`shop_code`,`token`,`status`,`create_date`) 
+                                values ('', '".$_body['username']."', '".$default_shopcode."', '".$_token."', 'IN' ,'".$_now."');"
+                            );
+                            $q->execute();
+                            $_err['sql'][] = $q->errorinfo();
                             
-                        //     $db->commit();
+                            $db->commit();
 
-                        //     $_dbData = $_token;
-                        //     $_err['api']['code'] = "00001";
-                        //     $_err['api']['msg'] = "Login Successful";
-                        // } //end check timeout  
+                            $_dbData = $_token;
+                            $_err['api']['code'] = "00001";
+                            $_err['api']['msg'] = "Login Successful";
+                        } //end check timeout  
                     } //end check status
                     else
                     {
