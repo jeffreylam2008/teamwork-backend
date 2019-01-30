@@ -31,7 +31,7 @@ $app->group('/api/v1/systems/login', function () {
             $_err = $q->errorinfo();
             $_res = $q->fetch();
             $_dbData = "";
-            // 
+            
             if(!empty($_res))
             {
                 // extract data
@@ -44,14 +44,15 @@ $app->group('/api/v1/systems/login', function () {
                     // check user status valid
                     if($status === 1)
                     {
-                        // check expire
+                        // Time Expire Checking
                         $lasttime = strtotime( $last_login );
                         $curtime = strtotime( $_now );
                         // time difference
                         $diff = $curtime - $lasttime;
-                        // within one day, use old token 
+                        // within one day, then use old token 
                         if($diff <= 86400)
                         {
+                            // last token is exist, return last token
                             if(!empty($last_token))
                             {
                                 // get back last token
@@ -59,7 +60,7 @@ $app->group('/api/v1/systems/login', function () {
                                 $_err['api']['code'] = "00001";
                                 $_err['api']['msg'] = "Login Successful";
                             }
-                            // // last token not exist then renew token
+                            // last token not exist then renew token
                             else
                             {
                                 // create new login token
@@ -122,7 +123,7 @@ $app->group('/api/v1/systems/login', function () {
                             $_dbData = $_token;
                             $_err['api']['code'] = "00001";
                             $_err['api']['msg'] = "Login Successful";
-                        } //end check timeout  
+                        } //end time expire checking   
                     } //end check status
                     else
                     {
@@ -164,8 +165,71 @@ $app->group('/api/v1/systems/login', function () {
     }); // end POST
 
     $this->get('/{token}', function (Request $request, Response $response, array $args) {
-        $_token = $args['token'];
-        $_callback = $_token;
+        $_this_token = $args['token'];
+        $db = connect_db();
+        // SQL statement here
+        $q = $db->prepare("select `status`, `create_date` from `t_login` where `token` =  '".$_this_token."'; ");
+        $q->execute();
+        $_err = $q->errorinfo();
+        $_res = $q->fetch();
+        if(!empty($_res))
+        {
+            // extract data
+            extract($_res);
+            // current time
+            $_now = date('Y-m-d H:i:s');
+            if($status == "in")
+            {
+                // Time Expire Checking
+                $lasttime = strtotime( $create_date );
+                $curtime = strtotime( $_now );
+                // time difference
+                $diff = $curtime - $lasttime;
+                // within one day, then use old token 
+                if($diff <= 100)
+                {
+                    $_dbData = $_this_token;
+                    $_err['api']['code'] = "00001";
+                    $_err['api']['msg'] = "Use same token";
+                }
+                // last token not exist then renew token
+                else
+                {
+                    // create new login token
+                    $db->beginTransaction();
+                    $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['default_shopcode']);
+                    // logout last token
+                    $q = $db->prepare(
+                        "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$_this_token."';"
+                    );
+                    $q->execute();
+                    $_err['sql'][] = $q->errorinfo();
+                    
+                    $db->commit();
+                    $_dbData = "";
+                    $_err['api']['code'] = "00001";
+                    $_err['api']['msg'] = "Need re-Login";
+                }   
+            }
+            else
+            {
+                $_dbData = "";
+                $_err['api']['code'] = "10001";
+                $_err['api']['msg'] = "Never Login";
+            }
+        }
+        // username and password DB no record
+        else
+        {
+            $_dbData = "";
+            $_err['api']['code'] = "10001";
+            $_err['api']['msg'] = "Username or Password Incorrect";
+        }
+        // return API
+        $_callback = [
+            "query" => $_dbData,
+            "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
+        ];
         return $response->withJson($_callback, 200);
     }); // end 
 });
