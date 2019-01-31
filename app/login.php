@@ -197,10 +197,11 @@ $app->group('/api/v1/systems/login', function () {
                 {
                     // create new login token
                     $db->beginTransaction();
-                    $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['default_shopcode']);
+                    //$_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['default_shopcode']);
                     // logout last token
                     $q = $db->prepare(
-                        "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$_this_token."';"
+                        "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$_this_token."';". 
+                        "update `t_employee` set `last_token` = '', `last_login` = '".$_now."' WHERE `username` = '".$username."';" 
                     );
                     $q->execute();
                     $_err['sql'][] = $q->errorinfo();
