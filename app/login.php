@@ -3,6 +3,7 @@ use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
 $app->group('/api/v1/systems/login', function () {
+    $_expire = 86400;
     /**
      * login GET Request
      * login-post
@@ -11,7 +12,7 @@ $app->group('/api/v1/systems/login', function () {
      * 
      * Return login token
      */
-    $this->post('/', function (Request $request, Response $response, array $args) {
+    $this->post('/', function (Request $request, Response $response, array $args) use($_expire) {
         // POST Data here
         // $body = json_decode($request->getBody(), true);
         
@@ -51,7 +52,7 @@ $app->group('/api/v1/systems/login', function () {
                         // time difference
                         $diff = $curtime - $lasttime;
                         // within one day (86400 = one day) , then use old token 
-                        if($diff <= 86400 && !empty($last_token))
+                        if($diff <= $_expire && !empty($last_token))
                         {
                             // last token is exist, return last token
                             // get back last token
@@ -132,11 +133,22 @@ $app->group('/api/v1/systems/login', function () {
         return $response->withJson($_callback, 200);
     }); // end POST
 
-    $this->get('/{token}', function (Request $request, Response $response, array $args) {
+    /**
+     * login GET Request
+     * login validation
+     * 
+     * To check token is valid or not
+     * default set token expire as 1 day
+     * 
+     * Return login token
+     */
+    $this->get('/{token}', function (Request $request, Response $response, array $args) use($_expire){
         $_this_token = $args['token'];
+        $_err = "";
+
         $db = connect_db();
         // SQL statement here
-        $q = $db->prepare("select `status`, `create_date` from `t_login` where `token` =  '".$_this_token."'; ");
+        $q = $db->prepare("select `username`, `status`, `create_date` from `t_login` where `token` =  '".$_this_token."'; ");
         $q->execute();
         $_err = $q->errorinfo();
         $_res = $q->fetch();
@@ -146,31 +158,32 @@ $app->group('/api/v1/systems/login', function () {
             extract($_res);
             // current time
             $_now = date('Y-m-d H:i:s');
-            if($status == "in")
+            if($status === "in")
             {
                 // Time Expire Checking
-                $lasttime = strtotime( $create_date );
-                $curtime = strtotime( $_now );
+                $_lasttime = strtotime( $create_date );
+                $_curtime = strtotime( $_now );
                 // time difference
-                $diff = $curtime - $lasttime;
+                $_diff = $_curtime - $_lasttime;
                 // within one day, then use old token 
-                if($diff <= 100)
+                if($_diff <= $_expire)
                 {
                     $_dbData = $_this_token;
                     $_err['api']['code'] = "00001";
                     $_err['api']['msg'] = "Use same token";
                 }
                 // last token not exist then renew token
+                
                 else
                 {
                     // create new login token
                     $db->beginTransaction();
                     //$_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['default_shopcode']);
                     // logout last token
-                    $q = $db->prepare(
-                        "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$_this_token."';". 
-                        "update `t_employee` set `last_token` = '', `last_login` = '".$_now."' WHERE `username` = '".$username."';" 
-                    );
+                    $q = $db->prepare("update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$_this_token."';");
+                    $q->execute();
+                    $_err['sql'][] = $q->errorinfo();
+                    $q = $db->prepare("update `t_employee` set `last_token` = '', `last_login` = '".$_now."' WHERE `username` = '".$username."';");
                     $q->execute();
                     $_err['sql'][] = $q->errorinfo();
                     
