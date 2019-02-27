@@ -60,6 +60,13 @@ $app->group('/api/v1/systems/login', function () {
                         {
                             // last token is exist, return last token
                             // get back last token
+                            $db->beginTransaction();
+                            $q = $db->prepare(
+                                "update `t_login` set `status` = 'in', `modify_date` = '".$_now."' WHERE `username` = '".$_body['username']."' AND `token` = '".$last_token."';"
+                            );
+                            $q->execute();
+                            $_err['sql'][] = $q->errorinfo();
+                            $db->commit();
                             $_dbData = $last_token;
                             $_err['api']['code'] = "00001";
                             $_err['api']['msg'] = "Login Successful";
@@ -67,6 +74,7 @@ $app->group('/api/v1/systems/login', function () {
                         // token expire and use new token
                         else
                         {
+                            echo "token expire and use new token";
                             // create new login token
                             $db->beginTransaction();
                             $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['shopcode']);

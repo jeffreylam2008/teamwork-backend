@@ -45,7 +45,7 @@ $app->group('/api/v1/customers', function () {
         if(!empty($res))
         {
             foreach ($res as $key => $val) {
-                $dbData[] = $val;
+                $dbData[$key] = $val;
             }
             $callback = [
                 "query" => $dbData,
