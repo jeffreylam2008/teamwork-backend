@@ -181,6 +181,13 @@ $app->group('/api/v1/systems/login', function () {
                     // within one day, then use old token 
                     if($_diff <= $_expire)
                     {
+						$db->beginTransaction();
+						$q = $db->prepare(
+							"update `t_login` set `status` = 'in', `modify_date` = '".$_now."' WHERE `username` = '".$username."' AND `token` = '".$_this_token."';"
+						);
+						$q->execute();
+						$_err['sql'][] = $q->errorinfo();
+						$db->commit();
                         $_dbData = $_this_token;
                         $_err['api']['code'] = "00001";
                         $_err['api']['msg'] = "Use same token";
