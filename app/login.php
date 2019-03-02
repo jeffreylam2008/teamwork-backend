@@ -126,7 +126,7 @@ $app->group('/api/v1/systems/login', function () {
             else
             {
                 $_dbData = "";
-                $_err['api']['code'] = "100011 ".$_body['username'];
+                $_err['api']['code'] = "100011 ";
                 $_err['api']['msg'] = "Username or Password Incorrect";
             }
         }

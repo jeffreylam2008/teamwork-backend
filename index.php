@@ -60,4 +60,9 @@ require './app/login.php';
  */
 require './app/shops.php';
 
+/**
+ * employee API
+ */
+require './app/employee.php';
+
 $app->run();
