@@ -74,7 +74,6 @@ $app->group('/api/v1/systems/login', function () {
                         // token expire and use new token
                         else
                         {
-                            echo "token expire and use new token";
                             // create new login token
                             $db->beginTransaction();
                             $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['shopcode']);
@@ -90,11 +89,12 @@ $app->group('/api/v1/systems/login', function () {
                             );
                             $q->execute();
                             $_err['sql'][] = $q->errorinfo();
+
                             // login new token
                             $q = $db->prepare(
-                                "insert into `t_login` (`uid`,`username`,`shop_code`,`token`,`status`,`create_date`) 
-                                values ('', '".$_body['username']."', '".$_body['shopcode']."', '".$_token."', 'IN' ,'".$_now."');"
+                                "insert into `t_login` (`username`,`shop_code`,`token`,`status`,`create_date`,`modify_date`) values ('".$_body['username']."', '".$_body['shopcode']."', '".$_token."', 'IN' ,'".$_now."','0000-00-00 00:00:00');"
                             );
+                            
                             $q->execute();
                             $_err['sql'][] = $q->errorinfo();
                             
@@ -122,7 +122,7 @@ $app->group('/api/v1/systems/login', function () {
                     $_err['api']['msg'] = "Password Incorrect";
                 } // end password not matach
             }
-            // username and password DB no record
+            // username and password, DB no record
             else
             {
                 $_dbData = "";
@@ -135,7 +135,7 @@ $app->group('/api/v1/systems/login', function () {
         {
             $_dbData = "";
             $_err['api']['code'] = "100012";
-            $_err['api']['msg'] = "Username or Password Incorrect";
+            $_err['api']['msg'] = "Username and Password Cannot Be Empty";
         }
         // return API
         $_callback = [
