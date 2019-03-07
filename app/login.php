@@ -48,7 +48,7 @@ $app->group('/api/v1/systems/login', function () {
                 if(hash_equals($password, crypt($_body['password'], $_salt)))
 		        {
                     // check user status valid
-                    if($status === 1)
+                    if($status == 1)
                     {
                         // Time Expire Checking
                         $lasttime = strtotime( $last_login );

@@ -59,14 +59,14 @@ $app->group('/api/v1/products/categories', function() use($app) {
 		$body = json_decode($request->getBody(), true);
 		$_now = date('Y-m-d H:i:s');
 		$db->beginTransaction();
-		$q = $db->prepare("UPDATE t_items_category SET `cate_code` = '".$body["i-catecode"]."', `desc` = '".$body["i-desc"]."', `create_date` = '".$_now."' WHERE `cate_code` = '".$_cate_code."';");
+		$q = $db->prepare("UPDATE t_items_category SET `cate_code` = '".$body["i-catecode"]."', `desc` = '".$body["i-desc"]."', `modify_date` = '".$_now."' WHERE `cate_code` = '".$_cate_code."';");
 		$q->execute();
 		$dbData = $q->fetch();
 		$err = $q->errorinfo();
 		$db->commit();
 		$callback = [
 			"query" => $dbData,
-			"error" => ["code" => $err[0], "message" => $err[2]]
+			"error" => ["code" => $err[0], "message" => $err[2	]]
 		];
 		return $response->withJson($callback,200);
 		
