@@ -96,7 +96,7 @@ $app->group('/api/v1/inventory/quotations', function () {
             }
             $_callback = [
                 "query" => $_query,
-                "error" => ["code" => $_err[0], "message" => $_err[2]]
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
             return $response->withJson($_callback, 200);
         }
@@ -315,8 +315,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $db->commit();
     
         $callback = [
-            "code" => $err[0], 
-            "message" => $err[2]
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
         return $response->withJson($callback,200);
     });
@@ -397,7 +396,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         }
     
         $callback = [
-            "code" => $err[0], "message" => $err[2]
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
         return $response->withJson($callback,200);
      });

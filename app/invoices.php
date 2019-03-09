@@ -87,7 +87,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             }
             $_callback = [
                 "query" => $_query,
-                "error" => ["code" => $_err[0], "message" => $_err[2]]
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
             return $response->withJson($_callback, 200);
         }
@@ -408,7 +408,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         }
     
         $callback = [
-            "code" => $err[0], "message" => $err[2]
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
         return $response->withJson($callback,200);
      });
@@ -435,7 +435,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         
             $callback = [
                 "query" => $dbData,
-                "error" => ["code" => $err[0], "message" => $err[2]]
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
         
             return $response->withJson($callback, 200);

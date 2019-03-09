@@ -23,7 +23,7 @@ $app->group('/api/v1/systems/employee', function () {
             }
             $callback = [
                 "query" => $dbData,
-                "error" => ["code" => $_err[0], "message" => $_err[2]]
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
             return $response->withJson($callback, 200);
         }
@@ -49,7 +49,7 @@ $app->group('/api/v1/systems/employee', function () {
             }
             $callback = [
                 "query" => $dbData,
-                "error" => ["code" => $_err[0], "message" => $_err[2]]
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
             return $response->withJson($callback, 200);
         }

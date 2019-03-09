@@ -20,7 +20,7 @@ $app->group('/api/v1/systems/shops', function () {
         }
         $callback = [
             "query" => $dbData,
-            "error" => ["code" => $err[0], "message" => $err[2]]
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
         return $response->withJson($callback, 200);
     });

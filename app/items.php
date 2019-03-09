@@ -19,7 +19,7 @@ $app->group('/api/v1/products/items', function () {
         }
         $callback = [
             "query" => $dbData,
-            "error" => ["code" => $err[0], "message" => $err[2]]
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
     
         if($err[0] == "00000")
@@ -76,7 +76,7 @@ $app->group('/api/v1/products/items', function () {
     
         $callback = [
             "query" => $dbData,
-            "error" => ["code" => $err[0], "message" => $err[2]]
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
     
         return $response->withJson($callback, 200);
@@ -115,8 +115,8 @@ $app->group('/api/v1/products/items', function () {
         $err = $q->errorinfo();
         $db->commit();
         $callback = [
-            "code" => $err[0], 
-            "message" => $err[2]
+            "query" => "",
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
         return $response->withJson($callback,200);
     });
@@ -147,12 +147,11 @@ $app->group('/api/v1/products/items', function () {
         WHERE `item_code` = '".$_item_code."';");
         
         $q->execute();
-        $dbData = $q->fetch();
         $err = $q->errorinfo();
         $db->commit();
         $callback = [
-            "query" => $dbData,
-            "error" => ["code" => $err[0], "message" => $err[2]]
+            "query" => "",
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
         return $response->withJson($callback, 200);
     });
@@ -167,12 +166,11 @@ $app->group('/api/v1/products/items', function () {
         $db = connect_db();
         $q = $db->prepare("DELETE FROM `t_items` WHERE item_code = '".$_item_code."';");
         $q->execute();
-        $dbData = $q->fetch();
         $err = $q->errorinfo();
     
         $callback = [
-            "query" => $dbData,
-            "error" => ["code" => $err[0], "message" => $err[2]]
+            "query" => "",
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
     
         return $response->withJson($callback, 200);
