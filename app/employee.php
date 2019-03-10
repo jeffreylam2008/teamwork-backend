@@ -2,7 +2,7 @@
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
-$app->group('/api/v1/systems/employee', function () {
+$app->group('/api/v1/systems/employees', function () {
     /**
      * employee GET request
      * employee-get
@@ -10,12 +10,12 @@ $app->group('/api/v1/systems/employee', function () {
      * To get all employee information 
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
-        $_err = "";
+        $err = [];
         $db = connect_db();
         $q = $db->prepare("select `employee_code`, `username`, `default_shopcode`, `access_level`, `role`, `status` from `t_employee`;");
         $q->execute();
-        $_err = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        $err = $q->errorinfo();
         if(!empty($res))
         {
             foreach ($res as $key => $val) {
@@ -36,11 +36,11 @@ $app->group('/api/v1/systems/employee', function () {
      */
     $this->get('/{username}', function (Request $request, Response $response, array $args) {
         $_username = $args['username'];
-        $_err = "";
+        $err = "";
         $db = connect_db();
         $q = $db->prepare("select `employee_code`, `username`, `default_shopcode`, `access_level`, `role`, `status` from `t_employee` where `username` = '".$_username."';");
         $q->execute();
-        $_err = $q->errorinfo();
+        $err = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
         if(!empty($res))
         {

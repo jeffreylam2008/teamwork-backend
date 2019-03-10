@@ -9,7 +9,7 @@ $app->group('/api/v1/systems/shops', function () {
      * To get shop record 
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
-        $err = "";
+        $err = [];
         $db = connect_db();
         $q = $db->prepare("select * from `t_shop`;");
         $q->execute();

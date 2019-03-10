@@ -87,7 +87,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             }
             $_callback = [
                 "query" => $_query,
-                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+                "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
             ];
             return $response->withJson($_callback, 200);
         }

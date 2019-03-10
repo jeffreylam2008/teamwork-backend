@@ -25,7 +25,7 @@ $app->group('/api/v1/systems/login', function () {
         // var_dump( $body);
         if(!empty($_body["username"]) && !empty($_body['password']))
         {
-            $_err = "";
+            $_err = [];
             $_salt = "password";
             $_token = "";
             $_callback = [];
@@ -158,7 +158,7 @@ $app->group('/api/v1/systems/login', function () {
         if(!empty($args))
         {
             $_this_token = $args['token'];
-            $_err = "";
+            $_err = [];
             $db = connect_db();
             // SQL statement here
             $q = $db->prepare("select `username`, `status`, `create_date` from `t_login` where `token` =  '".$_this_token."'; ");
