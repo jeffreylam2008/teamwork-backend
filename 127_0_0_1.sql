@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機: 127.0.0.1:3306
--- 產生時間： 2019-01-17 13:33:22
--- 伺服器版本: 5.7.23
+-- 產生時間： 2019-03-14 13:09:21
+-- 伺服器版本: 10.3.9-MariaDB
 -- PHP 版本： 5.6.38
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -34,7 +34,7 @@ USE `teamwork`;
 DROP TABLE IF EXISTS `t_audit_log`;
 CREATE TABLE IF NOT EXISTS `t_audit_log` (
   `uid` int(10) NOT NULL AUTO_INCREMENT,
-  `datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `datetime` datetime DEFAULT NULL,
   `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
   `event` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`uid`)
@@ -67,8 +67,8 @@ CREATE TABLE IF NOT EXISTS `t_customers` (
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL COMMENT 'payment method code',
   `pt_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL COMMENT 'payment term',
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `custcode_unique` (`cust_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -113,8 +113,8 @@ CREATE TABLE IF NOT EXISTS `t_delivery` (
   `fax2` int(10) NOT NULL,
   `location` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
-  `post_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `post_time` datetime DEFAULT NULL,
+  `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `deliverycode_unique` (`delivery_code`) USING BTREE,
   KEY `delivery_code_index` (`delivery_code`) USING BTREE
@@ -138,8 +138,8 @@ CREATE TABLE IF NOT EXISTS `t_employee` (
   `last_login` datetime NOT NULL,
   `last_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` tinyint(4) NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `unique_employee_code` (`employee_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-01-16 00:47:00', 'f9a5d315c5429cf6a779f1480a926cb7', 1, '2019-01-15 16:47:00', '2019-01-15 16:47:00');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-03-14 12:04:28', '2fbd8062876fc6c5e0b6624711986b6f', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
@@ -168,8 +168,8 @@ CREATE TABLE IF NOT EXISTS `t_items` (
   `price_special` decimal(10,2) NOT NULL,
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `unit` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `uid_unique` (`item_code`) USING BTREE,
   KEY `uid_index` (`item_code`) USING BTREE
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS `t_items` (
 --
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
-(1, 'GIFT', 'GIFT1', 'GIFT1 2', '', '10.00', '0.00', 'PDT1', '20PCS/PACK', '0000-00-00 00:00:00', '2018-12-09 07:01:58'),
+(1, 'GIFT', 'GIFT', 'GIFT123', '', '10.00', '0.00', 'PDT1', '20PCS/PACK', '2019-03-13 19:34:38', '2019-03-13 11:34:38'),
 (2, 'GUS0120', 'Gel Urinal Screen1', '香味尿格1', '', '110.00', '1.00', 'SVR', '20PCS/PACK1', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (3, 'Pentax', '', 'Pentax 水泵', '', '1100.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (4, 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '', '328.00', '0.00', 'PDT', '10 Ltr / Pail', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
@@ -302,13 +302,13 @@ INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `pric
 (121, 'CSS', '', '清洗蒸櫃服務連除垢劑', '', '0.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (122, 'JOB', '', '洗碗機及杯機裝拆費用', '', '0.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (123, 'P00001', 'Inspection Fee', '洗碗碟機檢查費', '', '0.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(125, 'test1', 'test1', 'test1', '', '212.00', '334.00', 'PDT', '4X3', '2018-09-13 10:41:34', '0000-00-00 00:00:00'),
-(126, 'icinddkmad', 'ksndej', 'kadksd', '', '23.00', '33.00', 'PDT', '4X3 L', '2018-09-15 08:54:17', '0000-00-00 00:00:00'),
-(127, 'uteoi', 'asdin', 'isnf', '', '213.00', '3213.00', 'SVR', '4X5', '2018-09-16 02:48:49', '0000-00-00 00:00:00'),
-(130, 'sadad', 'asda', 'dasd', '', '123.00', '123.00', 'SVR', '4X3', '2018-09-16 04:52:16', '0000-00-00 00:00:00'),
-(135, 'scjsdck', 'nskcn', 'jknksncknskc', '', '32.00', '32.00', 'PDT', '', '2018-09-16 10:20:00', '0000-00-00 00:00:00'),
-(136, 'NAS0200', 'NAS ', 'NAS', 'Network A Server', '230.00', '0.00', 'Can', 'Box set', '2018-10-15 08:55:51', '0000-00-00 00:00:00'),
-(139, 'GF703', 'eng', 'chinese', 'testing', '703.00', '0.00', 'MAT', '2dasd', '2018-12-06 00:38:34', '0000-00-00 00:00:00');
+(125, 'test1', 'test1', 'test1', '', '212.00', '334.00', 'PDT', '4X3', '2018-09-13 18:41:34', '0000-00-00 00:00:00'),
+(126, 'icinddkmad', 'ksndej', 'kadksd', '', '23.00', '33.00', 'PDT', '4X3 L', '2018-09-15 16:54:17', '0000-00-00 00:00:00'),
+(127, 'uteoi', 'asdin', 'isnf', '', '213.00', '3213.00', 'SVR', '4X5', '2018-09-16 10:48:49', '0000-00-00 00:00:00'),
+(130, 'sadad', 'asda', 'dasd', '', '123.00', '123.00', 'SVR', '4X3', '2018-09-16 12:52:16', '0000-00-00 00:00:00'),
+(135, 'scjsdck', 'nskcn', 'jknksncknskc', '', '32.00', '32.00', 'PDT', '', '2018-09-16 18:20:00', '0000-00-00 00:00:00'),
+(136, 'NAS0200', 'NAS ', 'NAS', 'Network A Server', '230.00', '0.00', 'Can', 'Box set', '2018-10-15 16:55:51', '0000-00-00 00:00:00'),
+(139, 'GF703', 'eng', 'chinese', 'testing', '703.00', '0.00', 'MAT', '2dasd', '2018-12-06 08:38:34', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -321,8 +321,8 @@ CREATE TABLE IF NOT EXISTS `t_items_category` (
   `uid` int(10) NOT NULL AUTO_INCREMENT,
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `desc` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
   UNIQUE KEY `cate_code_unique` (`cate_code`) USING BTREE,
@@ -334,11 +334,11 @@ CREATE TABLE IF NOT EXISTS `t_items_category` (
 --
 
 INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modify_date`) VALUES
-(1, 'PDT1', 'wrwewsd555', '2019-01-16 23:40:40', '2019-01-17 07:40:40'),
-(2, 'SVR', 'Service ', '2018-12-05 23:56:45', '2018-04-24 16:00:00'),
-(3, 'MAT', 'Maintenance', '2018-04-24 16:00:00', '2018-04-24 16:00:00'),
-(15, 'Can', 'a box of can gategory', '2018-10-03 09:29:33', '0000-00-00 00:00:00'),
-(16, 'TRI', 'test code ', '2018-12-05 23:49:25', '0000-00-00 00:00:00');
+(1, 'PDT1', 'wrwewsd555', '2019-01-17 07:40:40', '2019-01-17 15:40:40'),
+(2, 'SVR', 'Service ', '2018-12-06 07:56:45', '2018-04-25 00:00:00'),
+(3, 'MAT', 'Maintenance', '2018-04-25 00:00:00', '2018-04-25 00:00:00'),
+(15, 'Can', 'a box of can gategory', '2018-10-03 17:29:33', '0000-00-00 00:00:00'),
+(16, 'TRI', 'test code ', '2018-12-06 07:49:25', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -351,8 +351,8 @@ CREATE TABLE IF NOT EXISTS `t_items_price` (
   `uid` int(10) NOT NULL AUTO_INCREMENT,
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `price` decimal(10,2) NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
   KEY `uid_index` (`uid`) USING BTREE
@@ -371,19 +371,25 @@ CREATE TABLE IF NOT EXISTS `t_login` (
   `shop_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` enum('in','out') COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` datetime NOT NULL,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   UNIQUE KEY `uid` (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_login`
 --
 
 INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `create_date`, `modify_date`) VALUES
-(26, 'iamadmin', '', 'a3b22bdf3684acfeb105804d15c271cd', 'out', '2019-01-14 14:48:34', '2019-01-14 22:48:34'),
-(27, 'iamadmin', '', '73d82d94e19c2d27215cd41cca2eb71b', 'out', '2019-01-15 16:47:00', '2019-01-16 00:47:00'),
-(28, 'iamadmin', '', 'f9a5d315c5429cf6a779f1480a926cb7', 'in', '2019-01-15 16:47:00', '0000-00-00 00:00:00');
+(26, 'iamadmin', '', 'a3b22bdf3684acfeb105804d15c271cd', 'out', '2019-01-14 22:48:34', '2019-01-14 22:48:34'),
+(27, 'iamadmin', '', '73d82d94e19c2d27215cd41cca2eb71b', 'out', '2019-01-16 00:47:00', '2019-01-16 00:47:00'),
+(28, 'iamadmin', '', 'f9a5d315c5429cf6a779f1480a926cb7', 'out', '2019-02-23 02:11:58', '2019-02-22 18:11:58'),
+(29, 'iamadmin', 'HQ1', '51caf5567a8dd4d72690eb9bfcfe46e7', 'out', '2019-03-03 09:13:26', '2019-03-03 01:12:06'),
+(33, 'iamadmin', 'HQ01', 'c09179b64fc920fb548e22eef4234c45', 'out', '2019-03-04 19:41:36', '2019-03-04 11:41:36'),
+(34, 'iamadmin', 'HQ01', '87dab5550f4a02816056f1f853cdafbf', 'out', '2019-03-11 20:52:21', '2019-03-11 12:52:21'),
+(35, 'iamadmin', 'HQ01', 'a47a42f44a0dbd99eac78063fad3e876', 'out', '2019-03-13 19:33:53', '2019-03-13 11:33:53'),
+(36, 'iamadmin', 'HQ01', '3f6aba122f69b1cf25f7460041412969', 'out', '2019-03-13 20:14:17', '2019-03-14 12:04:28'),
+(37, 'iamadmin', 'HQ01', '2fbd8062876fc6c5e0b6624711986b6f', 'in', '2019-03-14 12:04:28', '2019-03-14 12:26:52');
 
 -- --------------------------------------------------------
 
@@ -396,8 +402,8 @@ CREATE TABLE IF NOT EXISTS `t_payment_method` (
   `uid` int(10) NOT NULL AUTO_INCREMENT,
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `payment_method` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `pmcode_unique` (`pm_code`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -407,8 +413,8 @@ CREATE TABLE IF NOT EXISTS `t_payment_method` (
 --
 
 INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date`, `modify_date`) VALUES
-(1, 'PM001', 'Cash', '2018-05-18 16:00:00', '2018-05-19 10:18:24'),
-(4, 'PM002', 'VISA', '0000-00-00 00:00:00', '2018-12-10 14:59:55');
+(1, 'PM001', 'Cash', '2018-05-19 00:00:00', '2018-05-19 18:18:24'),
+(4, 'PM002', 'VISA', '0000-00-00 00:00:00', '2018-12-10 22:59:55');
 
 -- --------------------------------------------------------
 
@@ -421,8 +427,8 @@ CREATE TABLE IF NOT EXISTS `t_payment_term` (
   `uid` int(11) NOT NULL AUTO_INCREMENT,
   `pt_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `terms` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `ptcode_unique` (`pt_code`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -432,7 +438,7 @@ CREATE TABLE IF NOT EXISTS `t_payment_term` (
 --
 
 INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_date`) VALUES
-(1, 'PT001', 'C.O.D', '2018-12-09 16:00:00', '0000-00-00 00:00:00'),
+(1, 'PT001', 'C.O.D', '2018-12-10 00:00:00', '0000-00-00 00:00:00'),
 (3, 'PT002', 'Monthly Payment', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
@@ -475,8 +481,8 @@ CREATE TABLE IF NOT EXISTS `t_shop` (
   `phone` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `address1` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `address2` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `shopcode_unique` (`shop_code`) USING BTREE,
   KEY `shopcode_index` (`shop_code`) USING BTREE
@@ -503,8 +509,8 @@ CREATE TABLE IF NOT EXISTS `t_stock` (
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `qty` double NOT NULL,
   `type` enum('in','out','hold','') COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `modify_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `uid_unique` (`inv_code`) USING BTREE,
   KEY `uid_index` (`inv_code`) USING BTREE
@@ -527,42 +533,24 @@ CREATE TABLE IF NOT EXISTS `t_transaction_d` (
   `unit` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `price` decimal(10,2) NOT NULL,
   `discount` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`),
   KEY `uid_index` (`uid`) USING BTREE,
   KEY `transcode_unique` (`trans_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_transaction_d`
 --
 
 INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `chi_name`, `qty`, `unit`, `price`, `discount`, `create_date`, `modify_date`) VALUES
-(1, 'QTA2018120948', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2018-12-09 03:57:48', '0000-00-00 00:00:00'),
-(2, 'INV2018120910', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '2.0', '20L', '80.00', '', '2018-12-09 04:07:10', '2018-12-09 04:17:59'),
-(3, 'INV2018120910', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2018-12-09 04:07:10', '0000-00-00 00:00:00'),
-(4, 'INV2018120912', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2018-12-09 05:54:12', '0000-00-00 00:00:00'),
-(5, 'QTA2018120925', 'Pentax', '', 'Pentax 水泵', '1.0', '', '1100.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(6, 'QTA2018120925', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(7, 'QTA2018120925', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(8, 'QTA2018120925', 'MFOLD', 'M-Fold Paper', '方型抹手紙 ', '1.0', '250 Pcs x 16 Pack / C', '150.48', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(9, 'QTA2018120925', 'MFTG', 'Micro Fiber  Cloth (Green)', 'M - Cloth 微纖布(綠色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(10, 'QTA2018120925', 'MFTB', 'Micro Fiber  Cloth (Blue)', 'M - Cloth 微纖布 (藍色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(11, 'QTA2018120925', 'MP0401', 'Multi Purposes Cleaner', 'MP-100 多用途清潔劑', '1.0', '4X1G', '110.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(12, 'QTA2018120925', 'uteoi', 'asdin', 'isnf', '2.0', '4X5', '213.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(13, 'QTA2018120925', 'NAS0200', 'NAS ', 'NAS', '1.0', 'Box set', '230.00', '', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(14, 'INV2018120947', 'Pentax', '', 'Pentax 水泵', '1.0', '', '1100.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(15, 'INV2018120947', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(16, 'INV2018120947', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(17, 'INV2018120947', 'MFOLD', 'M-Fold Paper', '方型抹手紙 ', '1.0', '250 Pcs x 16 Pack / C', '150.48', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(18, 'INV2018120947', 'MFTG', 'Micro Fiber  Cloth (Green)', 'M - Cloth 微纖布(綠色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(19, 'INV2018120947', 'MFTB', 'Micro Fiber  Cloth (Blue)', 'M - Cloth 微纖布 (藍色)', '1.0', '10 Pcs / Pack', '35.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(20, 'INV2018120947', 'MP0401', 'Multi Purposes Cleaner', 'MP-100 多用途清潔劑', '1.0', '4X1G', '110.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(21, 'INV2018120947', 'uteoi', 'asdin', 'isnf', '2.0', '4X5', '213.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(22, 'INV2018120947', 'NAS0200', 'NAS ', 'NAS', '1.0', 'Box set', '230.00', '', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(23, 'QTA2018120919', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2018-12-09 06:39:20', '0000-00-00 00:00:00'),
-(24, 'QTA2018120919', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2018-12-09 06:39:20', '0000-00-00 00:00:00');
+(26, 'QTA2019038341', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-03-13 12:00:45', NULL),
+(27, 'INV2019031440', 'Pentax', '', 'Pentax 水泵', '3.0', '', '1100.00', '', '2019-03-14 20:12:40', NULL),
+(28, 'INV2019031440', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '3.0', '10 Ltr / Pail', '328.00', '', '2019-03-14 20:12:40', NULL),
+(29, 'INV2019031413', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-03-14 20:14:14', NULL),
+(30, 'INV2019031406', 'DF0105', 'Concentrated Dishwasher Drying Agent', 'Dry Flash 高濃縮洗碗碟機快乾劑', '1.0', '5 Ltr / Bottle', '45.00', '', '2019-03-14 12:27:06', NULL),
+(31, 'QTA2019031020', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-03-14 12:27:52', NULL);
 
 -- --------------------------------------------------------
 
@@ -583,24 +571,24 @@ CREATE TABLE IF NOT EXISTS `t_transaction_h` (
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
   `is_void` tinyint(1) NOT NULL,
   `is_convert` tinyint(1) NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`) USING BTREE,
   UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
   UNIQUE KEY `uid_index` (`uid`) USING BTREE,
   KEY `transcode_index` (`trans_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_transaction_h`
 --
 
 INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `is_convert`, `create_date`, `modify_date`) VALUES
-(1, 'QTA2018120948', 'C150404', '', 'QTA', '80.00', 110022, 'HQ02', 'Testing', 0, 1, '2018-12-09 03:57:48', '2018-12-09 05:54:12'),
-(3, 'INV2018120912', 'C150404', 'QTA2018120948', 'INV', '80.00', 110022, 'HQ02', 'Testing', 0, 0, '2018-12-09 05:54:12', '0000-00-00 00:00:00'),
-(4, 'QTA2018120925', 'C150402', '', 'QTA', '2386.48', 110022, 'HQ02', '', 0, 1, '2018-12-09 06:19:25', '2018-12-09 06:20:47'),
-(5, 'INV2018120947', 'C150402', 'QTA2018120925', 'INV', '2386.48', 110022, 'HQ02', '', 0, 0, '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(6, 'QTA2018120919', 'C150402', '', 'QTA', '260.00', 110022, 'HQ02', '', 0, 1, '2018-12-09 06:39:20', '2019-01-17 09:49:39');
+(24, 'QTA2019038341', 'C150302', '', 'QTA', '328.00', 110022, 'HQ01', '', 0, 1, '2019-03-14 09:51:31', '2019-03-14 20:14:14'),
+(25, 'INV2019031440', 'C150302', '', 'INV', '4284.00', 110022, 'HQ01', 'test', 0, 0, '2019-03-14 20:12:40', '0000-00-00 00:00:00'),
+(26, 'INV2019031413', 'C150302', 'QTA2019038341', 'INV', '328.00', 110022, 'HQ01', '', 0, 0, '2019-03-14 20:14:14', '0000-00-00 00:00:00'),
+(27, 'INV2019031406', 'C150403', '', 'INV', '45.00', 110022, 'HQ01', '', 0, 0, '2019-03-14 12:27:06', '0000-00-00 00:00:00'),
+(28, 'QTA2019031020', 'C150403', '', 'QTA', '120.00', 110022, 'HQ01', '', 0, 0, '2019-03-14 12:27:52', NULL);
 
 -- --------------------------------------------------------
 
@@ -614,25 +602,24 @@ CREATE TABLE IF NOT EXISTS `t_transaction_t` (
   `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `total` decimal(10,2) NOT NULL,
-  `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL,
+  `create_date` datetime DEFAULT NULL,
+  `modify_date` datetime DEFAULT NULL,
   PRIMARY KEY (`uid`) USING BTREE,
   UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
   KEY `transcode_index` (`trans_code`) USING BTREE,
   KEY `uid_index` (`uid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_transaction_t`
 --
 
 INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_date`, `modify_date`) VALUES
-(1, 'QTA2018120948', 'PM002', '80.00', '2018-12-09 03:57:48', '0000-00-00 00:00:00'),
-(2, 'INV2018120910', 'PM002', '280.00', '2018-12-09 04:07:10', '2018-12-09 04:17:59'),
-(3, 'INV2018120912', 'PM001', '80.00', '2018-12-09 05:54:12', '0000-00-00 00:00:00'),
-(4, 'QTA2018120925', 'PM002', '2386.48', '2018-12-09 06:19:25', '0000-00-00 00:00:00'),
-(5, 'INV2018120947', 'PM002', '2386.48', '2018-12-09 06:20:47', '0000-00-00 00:00:00'),
-(6, 'QTA2018120919', 'PM001', '260.00', '2018-12-09 06:39:20', '0000-00-00 00:00:00');
+(8, 'QTA2019038341', 'PM001', '328.00', '2019-03-13 12:00:45', NULL),
+(9, 'INV2019031440', 'PM001', '4284.00', '2019-03-14 20:12:40', NULL),
+(10, 'INV2019031413', 'PM001', '328.00', '2019-03-14 20:14:14', NULL),
+(11, 'INV2019031406', 'PM001', '45.00', '2019-03-14 12:27:06', NULL),
+(12, 'QTA2019031020', 'PM001', '120.00', '2019-03-14 12:27:52', NULL);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

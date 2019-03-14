@@ -96,7 +96,7 @@ $app->group('/api/v1/inventory/quotations', function () {
             }
             $_callback = [
                 "query" => $_query,
-                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+                "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
             ];
             return $response->withJson($_callback, 200);
         }
@@ -329,17 +329,17 @@ $app->group('/api/v1/inventory/quotations', function () {
      * Add new record to DB
      */
     $this->post('/', function (Request $request, Response $response, array $args) {
-        $err="";
+        $_err = [];
+        $_final_err= [];
         $db = connect_db();
-        
+
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
-        //var_dump($body);
         
         $db->beginTransaction();
     
-        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, create_date) 
+        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) 
             values (
                 '".$quotation."',
                 '".$customer['cust_code']."',
@@ -349,14 +349,16 @@ $app->group('/api/v1/inventory/quotations', function () {
                 '".$employeecode."',
                 '".$shopcode."',
                 '".$remark."',
+				'0',
+				'0',
                 '".$date."'
             );
         ";
         $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
     
-        if($err[2]==null)
+        if(!empty($db->lastInsertId()))
         {
             foreach($items as $k => $v)
             {
@@ -375,7 +377,7 @@ $app->group('/api/v1/inventory/quotations', function () {
                 ");
                 $q->execute();
             }
-            $err[] = $q->errorinfo();
+            $_err[] = $q->errorinfo();
             // tender information input here
             $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
                 values (
@@ -386,17 +388,24 @@ $app->group('/api/v1/inventory/quotations', function () {
                 );
             ");
             $tr->execute();
-            $err[] = $tr->errorinfo();
+            $_err[] = $tr->errorinfo();
         }
         $db->commit();
-    
-        if($err[2] == null)
+
+        if($_err[0][0] == "00000")
         {
-            $err[2] = "Record inserted!";
+            $_final_err[0] = "00000";
+            $_final_err[1] = "";
+            $_final_err[2] = "Record inserted!";
         }
-    
+        else
+        { 
+            $_final_err[0] = "99999";
+            $_final_err[2] = "DB Error: ".$_final_err[0][2]." - ".$_final_err[1][2]." - ".$_final_err[2][2];
+        }
+            
         $callback = [
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            "error" => ["code" => $_final_err[0], "message" => $_final_err[1]." ".$_final_err[2]]
         ];
         return $response->withJson($callback,200);
      });
@@ -411,6 +420,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_trans_code = $args['trans_code'];
         return $response->withJson($_trans_code,200);
     });
+    
     /**
      * Check transaction_d item exist
      */
