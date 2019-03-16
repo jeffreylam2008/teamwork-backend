@@ -11,8 +11,6 @@ $app->group('/api/v1/inventory/quotations', function () {
     $this->get('/', function (Request $request, Response $response, array $args) {
         $_callback = [];
         $_err = [];
-        $_err2 = [];
-        $_err3 = [];
         $_pm = [];
         $_cust = [];
         $_query = [];
@@ -30,25 +28,25 @@ $app->group('/api/v1/inventory/quotations', function () {
         // t_transaction_h SQL
         $q = $db->prepare($sql);
         $q->execute();
-        $_err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $_res = $q->fetchAll(PDO::FETCH_ASSOC);
     
         // t_payment_method SQL
         $q = $db->prepare($sql2);
         $q->execute();
-        $_err2 = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $_res2 = $q->fetchAll(PDO::FETCH_ASSOC);
         
         // t_customer SQL
         $q = $db->prepare($sql3);
         $q->execute();
-        $_err3 = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $_res3 = $q->fetchAll(PDO::FETCH_ASSOC);
     
         // t_shop SQL
         $q = $db->prepare("SELECT * FROM `t_shop`;");
         $q->execute();
-        $_err4 = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $_res4 = $q->fetchAll(PDO::FETCH_ASSOC);
 
         // convert payment_method to key and value array
@@ -85,19 +83,26 @@ $app->group('/api/v1/inventory/quotations', function () {
             }
             $_res[$k]['is_convert'] == 1 ? $_res[$k]['is_convert'] = "No" : $_res[$k]['is_convert'] = "Yes";
         }
-    
-        //var_dump($_cust);
-    
         // export data
         if(!empty($_res))
         {
+            //consolidated other information to one array
             foreach ($_res as $key => $val) {
                 $_query[] = $val;
             }
-            $_callback = [
-                "query" => $_query,
-                "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
-            ];
+            if($_err[0][0] == "00000")
+            {
+                $_callback["query"] = $_query;
+                $_callback["error"] = ["code" => "00000", "message" => "Query Success!"];
+            }
+            else
+            {
+                $_callback["query"] = "";
+                $_callback["error"] = [
+                    "code" => "99999", 
+                    "message" => $_err[0][3]."-".$_err[1][3]."-".$_err[2][3]."-".$_err[3][3]
+                ];
+            }
             return $response->withJson($_callback, 200);
         }
     });
@@ -111,6 +116,7 @@ $app->group('/api/v1/inventory/quotations', function () {
     $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
         // inital variable
         $_callback = [];
+		$_final_err = [];
         $_query = [];
         $_callback['has'] = false;
         $_trans_code= $args['trans_code'];
@@ -168,51 +174,47 @@ $app->group('/api/v1/inventory/quotations', function () {
         if($_err[0][0] == "00000")
         {
             // export data
-            if(!empty($res))
-            {
-                $_query = $res[0];        
-                foreach ($res2 as $key => $val) {
-                    $_query["items"] = $res2;
-                }
-                // Get customer data from DB
-                foreach($res3 as $k => $v)
-                {
-                    extract($v);
-                    $_customers[$cust_code] = $v;
-                }
-                // customer data marge
-                if(array_key_exists($_query['cust_code'], $_customers))
-                {
-                    $_query['customer'] = [
-                        "cust_code" => $_query['cust_code'],
-                        "name" => $_customers[$_query['cust_code']]['name']
-                    ];
-                }
-                // calcuate subtotal
-                foreach($_query["items"] as $k => $v)
-                {
-                    extract($v);
-                    $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
-                }
-                //var_dump($_query);
-                $_callback = ['query' => $_query, 'has' => true];
+            $_query = $res[0];        
+            foreach ($res2 as $key => $val) {
+                $_query["items"] = $res2;
             }
-            else
+            // Get customer data from DB
+            foreach($res3 as $k => $v)
             {
-                $_callback = ['query' => $_query, 'has' => false];
+                extract($v);
+                $_customers[$cust_code] = $v;
             }
+            // customer data marge
+            if(array_key_exists($_query['cust_code'], $_customers))
+            {
+                $_query['customer'] = [
+                    "cust_code" => $_query['cust_code'],
+                    "name" => $_customers[$_query['cust_code']]['name']
+                ];
+            }
+            // calcuate subtotal
+            foreach($_query["items"] as $k => $v)
+            {
+                extract($v);
+                $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
+            }
+            //var_dump($_query);
+            $_callback['query'] = $_query;
+            $_callback['has'] = true;
+            $_callback["error"] = [
+                "code" => $_err[0][0], 
+                "message" => "Query Success!"
+            ]; 
         }
         else
         { 
-            $_final_err[0] = "99999";
-            $_final_err[2] = "DB Error: ".$_final_err[0][2]." - ".$_final_err[1][2]." - ".$_final_err[2][2];
+            $_callback['query'] = "";
+            $_callback['has'] = false;
+            $_callback["error"] = [
+                "code" => "99999", 
+                "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]
+            ]; 
         }
-
-
-        // $_callback = [
-        //     "error" => ["code" => $_err[0], "message" => ($_err[1]." ".$_err[2])]
-        // ];
-
         return $response->withJson($_callback, 200);
 
     });

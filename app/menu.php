@@ -2,6 +2,7 @@
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 $app->group('/api/v1/systems/menu', function () {
+    $_callback = [];
     /**
      * Menu get request
      * menu-get-sidebar
@@ -28,7 +29,10 @@ $app->group('/api/v1/systems/menu', function () {
             ["order" => 0, "id" => 332, "parent_id" => 33, "name" => "List", "isParent" => "", "slug"=>"quotations/list", "param" => "quotations/qualist"],
             ["order" => 0, "id" => 43, "parent_id" => 71, "name" => "Payment Method", "isParent" => "", "slug"=>"administration/payments", "param" => "payments/index"],
         ];
-        return $response->withJson($data, 200);
+        $_callback["query"] = $data;
+        $_callback["error"] = ["code" => "00000", "message" => "Menu Loaded"];
+
+        return $response->withJson($_callback, 200);
     });
     $this->get('/top', function (Request $request, Response $response, array $args) {
         $data = [
