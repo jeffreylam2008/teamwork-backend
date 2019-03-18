@@ -21,9 +21,9 @@ SET time_zone = "+00:00";
 --
 -- 資料庫： `teamwork`
 --
-DROP DATABASE IF EXISTS `teamwork`;
-CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
-USE `teamwork`;
+-- DROP DATABASE IF EXISTS `teamwork`;
+-- CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+-- USE `teamwork`;
 
 -- --------------------------------------------------------
 

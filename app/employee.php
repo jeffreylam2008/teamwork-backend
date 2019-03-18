@@ -41,14 +41,11 @@ $app->group('/api/v1/systems/employees', function () {
         $q = $db->prepare("select `employee_code`, `username`, `default_shopcode`, `access_level`, `role`, `status` from `t_employee` where `username` = '".$_username."';");
         $q->execute();
         $err = $q->errorinfo();
-        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        $res = $q->fetch(PDO::FETCH_ASSOC);
         if(!empty($res))
         {
-            foreach ($res as $key => $val) {
-                $dbData[] = $val;
-            }
             $callback = [
-                "query" => $dbData,
+                "query" => $res,
                 "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
             return $response->withJson($callback, 200);

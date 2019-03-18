@@ -8,8 +8,11 @@ $c = new \Slim\Container(); //Create Your container
 //Override the default Not Found Handler
 $c['notFoundHandler'] = function ($c) {
     return function ($request, $response) use ($c) {
-        $data = [ 
-            "message" => "param not define" 
+        $data = [
+            "error" => [
+                "code" => "44444",
+                "message" => "param not define" 
+            ]
         ];
         return $c['response']->withJson($data,404);
     };
