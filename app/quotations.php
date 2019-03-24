@@ -9,44 +9,40 @@ $app->group('/api/v1/inventory/quotations', function () {
      * To get all quotations record
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
-        $_callback = [];
+        $_callback = [
+            'query' => "",
+            'error' => [
+                "code" => "", 
+                "message" => ""
+            ]];
         $_err = [];
         $_pm = [];
         $_cust = [];
         $_query = [];
         $db = connect_db();
-        $sql = "
-            SELECT * FROM `t_transaction_h` as th
-            LEFT JOIN `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'QTA';
-        ";
-        $sql2 = "
-            SELECT pm_code, payment_method FROM `t_payment_method`;
-        ";
-        $sql3 = "
-            SELECT * FROM `t_customers`;
-        ";
+
         // t_transaction_h SQL
-        $q = $db->prepare($sql);
+        $q = $db->prepare("SELECT * FROM `t_transaction_h` as th LEFT JOIN `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'QTA';");
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[0] = $q->errorinfo();
         $_res = $q->fetchAll(PDO::FETCH_ASSOC);
     
         // t_payment_method SQL
-        $q = $db->prepare($sql2);
+        $q = $db->prepare("SELECT pm_code, payment_method FROM `t_payment_method`;");
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[1] = $q->errorinfo();
         $_res2 = $q->fetchAll(PDO::FETCH_ASSOC);
         
         // t_customer SQL
-        $q = $db->prepare($sql3);
+        $q = $db->prepare("SELECT * FROM `t_customers`;");
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[2] = $q->errorinfo();
         $_res3 = $q->fetchAll(PDO::FETCH_ASSOC);
     
         // t_shop SQL
         $q = $db->prepare("SELECT * FROM `t_shop`;");
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[3] = $q->errorinfo();
         $_res4 = $q->fetchAll(PDO::FETCH_ASSOC);
 
         // convert payment_method to key and value array
@@ -83,6 +79,7 @@ $app->group('/api/v1/inventory/quotations', function () {
             }
             $_res[$k]['is_convert'] == 1 ? $_res[$k]['is_convert'] = "No" : $_res[$k]['is_convert'] = "Yes";
         }
+
         // export data
         if(!empty($_res))
         {
@@ -93,14 +90,17 @@ $app->group('/api/v1/inventory/quotations', function () {
             if($_err[0][0] == "00000")
             {
                 $_callback["query"] = $_query;
-                $_callback["error"] = ["code" => "00000", "message" => "Query Success!"];
+                $_callback["error"] = [
+                    "code" => "00000", 
+                    "message" => "Query Success!"
+                ];
             }
             else
             {
                 $_callback["query"] = "";
                 $_callback["error"] = [
                     "code" => "99999", 
-                    "message" => $_err[0][3]."-".$_err[1][3]."-".$_err[2][3]."-".$_err[3][3]
+                    "message" => $_err[0][2]."-".$_err[1][2]."-".$_err[2][2]."-".$_err[3][2]
                 ];
             }
             return $response->withJson($_callback, 200);
@@ -115,10 +115,16 @@ $app->group('/api/v1/inventory/quotations', function () {
      */
     $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
         // inital variable
-        $_callback = [];
-		$_final_err = [];
+        $_callback = [
+            'query' => "",
+            'has' => false,
+            'error' => [
+                "code" => "", 
+                "message" => ""
+            ]];
+		//$_final_err = [];
         $_query = [];
-        $_callback['has'] = false;
+        $_callback = ['query' => "" ,'has' => false, 'error' => ["code" => "", "message" => ""]];
         $_trans_code= $args['trans_code'];
         $_err = [];
 
@@ -158,17 +164,17 @@ $app->group('/api/v1/inventory/quotations', function () {
         // execute SQL Statement 1
         $q = $db->prepare($sql);
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[0] = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
         // execute SQL statement 2
         $q = $db->prepare($sql2);
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[1] = $q->errorinfo();
         $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
         // execute SQL statement 3
         $q = $db->prepare($sql3);
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[2] = $q->errorinfo();
         $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
 
         if($_err[0][0] == "00000")
@@ -229,26 +235,27 @@ $app->group('/api/v1/inventory/quotations', function () {
     $this->patch('/{trans_code}', function(Request $request, Response $response, array $args)
     {
         $_err = [];
-        $_final_err= [];
+        $_done = false;
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_now = date('Y-m-d H:i:s');
+        $_new_res = "";
         $db = connect_db();
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
-    
+        
         $_trans_code = $args['trans_code'];
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
-        extract($res);
-    
+        
         foreach($res as $k => $v)
         {
-            $_new_res[$v['item_code']] = $res[$k];
+            $_new_res[$v['item_code']] = $v["item_code"];
         }
-        
+
         $db->beginTransaction();
         // transaction header
         
@@ -262,40 +269,45 @@ $app->group('/api/v1/inventory/quotations', function () {
             WHERE trans_code = '".$_trans_code."';"
         );
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[0] = $q->errorinfo();
         
-        if(!empty($db->lastInsertId()))
+        if($q->rowCount() != "0")
         {
-            foreach($_new_res as $k => $v)
+            foreach($_new_res as $k_itcode => $v)
             {
-                if(!array_key_exists($v["item_code"],$items))
+                // delete items from this transaction
+                if(!array_key_exists($k_itcode,$items))
                 {
-                    $sql_d = "DELETE FROM `t_transaction_d` WHERE item_code = '".$v["item_code"]."'";
+
+                    $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
                     $q = $db->prepare($sql_d);
                     $q->execute();
-                    $_err[] = $q->errorinfo();
+                    $_err[2] = $q->errorinfo();
                     //echo $sql_d."\n";
                 }
             }
-            foreach($items as $k => $v)
+            foreach($items as $k_itcode => $v)
             {
-                // Items saved as before
-                if(array_key_exists($v["item_code"],$_new_res))
+                // update item already in transaction
+                if(array_key_exists($k_itcode,$_new_res))
                 {
+
                     $sql_d = "UPDATE `t_transaction_d` SET
                         qty = '".$v['qty']."',
                         unit = '".$v['unit']."',
                         price = '".$v['price']."',
                         modify_date = '".$_now."'
-                        WHERE trans_code = '".$_trans_code."' AND item_code = '".$k."';";
+                        WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
                     //echo $sql_d."\n";
                     $q = $db->prepare($sql_d);
                     $q->execute();
-                    $_err[] = $q->errorinfo();
+                    $_err[1] = $q->errorinfo();
                 }
+                
                 // New add items
                 else
                 {
+
                     $sql_d = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
                         values (
                             '".$_trans_code."',
@@ -311,7 +323,7 @@ $app->group('/api/v1/inventory/quotations', function () {
                     //echo $sql_d."\n";
                     $q = $db->prepare($sql_d);
                     $q->execute();
-                    $_err[] = $q->errorinfo();
+                    $_err[3] = $q->errorinfo();
                 }   
             }
             
@@ -323,25 +335,31 @@ $app->group('/api/v1/inventory/quotations', function () {
                 WHERE trans_code = '".$_trans_code."';";
             $q = $db->prepare($sql);
             $q->execute();
-            $_err[] = $q->errorinfo();
+            $_err[4] = $q->errorinfo();
         }
+        $_done = true;
         $db->commit();
     
-        if($_err[0][0] == "00000")
+        if($_done)
         {
-            $_final_err[0] = "00000";
-            $_final_err[1] = "";
-            $_final_err[2] = "Record inserted!";
-        }
-        else
-        { 
-            $_final_err[0] = "99999";
-            $_final_err[2] = "DB Error: ".$_final_err[0][2]." - ".$_final_err[1][2]." - ".$_final_err[2][2];
+            if($_err[0][0] == "00000")
+            {
+                $_callback['query'] = "";
+                $_callback["error"] = [
+                    "code" => "00000", 
+                    "message" => "Update Success!"
+                ]; 
+            }
+            else
+            { 
+                $_callback['query'] = "";
+                $_callback["error"] = [
+                    "code" => "99999", 
+                    "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]." - ".$_err[3][2]." - ".$_err[4][2]
+                ]; 
+            }
         }
 
-        $_callback = [
-            "error" => ["code" => $_final_err[0], "message" => $_final_err[1]." ".$_final_err[2]]
-        ];
         return $response->withJson($_callback,200);
     });
     
@@ -355,9 +373,9 @@ $app->group('/api/v1/inventory/quotations', function () {
      */
     $this->post('/', function (Request $request, Response $response, array $args) {
         $_err = [];
-        $_final_err= [];
+        $_done = false;
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $db = connect_db();
-
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
@@ -381,7 +399,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         ";
         $q = $db->prepare($sql);
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $_err[0] = $q->errorinfo();
     
         if(!empty($db->lastInsertId()))
         {
@@ -402,7 +420,7 @@ $app->group('/api/v1/inventory/quotations', function () {
                 ");
                 $q->execute();
             }
-            $_err[] = $q->errorinfo();
+            $_err[1] = $q->errorinfo();
             // tender information input here
             $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
                 values (
@@ -413,25 +431,26 @@ $app->group('/api/v1/inventory/quotations', function () {
                 );
             ");
             $tr->execute();
-            $_err[] = $tr->errorinfo();
+            $_err[2] = $tr->errorinfo();
         }
         $db->commit();
 
-        if($_err[0][0] == "00000")
+        if($_err[0][0] = "00000")
         {
-            $_final_err[0] = "00000";
-            $_final_err[1] = "";
-            $_final_err[2] = "Record inserted!";
+            $_callback['query'] = "";
+            $_callback["error"] = [
+                "code" => "00000", 
+                "message" => "Insert Success!"
+            ]; 
         }
         else
         { 
-            $_final_err[0] = "99999";
-            $_final_err[2] = "DB Error: ".$_final_err[0][2]." - ".$_final_err[1][2]." - ".$_final_err[2][2];
+            $_callback['query'] = "";
+            $_callback["error"] = [
+                "code" => "99999", 
+                "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]
+            ]; 
         }
-            
-        $_callback = [
-            "error" => ["code" => $_final_err[0], "message" => $_final_err[1]." ".$_final_err[2]]
-        ];
         return $response->withJson($_callback,200);
      });
 

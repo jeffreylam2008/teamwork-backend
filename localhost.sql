@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機: 127.0.0.1:3306
--- 產生時間： 2019-03-14 13:09:21
+-- 產生時間： 2019-03-24 14:47:02
 -- 伺服器版本: 10.3.9-MariaDB
 -- PHP 版本： 5.6.38
 
@@ -21,9 +21,9 @@ SET time_zone = "+00:00";
 --
 -- 資料庫： `teamwork`
 --
--- DROP DATABASE IF EXISTS `teamwork`;
--- CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
--- USE `teamwork`;
+DROP DATABASE IF EXISTS `teamwork`;
+CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+USE `teamwork`;
 
 -- --------------------------------------------------------
 
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-03-14 12:04:28', '2fbd8062876fc6c5e0b6624711986b6f', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-03-22 12:00:21', '43443f88980d05f8644d16a536ec21ff', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
@@ -173,15 +173,15 @@ CREATE TABLE IF NOT EXISTS `t_items` (
   PRIMARY KEY (`uid`),
   UNIQUE KEY `uid_unique` (`item_code`) USING BTREE,
   KEY `uid_index` (`item_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=140 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_items`
 --
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
-(1, 'GIFT', 'GIFT', 'GIFT123', '', '10.00', '0.00', 'PDT1', '20PCS/PACK', '2019-03-13 19:34:38', '2019-03-13 11:34:38'),
-(2, 'GUS0120', 'Gel Urinal Screen1', '香味尿格1', '', '110.00', '1.00', 'SVR', '20PCS/PACK1', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(1, 'GIFT', 'GIFT12345', 'GIFT1234', '', '10.00', '0.00', 'PDT1', '20PCS/PACK', '2019-03-13 19:34:38', '2019-03-17 04:58:00'),
+(2, 'GUS0120', 'Gel Urinal Screen1', '香味尿格12', '', '110.00', '1.00', 'SVR', '20PCS/PACK1', '0000-00-00 00:00:00', '2019-03-17 04:13:17'),
 (3, 'Pentax', '', 'Pentax 水泵', '', '1100.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (4, 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '', '328.00', '0.00', 'PDT', '10 Ltr / Pail', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (6, 'DA0405', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '', '0.00', '0.00', 'PDT', '4X5L', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
@@ -308,7 +308,8 @@ INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `pric
 (130, 'sadad', 'asda', 'dasd', '', '123.00', '123.00', 'SVR', '4X3', '2018-09-16 12:52:16', '0000-00-00 00:00:00'),
 (135, 'scjsdck', 'nskcn', 'jknksncknskc', '', '32.00', '32.00', 'PDT', '', '2018-09-16 18:20:00', '0000-00-00 00:00:00'),
 (136, 'NAS0200', 'NAS ', 'NAS', 'Network A Server', '230.00', '0.00', 'Can', 'Box set', '2018-10-15 16:55:51', '0000-00-00 00:00:00'),
-(139, 'GF703', 'eng', 'chinese', 'testing', '703.00', '0.00', 'MAT', '2dasd', '2018-12-06 08:38:34', '0000-00-00 00:00:00');
+(139, 'GF703', 'eng', 'chinese', 'testing', '703.00', '0.00', 'MAT', '2dasd', '2018-12-06 08:38:34', '0000-00-00 00:00:00'),
+(140, 'IAM2033', 'eng testing item', 'Testing item', 'items testing', '9999.00', '9999.00', 'SVR', 'testing', '2019-03-19 05:00:22', NULL);
 
 -- --------------------------------------------------------
 
@@ -327,18 +328,18 @@ CREATE TABLE IF NOT EXISTS `t_items_category` (
   UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
   UNIQUE KEY `cate_code_unique` (`cate_code`) USING BTREE,
   KEY `uid_index` (`uid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_items_category`
 --
 
 INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modify_date`) VALUES
-(1, 'PDT1', 'wrwewsd555', '2019-01-17 07:40:40', '2019-01-17 15:40:40'),
+(1, 'PDT1', 'wrwewsd5551', '2019-01-17 07:40:40', '2019-03-17 03:30:25'),
 (2, 'SVR', 'Service ', '2018-12-06 07:56:45', '2018-04-25 00:00:00'),
 (3, 'MAT', 'Maintenance', '2018-04-25 00:00:00', '2018-04-25 00:00:00'),
 (15, 'Can', 'a box of can gategory', '2018-10-03 17:29:33', '0000-00-00 00:00:00'),
-(16, 'TRI', 'test code ', '2018-12-06 07:49:25', '0000-00-00 00:00:00');
+(22, 'testing', 'testing1', '2019-03-19 04:59:03', '2019-03-19 05:22:34');
 
 -- --------------------------------------------------------
 
@@ -374,7 +375,7 @@ CREATE TABLE IF NOT EXISTS `t_login` (
   `create_date` datetime DEFAULT NULL,
   `modify_date` datetime DEFAULT NULL,
   UNIQUE KEY `uid` (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_login`
@@ -389,7 +390,12 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (34, 'iamadmin', 'HQ01', '87dab5550f4a02816056f1f853cdafbf', 'out', '2019-03-11 20:52:21', '2019-03-11 12:52:21'),
 (35, 'iamadmin', 'HQ01', 'a47a42f44a0dbd99eac78063fad3e876', 'out', '2019-03-13 19:33:53', '2019-03-13 11:33:53'),
 (36, 'iamadmin', 'HQ01', '3f6aba122f69b1cf25f7460041412969', 'out', '2019-03-13 20:14:17', '2019-03-14 12:04:28'),
-(37, 'iamadmin', 'HQ01', '2fbd8062876fc6c5e0b6624711986b6f', 'in', '2019-03-14 12:04:28', '2019-03-14 12:26:52');
+(37, 'iamadmin', 'HQ01', '2fbd8062876fc6c5e0b6624711986b6f', 'out', '2019-03-14 12:04:28', '2019-03-16 01:34:11'),
+(38, 'iamadmin', 'HQ01', '590f2a56c6bc1bdd847805f415e05f04', 'out', '2019-03-16 01:34:11', '2019-03-17 02:00:48'),
+(39, 'iamadmin', 'HQ01', 'd8e359219cb06263fd776ee4711a690f', 'out', '2019-03-17 02:00:48', '2019-03-18 09:41:05'),
+(40, 'iamadmin', 'HQ01', 'fa8ddc5ea5d7c45f629cd84fe0f481e7', 'out', '2019-03-18 09:41:05', '2019-03-20 02:48:43'),
+(41, 'iamadmin', 'HQ01', '55cf3289ef06bf9eca175f619be22df9', 'out', '2019-03-20 02:48:43', '2019-03-22 12:00:21'),
+(42, 'iamadmin', 'HQ01', '43443f88980d05f8644d16a536ec21ff', 'in', '2019-03-22 12:00:21', '2019-03-23 02:36:29');
 
 -- --------------------------------------------------------
 
@@ -538,19 +544,21 @@ CREATE TABLE IF NOT EXISTS `t_transaction_d` (
   PRIMARY KEY (`uid`),
   KEY `uid_index` (`uid`) USING BTREE,
   KEY `transcode_unique` (`trans_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_transaction_d`
 --
 
 INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `chi_name`, `qty`, `unit`, `price`, `discount`, `create_date`, `modify_date`) VALUES
-(26, 'QTA2019038341', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-03-13 12:00:45', NULL),
-(27, 'INV2019031440', 'Pentax', '', 'Pentax 水泵', '3.0', '', '1100.00', '', '2019-03-14 20:12:40', NULL),
-(28, 'INV2019031440', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '3.0', '10 Ltr / Pail', '328.00', '', '2019-03-14 20:12:40', NULL),
-(29, 'INV2019031413', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-03-14 20:14:14', NULL),
-(30, 'INV2019031406', 'DF0105', 'Concentrated Dishwasher Drying Agent', 'Dry Flash 高濃縮洗碗碟機快乾劑', '1.0', '5 Ltr / Bottle', '45.00', '', '2019-03-14 12:27:06', NULL),
-(31, 'QTA2019031020', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-03-14 12:27:52', NULL);
+(1, 'QTA2019032217', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '7.0', '4X5L', '120.00', '', '2019-03-22 18:03:18', '2019-03-23 02:28:52'),
+(6, 'QTA2019032217', 'LR0405', 'Concentrated Lime Scale Remover', 'Lime Remover 超高濃縮水垢去除劑', '1.0', '4x5 Ltr / C', '245.00', '', '2019-03-22 18:03:18', '2019-03-23 02:28:52'),
+(7, 'QTA2019032217', 'DA0405', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '4X5L', '0.00', '', '2019-03-22 18:03:18', NULL),
+(8, 'INV2019032319', 'DF0105', 'Concentrated Dishwasher Drying Agent', 'Dry Flash 高濃縮洗碗碟機快乾劑', '1.0', '5 Ltr / Bottle', '45.00', '', '2019-03-23 02:30:20', NULL),
+(9, 'INV2019032319', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2019-03-23 02:30:20', NULL),
+(10, 'INV2019032319', 'DF0205', 'Concentrated Dishwasher Drying Agent', 'Dry Flash 高濃縮洗碗碟機快乾劑', '1.0', '2x5 Ltr', '90.00', '', '2019-03-23 02:30:20', NULL),
+(11, 'INV2019032332', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-03-23 02:35:32', NULL),
+(12, 'INV2019032332', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2019-03-23 02:35:32', NULL);
 
 -- --------------------------------------------------------
 
@@ -577,18 +585,16 @@ CREATE TABLE IF NOT EXISTS `t_transaction_h` (
   UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
   UNIQUE KEY `uid_index` (`uid`) USING BTREE,
   KEY `transcode_index` (`trans_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_transaction_h`
 --
 
 INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `is_convert`, `create_date`, `modify_date`) VALUES
-(24, 'QTA2019038341', 'C150302', '', 'QTA', '328.00', 110022, 'HQ01', '', 0, 1, '2019-03-14 09:51:31', '2019-03-14 20:14:14'),
-(25, 'INV2019031440', 'C150302', '', 'INV', '4284.00', 110022, 'HQ01', 'test', 0, 0, '2019-03-14 20:12:40', '0000-00-00 00:00:00'),
-(26, 'INV2019031413', 'C150302', 'QTA2019038341', 'INV', '328.00', 110022, 'HQ01', '', 0, 0, '2019-03-14 20:14:14', '0000-00-00 00:00:00'),
-(27, 'INV2019031406', 'C150403', '', 'INV', '45.00', 110022, 'HQ01', '', 0, 0, '2019-03-14 12:27:06', '0000-00-00 00:00:00'),
-(28, 'QTA2019031020', 'C150403', '', 'QTA', '120.00', 110022, 'HQ01', '', 0, 0, '2019-03-14 12:27:52', NULL);
+(1, 'QTA2019032217', 'C150403', 'QTA2019032217', 'QTA', '1085.00', 123456, 'HQ01', '1475', 0, 0, '2019-03-22 18:03:18', '2019-03-23 02:28:52'),
+(2, 'INV2019032319', 'C150404', '', 'INV', '315.00', 123456, 'HQ01', 'test', 0, 0, '2019-03-23 02:30:20', '0000-00-00 00:00:00'),
+(3, 'INV2019032332', 'C150408', '', 'INV', '300.00', 123456, 'HQ01', '', 0, 0, '2019-03-23 02:35:32', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -608,18 +614,16 @@ CREATE TABLE IF NOT EXISTS `t_transaction_t` (
   UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
   KEY `transcode_index` (`trans_code`) USING BTREE,
   KEY `uid_index` (`uid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 資料表的匯出資料 `t_transaction_t`
 --
 
 INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_date`, `modify_date`) VALUES
-(8, 'QTA2019038341', 'PM001', '328.00', '2019-03-13 12:00:45', NULL),
-(9, 'INV2019031440', 'PM001', '4284.00', '2019-03-14 20:12:40', NULL),
-(10, 'INV2019031413', 'PM001', '328.00', '2019-03-14 20:14:14', NULL),
-(11, 'INV2019031406', 'PM001', '45.00', '2019-03-14 12:27:06', NULL),
-(12, 'QTA2019031020', 'PM001', '120.00', '2019-03-14 12:27:52', NULL);
+(1, 'QTA2019032217', 'PM001', '1085.00', '2019-03-22 18:03:18', '2019-03-23 02:28:52'),
+(2, 'INV2019032319', 'PM002', '315.00', '2019-03-23 02:30:20', NULL),
+(3, 'INV2019032332', 'PM001', '300.00', '2019-03-23 02:35:32', NULL);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
