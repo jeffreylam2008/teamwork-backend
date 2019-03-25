@@ -209,7 +209,11 @@ $app->group('/api/v1/inventory/invoices', function () {
     
     $this->patch('/{trans_code}', function(Request $request, Response $response, array $args)
     {
-        $err = [];
+        $_err = [];
+		$_done = false;
+		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_now = date('Y-m-d H:i:s');
+        $_new_res = "";
         $db = connect_db();
         //$sql_d = "";
         // POST Data here
@@ -222,16 +226,14 @@ $app->group('/api/v1/inventory/invoices', function () {
         $q->execute();
         $err = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
-        extract($res);
-    
+         
         foreach($res as $k => $v)
         {
-            $_new_res[$v['item_code']] = $res[$k];
+            $_new_res[$v['item_code']] = $v["item_code"];
         }
         
         $db->beginTransaction();
-    
-        $_now = date('Y-m-d H:i:s');
+		// transaction header
         
         $q = $db->prepare("UPDATE `t_transaction_h` SET 
             cust_code = '".$customer['cust_code']."',
@@ -244,36 +246,39 @@ $app->group('/api/v1/inventory/invoices', function () {
             WHERE trans_code = '".$_trans_code."';"
         );
         $q->execute();
-        $err = $q->errorinfo();
+        $_err[0] = $q->errorinfo();
         
-        if($err[2]==null)
+        if($q->rowCount() != "0")
         {
-            foreach($_new_res as $k => $v)
+            foreach($_new_res as $k_itcode => $v)
             {
-                if(!array_key_exists($v["item_code"],$items))
+                // delete items from this transaction
+                if(!array_key_exists($k_itcode,$items))
                 {
-                    $sql_d = "DELETE FROM `t_transaction_d` WHERE item_code = '".$v["item_code"]."'";
+
+                    $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
                     $q = $db->prepare($sql_d);
                     $q->execute();
-                    $err = $q->errorinfo();
+                    $_err[2] = $q->errorinfo();
                     //echo $sql_d."\n";
                 }
             }
-            foreach($items as $k => $v)
+            foreach($items as $k_itcode => $v)
             {
-                // Items saved as before
-                if(array_key_exists($v["item_code"],$_new_res))
+                // update item already in transaction
+                if(array_key_exists($k_itcode,$_new_res))
                 {
+
                     $sql_d = "UPDATE `t_transaction_d` SET
                         qty = '".$v['qty']."',
                         unit = '".$v['unit']."',
                         price = '".$v['price']."',
                         modify_date = '".$_now."'
-                        WHERE trans_code = '".$_trans_code."' AND item_code = '".$k."';";
+                        WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
                     //echo $sql_d."\n";
                     $q = $db->prepare($sql_d);
                     $q->execute();
-                    $err = $q->errorinfo();
+                    $_err[1] = $q->errorinfo();
                 }
                 // New add items
                 else
@@ -293,7 +298,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                     //echo $sql_d."\n";
                     $q = $db->prepare($sql_d);
                     $q->execute();
-                    $err = $q->errorinfo();
+                    $_err[3] = $q->errorinfo();
                 }   
             }
             
@@ -305,15 +310,31 @@ $app->group('/api/v1/inventory/invoices', function () {
                 WHERE trans_code = '".$_trans_code."';";
             $q = $db->prepare($sql);
             $q->execute();
-            $err = $q->errorinfo();
+            $_err[4] = $q->errorinfo();
         }
+		$_done = true;
         $db->commit();
-    
-        $callback = [
-            "code" => $err[0], 
-            "message" => $err[2]
-        ];
-        return $response->withJson($callback,200);
+		
+		if($_done)
+        {
+            if($_err[0][0] == "00000")
+            {
+                $_callback['query'] = "";
+                $_callback["error"] = [
+                    "code" => "00000", 
+                    "message" => "Update Success!"
+                ]; 
+            }
+            else
+            { 
+                $_callback['query'] = "";
+                $_callback["error"] = [
+                    "code" => "99999", 
+                    "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]." - ".$_err[3][2]." - ".$_err[4][2]
+                ]; 
+            }
+        }
+        return $response->withJson($_callback,200);
     });
     
     

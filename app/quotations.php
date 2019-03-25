@@ -303,11 +303,9 @@ $app->group('/api/v1/inventory/quotations', function () {
                     $q->execute();
                     $_err[1] = $q->errorinfo();
                 }
-                
                 // New add items
                 else
                 {
-
                     $sql_d = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
                         values (
                             '".$_trans_code."',
