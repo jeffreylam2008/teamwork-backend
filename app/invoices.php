@@ -346,7 +346,9 @@ $app->group('/api/v1/inventory/invoices', function () {
      * Add new record to DB
      */
     $this->post('/', function (Request $request, Response $response, array $args) {
-        $err="";
+        $_err = [];
+        $_done = false;
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $db = connect_db();
         
         // POST Data here
@@ -355,7 +357,7 @@ $app->group('/api/v1/inventory/invoices', function () {
     
         $db->beginTransaction();
         // insert record to transaction_h
-        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date, modify_date) 
+        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) 
             values (
                 '".$invoicenum."',
                 '".$customer['cust_code']."',
@@ -367,15 +369,14 @@ $app->group('/api/v1/inventory/invoices', function () {
                 '".$remark."',
                 '0',
                 '0',
-                '".$date."',
-                '0000-00-00 00:00:00'
+                '".$date."'
             );
         ";
         $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
+        $_err[0] = $q->errorinfo();
         // insert record to transaction_d
-        if($err[2]==null)
+        if(!empty($db->lastInsertId()))
         {
             foreach($items as $k => $v)
             {
@@ -394,7 +395,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 ");
                 $q->execute();
             }
-            $err[] = $q->errorinfo();
+            $_err[1] = $q->errorinfo();
             // tender information input here
             $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
                 values (
@@ -405,7 +406,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 );
             ");
             $tr->execute();
-            $err[] = $tr->errorinfo();
+            $_err[2] = $tr->errorinfo();
         }
 
         // if has quotation
@@ -418,20 +419,32 @@ $app->group('/api/v1/inventory/invoices', function () {
                 WHERE trans_code = '".$quotation."';"
             );
             $sql->execute();
-            $err[] = $sql->errorinfo();
+            $err[3] = $sql->errorinfo();
         }
 
         $db->commit();
     
-        if($err[2] == null)
+        if($_err[0][0] = "00000")
         {
-            $err[2] = "Record inserted!";
+            $_callback['query'] = "";
+            $_callback["error"] = [
+                "code" => "00000", 
+                "message" => "Insert Success!"
+            ]; 
         }
-    
-        $callback = [
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-        ];
-        return $response->withJson($callback,200);
+        else
+        { 
+            $_callback['query'] = "";
+            $_callback["error"] = [
+                "code" => "99999", 
+                "message" => "DB Error: "
+                .$_err[0][2]." - "
+                .$_err[1][2]." - "
+                .$_err[2][2]." - "
+                .$_err[3][2]
+            ]; 
+        }
+        return $response->withJson($_callback,200);
      });
     
     /**
