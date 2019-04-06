@@ -474,5 +474,29 @@ $app->group('/api/v1/inventory/invoices', function () {
         
             return $response->withJson($callback, 200);
         });
+
+        /**
+         * Transaction D GET Request
+         * Trans-d-get-by-code
+         * 
+         * To check items on transaction d table (use it on delete items)
+         */
+         $this->get('/trans_code/{trans_code}', function (Request $request, Response $response, array $args) {
+            $_trans_code = $args['trans_code'];
+            $db = connect_db();
+            $sql = "SELECT * FROM `t_transaction_d` where trans_code = '". $_trans_code ."';";
+        
+            $q = $db->prepare($sql);
+            $q->execute();
+            $dbData = $q->fetchAll(PDO::FETCH_ASSOC);
+            $err = $q->errorinfo();
+        
+            $callback = [
+                "query" => $dbData,
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            ];
+        
+            return $response->withJson($callback, 200);
+        });
     });
 });
