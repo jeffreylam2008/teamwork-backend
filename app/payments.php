@@ -8,7 +8,7 @@ $app->group('/api/v1/systems/payments',function(){
      * 
      * To get all payment record 
      */
-    $this->get('/', function (Request $request, Response $response, array $args) {
+    $this->get('/method/', function (Request $request, Response $response, array $args) {
         $db = connect_db();
         $sql = "select * from `t_payment_method`; ";
         $q = $db->prepare($sql);
@@ -21,6 +21,33 @@ $app->group('/api/v1/systems/payments',function(){
         {
             extract($v);
             $new[$pm_code] = $v;
+        }
+        $err = $q->errorinfo();
+        $callback = [
+            "query" => $new,
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+        ];
+        return $response->withJson($callback,200);
+    });
+    /**
+     * Payment term GET Request
+     * Payment term-get
+     * 
+     * To get all payment record 
+     */
+     $this->get('/term/', function (Request $request, Response $response, array $args) {
+        $db = connect_db();
+        $sql = "select * from `t_payment_term`;";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $err = $q->errorinfo();
+        $result = $q->fetchAll();
+        //var_dump($result);
+        $new = [];
+        foreach($result as $k => $v)
+        {
+            extract($v);
+            $new[$pt_code] = $v;
         }
         $err = $q->errorinfo();
         $callback = [
