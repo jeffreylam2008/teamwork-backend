@@ -499,4 +499,33 @@ $app->group('/api/v1/inventory/invoices', function () {
             return $response->withJson($callback, 200);
         });
     });
+     /**
+     * Check transaction_d item exist API
+     */
+    $this->group('/transaction/h',function()
+    {
+        /**
+         * Transaction H GET Request
+         * Trans-h-get-by-cust-code
+         * 
+         * To check customer code on transaction h table (use it on delete customer)
+         */
+        $this->get('/{cust_code}', function (Request $request, Response $response, array $args) {
+            $item_code = $args['cust_code'];
+            $db = connect_db();
+            $sql = "SELECT * FROM `t_transaction_h` where cust_code = '". $item_code ."';";
+        
+            $q = $db->prepare($sql);
+            $q->execute();
+            $dbData = $q->fetch();
+            $err = $q->errorinfo();
+        
+            $callback = [
+                "query" => $dbData,
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            ];
+        
+            return $response->withJson($callback, 200);
+        });
+    });
 });
