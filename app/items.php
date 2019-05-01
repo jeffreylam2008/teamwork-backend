@@ -60,6 +60,14 @@ $app->group('/api/v1/products/items', function () {
         return $response->withJson($callback, 200);
     });
     /**
+     * 
+     */
+
+    //  $this->get('/{where}', function(Request $request, Response $response, array $args){
+
+    //  });
+
+    /**
      * Items GET Request
      * items-get-by-code
      * 
