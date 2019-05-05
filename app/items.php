@@ -63,9 +63,25 @@ $app->group('/api/v1/products/items', function () {
      * 
      */
 
-    //  $this->get('/{where}', function(Request $request, Response $response, array $args){
-
-    //  });
+    $this->get('/where/{attr:.*}', function(Request $request, Response $response, array $args){
+        $_req = [];
+        $_req = $request->getAttribute('attr');
+        $_req = str_replace("/","','", $_req);
+        
+        $db = connect_db();
+        $q = $db->prepare("select * from `t_items` WHERE cate_code in ( '".$_req."');");
+        
+        $q->execute();
+        $dbData = $q->fetchAll();
+        $err = $q->errorinfo();
+    
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+        ];
+    
+        return $response->withJson($callback, 200);
+     });
 
     /**
      * Items GET Request
