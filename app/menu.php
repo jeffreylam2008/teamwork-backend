@@ -27,7 +27,8 @@ $app->group('/api/v1/systems/menu', function () {
             ["order" => 0, "id" => 26, "parent_id" => 65, "name" => "List", "isParent" => "", "slug"=>"invoices/list", "param" => "invoices/invlist"],
             ["order" => 0, "id" => 333, "parent_id" => 33, "name" => "Create", "isParent" => "", "slug"=>"quotations/donew", "param" => "quotations/create"],
             ["order" => 0, "id" => 332, "parent_id" => 33, "name" => "List", "isParent" => "", "slug"=>"quotations/list", "param" => "quotations/qualist"],
-            ["order" => 0, "id" => 43, "parent_id" => 71, "name" => "Payment Method", "isParent" => "", "slug"=>"administration/payments", "param" => "payments/index"],
+            ["order" => 0, "id" => 43, "parent_id" => 71, "name" => "Payment Method", "isParent" => "", "slug"=>"administration/payments/method", "param" => "payments/paymentmethod"],
+            ["order" => 0, "id" => 45, "parent_id" => 71, "name" => "Payment Term", "isParent" => "", "slug"=>"administration/payments/term", "param" => "payments/paymentterm"],
         ];
         $_callback["query"] = $data;
         $_callback["error"] = ["code" => "00000", "message" => "Menu Loaded"];

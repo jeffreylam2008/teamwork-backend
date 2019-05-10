@@ -24,4 +24,35 @@ $app->group('/api/v1/systems/shops', function () {
         ];
         return $response->withJson($callback, 200);
     });
+
+     /**
+     * Shop Patch request
+     * shop-patch
+     * 
+     * To patch shop record 
+     */
+    $this->patch('/{shop_code}', function (Request $request, Response $response, array $args) {
+        $_err = [];
+        $db = connect_db();
+        $_shop_code = $args['shop_code'];
+        $_body = json_decode($request->getBody(), true);
+        $_now = date('Y-m-d H:i:s');
+
+        $db->beginTransaction();
+        $q = $db->prepare("UPDATE `t_shop` SET 
+        `name` = '".$_body['i-name']."',
+        `phone` = '".$_body['i-phone']."',
+        `address1` = '".$_body['i-address1']."',
+        `address2` = '".$_body['i-address2']."',
+        `modify_date` = '".$_now."'
+        WHERE `shop_code` = '".$_shop_code."';");
+        $q->execute();
+        $_err = $q->errorinfo();
+        $db->commit();
+        $callback = [
+            "query" => "",
+            "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
+        ];
+        return $response->withJson($callback, 200);
+    });
 });
