@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.8.3
+-- version 4.7.7
 -- https://www.phpmyadmin.net/
 --
--- 主機: 127.0.0.1:3306
--- 產生時間： 2019-03-24 14:47:02
--- 伺服器版本: 10.3.9-MariaDB
--- PHP 版本： 5.6.38
+-- Host: localhost
+-- Generation Time: May 12, 2019 at 01:08 PM
+-- Server version: 10.1.30-MariaDB
+-- PHP Version: 7.2.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 資料庫： `teamwork`
+-- Database: `teamwork`
 --
 DROP DATABASE IF EXISTS `teamwork`;
 CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
@@ -28,28 +28,26 @@ USE `teamwork`;
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_audit_log`
+-- Table structure for table `t_audit_log`
 --
 
-DROP TABLE IF EXISTS `t_audit_log`;
-CREATE TABLE IF NOT EXISTS `t_audit_log` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_audit_log` (
+  `uid` int(10) NOT NULL,
   `datetime` datetime DEFAULT NULL,
   `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
-  `event` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`uid`)
+  `event` varchar(255) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_customers`
+-- Table structure for table `t_customers`
 --
 
-DROP TABLE IF EXISTS `t_customers`;
-CREATE TABLE IF NOT EXISTS `t_customers` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_customers` (
+  `uid` int(10) NOT NULL,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
+  `district_code` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `mail_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `shop_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `delivery_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -68,38 +66,35 @@ CREATE TABLE IF NOT EXISTS `t_customers` (
   `pt_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL COMMENT 'payment term',
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `custcode_unique` (`cust_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_customers`
+-- Dumping data for table `t_customers`
 --
 
-INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `delivery_addr`, `attn_1`, `phone_1`, `fax_1`, `email_1`, `attn_2`, `phone_2`, `fax_2`, `email_2`, `statement_remark`, `name`, `group_name`, `pm_code`, `pt_code`, `remark`, `create_date`, `modify_date`) VALUES
-(1, 'C150301', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '豪哥', '9714 8829', '0', '', '', '', '', '', '不用寄月結單', '峰飲食 MI-NE Restaurant', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(2, 'C150302', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '戴先生', '6797 8829', '0', '', '', '', '', '', '', '孖寶車仔麵', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(3, 'C150401', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', 'Mo哥', '9125 8829', '2345 1234', '', '', '', '', '', '', '金蒂餐廳 Cinta-J', '', '', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(4, 'C150402', '香港柴灣利眾街24號東貿廣場6/F', '香港循理會-社會服務部香港北角百福道21號香港青年協會大廈1901室', '香港柴灣利眾街24號東貿廣場6/F', '蘇小姐(店長)', '9634 8829', '3634 8829', '', '', '', '', '', '附上回郵信封', 'Fantastic Cafe (柴灣)', '香港循理會', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(5, 'C150403', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '李院長', '2474 8829', '0', '', '', '', '', '', '', '基德(泰衡)護老院有限公司', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(6, 'C150404', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '波仔', '9813 8829', '0', '', '', '', '', '', '', '好德來小籠包店', '', 'PM002', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(7, 'C150405', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', 'Angel', '9132 8829', '0', '', '', '', '', '', '附上回郵信封', '福村日本料理', '', 'PM002', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(8, 'C150406', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '朱經理', '6236 8829', '0', '', '', '', '', '', '', '粵來順 (旺角)', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(9, 'C150407', '香港太古城太古城道26號漢宮閣地下411號舖', '九龍灣常悅道1號 恩浩國際中心5樓D室', '香港太古城太古城道26號漢宮閣地下411號舖', '黃經理', '9870 8829', '0', '', '', '', '', '', '附上回郵信封', '華昌粥麵', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(10, 'C150408', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記廚房 (西環店) A Plus Kitchen', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(11, 'C150409', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記 (尖沙咀店)   A Plus Kitchen', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(12, 'C150410', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '', '2234 8829', '0', '', '', '', '', '', '', 'OUT DART (尖沙咀)', '', 'PM001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+INSERT INTO `t_customers` (`uid`, `cust_code`, `district_code`, `mail_addr`, `shop_addr`, `delivery_addr`, `attn_1`, `phone_1`, `fax_1`, `email_1`, `attn_2`, `phone_2`, `fax_2`, `email_2`, `statement_remark`, `name`, `group_name`, `pm_code`, `pt_code`, `remark`, `create_date`, `modify_date`) VALUES
+(1, 'C150301', '0', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '豪哥', '9714 8829', '0', '', '', '', '', '', '不用寄月結單', '峰飲食 MI-NE Restaurant1', '', 'PM001', 'PT001', '', '0000-00-00 00:00:00', '2019-05-12 11:05:29'),
+(2, 'C150302', '0', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '戴先生', '6797 8829', '0', '', '', '', '', '', '', '孖寶車仔麵12', '', 'PM001', 'PT002', '', '0000-00-00 00:00:00', '2019-04-22 00:05:00'),
+(3, 'C150401', '0', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', 'Mo哥', '9125 8829', '2345 1234', '', '', '', '', '', '', '金蒂餐廳 Cinta-J', '', 'PM002', 'PT001', '', '0000-00-00 00:00:00', '2019-04-22 00:03:37'),
+(4, 'C150402', '0', '香港柴灣利眾街24號東貿廣場6/F', '香港循理會-社會服務部香港北角百福道21號香港青年協會大廈1901室', '香港柴灣利眾街24號東貿廣場6/F', '蘇小姐(店長)', '9634 8829', '3634 8829', '', '', '', '', '', '附上回郵信封', 'Fantastic Cafe (柴灣)', '香港循理會', 'PM001', 'PT001', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(5, 'C150403', '0', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '李院長', '2474 8829', '0', '', '', '', '', '', '', '基德(泰衡)護老院有限公司', '', 'PM001', 'PT002', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(6, 'C150404', '0', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '波仔', '9813 8829', '0', '', '', '', '', '', '', '好德來小籠包店', '', 'PM002', 'PT001', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(7, 'C150405', '0', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', 'Angel', '9132 8829', '0', '', '', '', '', '', '附上回郵信封', '福村日本料理', '', 'PM002', 'PT001', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(8, 'C150406', '0', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '朱經理', '6236 8829', '0', '', '', '', '', '', '', '粵來順 (旺角)', '', 'PM001', 'PT001', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(9, 'C150407', '0', '香港太古城太古城道26號漢宮閣地下411號舖', '九龍灣常悅道1號 恩浩國際中心5樓D室', '香港太古城太古城道26號漢宮閣地下411號舖', '黃經理', '9870 8829', '0', '', '', '', '', '', '附上回郵信封', '華昌粥麵', '', 'PM001', 'PT002', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(10, 'C150408', '0', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記廚房 (西環店) A Plus Kitchen', '', 'PM001', 'PT001', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(11, 'C150409', '0', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記 (尖沙咀店)   A Plus Kitchen', '', 'PM001', 'PT001', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(12, 'C150410', '0', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '', '2234 8829', '0', '', '', '', '', '', '', 'OUT DART (尖沙咀)', '', 'PM001', 'PT002', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_delivery`
+-- Table structure for table `t_delivery`
 --
 
-DROP TABLE IF EXISTS `t_delivery`;
-CREATE TABLE IF NOT EXISTS `t_delivery` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_delivery` (
+  `uid` int(10) NOT NULL,
   `delivery_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `delivery_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -114,21 +109,38 @@ CREATE TABLE IF NOT EXISTS `t_delivery` (
   `location` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
   `post_time` datetime DEFAULT NULL,
-  `update_time` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `deliverycode_unique` (`delivery_code`) USING BTREE,
-  KEY `delivery_code_index` (`delivery_code`) USING BTREE
+  `update_time` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_employee`
+-- Table structure for table `t_district`
 --
 
-DROP TABLE IF EXISTS `t_employee`;
-CREATE TABLE IF NOT EXISTS `t_employee` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_district` (
+  `uid` int(10) NOT NULL,
+  `district_code` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `district_chi` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `district_eng` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `region` varchar(50) COLLATE utf8_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `t_district`
+--
+
+INSERT INTO `t_district` (`uid`, `district_code`, `district_chi`, `district_eng`, `region`) VALUES
+(1, 'HK01', '中西區', 'Central and Western', 'HONG KONG');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_employee`
+--
+
+CREATE TABLE `t_employee` (
+  `uid` int(10) NOT NULL,
   `employee_code` int(10) NOT NULL,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -139,27 +151,39 @@ CREATE TABLE IF NOT EXISTS `t_employee` (
   `last_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` tinyint(4) NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `unique_employee_code` (`employee_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_employee`
+-- Dumping data for table `t_employee`
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-03-22 12:00:21', '43443f88980d05f8644d16a536ec21ff', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-05-11 13:56:35', '5817ee76215e78a1065ec892bed4e78c', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_items`
+-- Table structure for table `t_employee_role`
 --
 
-DROP TABLE IF EXISTS `t_items`;
-CREATE TABLE IF NOT EXISTS `t_items` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_employee_role` (
+  `uid` int(10) NOT NULL,
+  `role_code` int(10) NOT NULL,
+  `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `access_level` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+  `create_date` datetime NOT NULL,
+  `modify_date` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_items`
+--
+
+CREATE TABLE `t_items` (
+  `uid` int(10) NOT NULL,
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `eng_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `chi_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
@@ -169,14 +193,11 @@ CREATE TABLE IF NOT EXISTS `t_items` (
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `unit` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `uid_unique` (`item_code`) USING BTREE,
-  KEY `uid_index` (`item_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_items`
+-- Dumping data for table `t_items`
 --
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
@@ -309,29 +330,25 @@ INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `pric
 (135, 'scjsdck', 'nskcn', 'jknksncknskc', '', '32.00', '32.00', 'PDT', '', '2018-09-16 18:20:00', '0000-00-00 00:00:00'),
 (136, 'NAS0200', 'NAS ', 'NAS', 'Network A Server', '230.00', '0.00', 'Can', 'Box set', '2018-10-15 16:55:51', '0000-00-00 00:00:00'),
 (139, 'GF703', 'eng', 'chinese', 'testing', '703.00', '0.00', 'MAT', '2dasd', '2018-12-06 08:38:34', '0000-00-00 00:00:00'),
-(140, 'IAM2033', 'eng testing item', 'Testing item', 'items testing', '9999.00', '9999.00', 'SVR', 'testing', '2019-03-19 05:00:22', NULL);
+(140, 'IAM2033', 'eng testing item', 'Testing item', 'items testing', '9999.00', '9999.00', 'SVR', 'testing', '2019-03-19 05:00:22', NULL),
+(141, 'IC12345', 'ICeng', 'IC', 'laskmdkdmald\r\n', '122.00', '23.00', 'SVR', '4x3pack', '2019-04-26 22:37:34', NULL);
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_items_category`
+-- Table structure for table `t_items_category`
 --
 
-DROP TABLE IF EXISTS `t_items_category`;
-CREATE TABLE IF NOT EXISTS `t_items_category` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_items_category` (
+  `uid` int(10) NOT NULL,
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `desc` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
-  UNIQUE KEY `cate_code_unique` (`cate_code`) USING BTREE,
-  KEY `uid_index` (`uid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_items_category`
+-- Dumping data for table `t_items_category`
 --
 
 INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modify_date`) VALUES
@@ -344,41 +361,35 @@ INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modi
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_items_price`
+-- Table structure for table `t_items_price`
 --
 
-DROP TABLE IF EXISTS `t_items_price`;
-CREATE TABLE IF NOT EXISTS `t_items_price` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_items_price` (
+  `uid` int(10) NOT NULL,
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `price` decimal(10,2) NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
-  KEY `uid_index` (`uid`) USING BTREE
+  `modify_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_login`
+-- Table structure for table `t_login`
 --
 
-DROP TABLE IF EXISTS `t_login`;
-CREATE TABLE IF NOT EXISTS `t_login` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_login` (
+  `uid` int(10) NOT NULL,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `shop_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` enum('in','out') COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  UNIQUE KEY `uid` (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_login`
+-- Dumping data for table `t_login`
 --
 
 INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `create_date`, `modify_date`) VALUES
@@ -395,27 +406,52 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (39, 'iamadmin', 'HQ01', 'd8e359219cb06263fd776ee4711a690f', 'out', '2019-03-17 02:00:48', '2019-03-18 09:41:05'),
 (40, 'iamadmin', 'HQ01', 'fa8ddc5ea5d7c45f629cd84fe0f481e7', 'out', '2019-03-18 09:41:05', '2019-03-20 02:48:43'),
 (41, 'iamadmin', 'HQ01', '55cf3289ef06bf9eca175f619be22df9', 'out', '2019-03-20 02:48:43', '2019-03-22 12:00:21'),
-(42, 'iamadmin', 'HQ01', '43443f88980d05f8644d16a536ec21ff', 'in', '2019-03-22 12:00:21', '2019-03-23 02:36:29');
+(42, 'iamadmin', 'HQ01', '43443f88980d05f8644d16a536ec21ff', 'out', '2019-03-22 12:00:21', '2019-03-24 23:01:31'),
+(43, 'iamadmin', 'HQ01', '80f079acf9fabd9e055d0a9443ed618d', 'out', '2019-03-24 23:01:31', '2019-03-26 00:29:21'),
+(44, 'iamadmin', 'HQ01', '1ea0f86b6fb78249ecf258ccc8e33890', 'out', '2019-03-26 00:29:21', '2019-03-27 23:10:14'),
+(45, 'iamadmin', 'HQ01', '5743a0725ce4ccc17bab7d0cde3a2187', 'out', '2019-03-27 23:10:14', '2019-03-29 23:24:43'),
+(46, 'iamadmin', 'HQ01', 'ada25f9f1553309c23a207e5d334384b', 'out', '2019-03-29 23:24:43', '2019-04-05 23:24:21'),
+(47, 'iamadmin', 'HQ01', 'eb5c9e078b9865ed155387bf79d405dc', 'out', '2019-04-05 23:24:21', '2019-04-08 22:24:13'),
+(48, 'iamadmin', 'HQ01', '9702f64e2cb6a0310f92ff58cb31c92c', 'out', '2019-04-08 22:24:13', '2019-04-10 23:59:31'),
+(49, 'iamadmin', 'HQ01', '7c7adaba700d597258cc31a772714cec', 'out', '2019-04-10 23:59:31', '2019-04-12 00:02:47'),
+(50, 'iamadmin', 'HQ01', '40d7aa19aa542f4a5ffb5651135af65a', 'out', '2019-04-12 00:02:52', '2019-04-13 00:02:53'),
+(51, 'iamadmin', 'HQ01', '7ed30a3c560241c8d1f9b8ff00ab1b78', 'out', '2019-04-13 00:03:01', '2019-04-14 22:19:08'),
+(52, 'iamadmin', 'HQ01', '54c6833f53f9023dc409c19eaafb4789', 'out', '2019-04-14 22:19:08', '2019-04-16 22:52:33'),
+(53, 'iamadmin', 'HQ01', '2b9a0189e636fc0b6ec92451a31578e6', 'out', '2019-04-16 22:52:33', '2019-04-19 22:19:55'),
+(54, 'iamadmin', 'HQ01', 'da106e647c9e7f6cc974d95d7cd68bf0', 'out', '2019-04-19 22:19:55', '2019-04-20 22:42:14'),
+(55, 'iamadmin', 'HQ01', '62bb4e6f80c6f46d24eaa4f3bddb4611', 'out', '2019-04-20 22:42:14', '2019-04-21 23:33:08'),
+(56, 'iamadmin', 'HQ01', '67b08a3a7bddb0bda536dcd423cf9576', 'out', '2019-04-21 23:33:08', '2019-04-23 00:29:23'),
+(57, 'iamadmin', 'HQ01', '71ac6f2de52157ed64b550ad2d4a52bb', 'out', '2019-04-23 00:29:23', '2019-04-25 22:38:03'),
+(58, 'iamadmin', 'HQ01', 'd9c42a5a43441d5ea8b10d906e76a1e8', 'out', '2019-04-25 22:38:03', '2019-04-26 22:50:52'),
+(59, 'iamadmin', 'HQ01', 'd717848d2792294500d41937071375be', 'out', '2019-04-26 22:50:59', '2019-04-28 11:06:10'),
+(60, 'iamadmin', 'HQ01', 'aab38934265d21757c56f4bfb42e7b83', 'out', '2019-04-28 11:06:10', '2019-04-29 21:45:47'),
+(61, 'iamadmin', 'HQ01', 'b508404593a69c87a6eddedb41d6de3d', 'out', '2019-04-29 21:45:47', '2019-04-30 23:20:25'),
+(62, 'iamadmin', 'HQ01', 'cb9e527082c4b92fad5cc288418d3f28', 'out', '2019-04-30 23:20:25', '2019-05-01 23:45:08'),
+(63, 'iamadmin', 'HQ01', '2912e0f97d97ee275c73cb7e3c238658', 'out', '2019-05-01 23:45:14', '2019-05-03 00:01:55'),
+(64, 'iamadmin', 'HQ01', '2a26115af4f8fe2e42d400fa0f038221', 'out', '2019-05-03 00:02:00', '2019-05-04 11:22:29'),
+(65, 'iamadmin', 'HQ01', 'aa07dde43d3e33ec07d2b42347990fe4', 'out', '2019-05-04 11:22:29', '2019-05-06 22:39:11'),
+(66, 'iamadmin', 'HQ01', 'e76123a991e9a1d7dcf08ab602c5b787', 'out', '2019-05-06 22:39:11', '2019-05-07 23:21:24'),
+(67, 'iamadmin', 'HQ01', '4b093d6dbb408fead4f9f08fde944388', 'out', '2019-05-07 23:21:24', '2019-05-09 11:15:37'),
+(68, 'iamadmin', 'HQ01', 'ff5b0c22dc8bc0089c8bbc13f09d0154', 'out', '2019-05-09 11:15:37', '2019-05-10 11:16:04'),
+(69, 'iamadmin', 'HQ01', '968ce71f964dc44cd254f4e3ba5eabab', 'out', '2019-05-10 11:16:18', '2019-05-11 13:56:35'),
+(70, 'iamadmin', 'HQ01', '5817ee76215e78a1065ec892bed4e78c', 'in', '2019-05-11 13:56:35', '2019-05-12 12:46:44');
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_payment_method`
+-- Table structure for table `t_payment_method`
 --
 
-DROP TABLE IF EXISTS `t_payment_method`;
-CREATE TABLE IF NOT EXISTS `t_payment_method` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_payment_method` (
+  `uid` int(10) NOT NULL,
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `payment_method` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `pmcode_unique` (`pm_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_payment_method`
+-- Dumping data for table `t_payment_method`
 --
 
 INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date`, `modify_date`) VALUES
@@ -425,22 +461,19 @@ INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_payment_term`
+-- Table structure for table `t_payment_term`
 --
 
-DROP TABLE IF EXISTS `t_payment_term`;
-CREATE TABLE IF NOT EXISTS `t_payment_term` (
-  `uid` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_payment_term` (
+  `uid` int(11) NOT NULL,
   `pt_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `terms` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `ptcode_unique` (`pt_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_payment_term`
+-- Dumping data for table `t_payment_term`
 --
 
 INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_date`) VALUES
@@ -450,22 +483,18 @@ INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_prefix`
+-- Table structure for table `t_prefix`
 --
 
-DROP TABLE IF EXISTS `t_prefix`;
-CREATE TABLE IF NOT EXISTS `t_prefix` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_prefix` (
+  `uid` int(10) NOT NULL,
   `prefix` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `desc` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
-  `status` tinyint(4) NOT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `prefix_unique` (`prefix`) USING BTREE,
-  KEY `uid_index` (`uid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `status` tinyint(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_prefix`
+-- Dumping data for table `t_prefix`
 --
 
 INSERT INTO `t_prefix` (`uid`, `prefix`, `desc`, `status`) VALUES
@@ -476,61 +505,52 @@ INSERT INTO `t_prefix` (`uid`, `prefix`, `desc`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_shop`
+-- Table structure for table `t_shop`
 --
 
-DROP TABLE IF EXISTS `t_shop`;
-CREATE TABLE IF NOT EXISTS `t_shop` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_shop` (
+  `uid` int(10) NOT NULL,
   `shop_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `phone` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `address1` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `address2` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `shopcode_unique` (`shop_code`) USING BTREE,
-  KEY `shopcode_index` (`shop_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_shop`
+-- Dumping data for table `t_shop`
 --
 
 INSERT INTO `t_shop` (`uid`, `shop_code`, `name`, `phone`, `address1`, `address2`, `create_date`, `modify_date`) VALUES
-(1, 'HQ01', 'AABB LTD (HONG KONG)', '23992122', 'Kowloon City, Hung To Rd, 19號10樓1006室', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(1, 'HQ01', 'Homeland Worker', '22222222', 'dfsf', '', '0000-00-00 00:00:00', '2019-05-10 14:56:47'),
 (2, 'HQ02', 'DD moving Co, (HK)', '22021010', 'Kwun Tong, 九龍觀塘鴻圖道37號鴻泰工業大廈', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_stock`
+-- Table structure for table `t_stock`
 --
 
-DROP TABLE IF EXISTS `t_stock`;
-CREATE TABLE IF NOT EXISTS `t_stock` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_stock` (
+  `uid` int(10) NOT NULL,
   `inv_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `qty` double NOT NULL,
   `type` enum('in','out','hold','') COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `uid_unique` (`inv_code`) USING BTREE,
-  KEY `uid_index` (`inv_code`) USING BTREE
+  `modify_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_transaction_d`
+-- Table structure for table `t_transaction_d`
 --
 
-DROP TABLE IF EXISTS `t_transaction_d`;
-CREATE TABLE IF NOT EXISTS `t_transaction_d` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_transaction_d` (
+  `uid` int(10) NOT NULL,
   `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `item_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `eng_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
@@ -540,35 +560,35 @@ CREATE TABLE IF NOT EXISTS `t_transaction_d` (
   `price` decimal(10,2) NOT NULL,
   `discount` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  KEY `uid_index` (`uid`) USING BTREE,
-  KEY `transcode_unique` (`trans_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_transaction_d`
+-- Dumping data for table `t_transaction_d`
 --
 
 INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `chi_name`, `qty`, `unit`, `price`, `discount`, `create_date`, `modify_date`) VALUES
-(1, 'QTA2019032217', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '7.0', '4X5L', '120.00', '', '2019-03-22 18:03:18', '2019-03-23 02:28:52'),
-(6, 'QTA2019032217', 'LR0405', 'Concentrated Lime Scale Remover', 'Lime Remover 超高濃縮水垢去除劑', '1.0', '4x5 Ltr / C', '245.00', '', '2019-03-22 18:03:18', '2019-03-23 02:28:52'),
-(7, 'QTA2019032217', 'DA0405', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '4X5L', '0.00', '', '2019-03-22 18:03:18', NULL),
-(8, 'INV2019032319', 'DF0105', 'Concentrated Dishwasher Drying Agent', 'Dry Flash 高濃縮洗碗碟機快乾劑', '1.0', '5 Ltr / Bottle', '45.00', '', '2019-03-23 02:30:20', NULL),
-(9, 'INV2019032319', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2019-03-23 02:30:20', NULL),
-(10, 'INV2019032319', 'DF0205', 'Concentrated Dishwasher Drying Agent', 'Dry Flash 高濃縮洗碗碟機快乾劑', '1.0', '2x5 Ltr', '90.00', '', '2019-03-23 02:30:20', NULL),
-(11, 'INV2019032332', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-03-23 02:35:32', NULL),
-(12, 'INV2019032332', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2019-03-23 02:35:32', NULL);
+(1, 'INV2019032629', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-03-26 00:29:29', '2019-03-26 00:30:07'),
+(2, 'INV2019032629', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '2.0', '20 Ltr / Pail', '180.00', '', '2019-03-26 00:29:29', '2019-03-26 00:30:07'),
+(3, 'QTA2019032728', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '2.0', '10 Ltr / Pail', '328.00', '', '2019-03-27 23:11:28', NULL),
+(4, 'QTA2019032728', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '3.0', '20 Ltr / Pail', '180.00', '', '2019-03-27 23:11:28', NULL),
+(5, 'INV2019050643', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '2.0', '20L', '80.00', '', '2019-05-06 23:01:43', NULL),
+(6, 'QTA2019050648', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-06 23:03:48', NULL),
+(7, 'QTA2019050648', 'Pentax', '', 'Pentax 水泵', '1.0', '', '1100.00', '', '2019-05-06 23:03:48', NULL),
+(8, 'INV2019050622', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-05-06 23:04:22', NULL),
+(9, 'INV2019050616', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-05-06 23:05:16', NULL),
+(10, 'QTA2019051113', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-11 14:23:13', NULL),
+(11, 'QTA2019051114', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '3.0', '10 Ltr / Pail', '328.00', '', '2019-05-11 14:34:14', NULL),
+(12, 'INV2019051254', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-12 10:00:36', NULL);
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_transaction_h`
+-- Table structure for table `t_transaction_h`
 --
 
-DROP TABLE IF EXISTS `t_transaction_h`;
-CREATE TABLE IF NOT EXISTS `t_transaction_h` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_transaction_h` (
+  `uid` int(10) NOT NULL,
   `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `quotation_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
@@ -580,50 +600,304 @@ CREATE TABLE IF NOT EXISTS `t_transaction_h` (
   `is_void` tinyint(1) NOT NULL,
   `is_convert` tinyint(1) NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`) USING BTREE,
-  UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
-  UNIQUE KEY `uid_index` (`uid`) USING BTREE,
-  KEY `transcode_index` (`trans_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_transaction_h`
+-- Dumping data for table `t_transaction_h`
 --
 
 INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `is_convert`, `create_date`, `modify_date`) VALUES
-(1, 'QTA2019032217', 'C150403', 'QTA2019032217', 'QTA', '1085.00', 123456, 'HQ01', '1475', 0, 0, '2019-03-22 18:03:18', '2019-03-23 02:28:52'),
-(2, 'INV2019032319', 'C150404', '', 'INV', '315.00', 123456, 'HQ01', 'test', 0, 0, '2019-03-23 02:30:20', '0000-00-00 00:00:00'),
-(3, 'INV2019032332', 'C150408', '', 'INV', '300.00', 123456, 'HQ01', '', 0, 0, '2019-03-23 02:35:32', '0000-00-00 00:00:00');
+(1, 'INV2019032629', 'C150405', '', 'INV', '480.00', 123456, 'HQ01', '', 0, 0, '2019-03-26 00:29:29', '2019-03-26 00:30:07'),
+(2, 'QTA2019032728', 'C150403', '', 'QTA', '1196.00', 123456, 'HQ02', '', 0, 1, '2019-03-27 23:11:28', '2019-05-06 23:01:43'),
+(3, 'INV2019050643', 'C150402', 'QTA2019032728', 'INV', '160.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:01:43', NULL),
+(4, 'QTA2019050648', 'C150405', '', 'QTA', '1428.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:03:48', NULL),
+(5, 'INV2019050622', 'C150401', '', 'INV', '120.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:04:22', NULL),
+(6, 'INV2019050616', 'C150402', '', 'INV', '120.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:05:16', NULL),
+(7, 'QTA2019051113', 'C150301', '', 'QTA', '328.00', 123456, 'HQ01', '', 0, 0, '2019-05-11 14:23:13', NULL),
+(9, 'QTA2019051114', 'C150301', '', 'QTA', '984.00', 123456, 'HQ02', '', 0, 0, '2019-05-11 14:34:14', NULL),
+(10, 'INV2019051254', 'C150402', '', 'INV', '328.00', 123456, 'HQ01', '', 0, 0, '2019-05-12 10:00:36', NULL);
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `t_transaction_t`
+-- Table structure for table `t_transaction_t`
 --
 
-DROP TABLE IF EXISTS `t_transaction_t`;
-CREATE TABLE IF NOT EXISTS `t_transaction_t` (
-  `uid` int(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `t_transaction_t` (
+  `uid` int(10) NOT NULL,
   `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `total` decimal(10,2) NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`uid`) USING BTREE,
-  UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
-  KEY `transcode_index` (`trans_code`) USING BTREE,
-  KEY `uid_index` (`uid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- 資料表的匯出資料 `t_transaction_t`
+-- Dumping data for table `t_transaction_t`
 --
 
 INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_date`, `modify_date`) VALUES
-(1, 'QTA2019032217', 'PM001', '1085.00', '2019-03-22 18:03:18', '2019-03-23 02:28:52'),
-(2, 'INV2019032319', 'PM002', '315.00', '2019-03-23 02:30:20', NULL),
-(3, 'INV2019032332', 'PM001', '300.00', '2019-03-23 02:35:32', NULL);
+(1, 'INV2019032629', 'PM002', '480.00', '2019-03-26 00:29:29', '2019-03-26 00:30:07'),
+(2, 'QTA2019032728', 'PM001', '1196.00', '2019-03-27 23:11:28', NULL),
+(3, 'INV2019050643', 'PM001', '160.00', '2019-05-06 23:01:43', NULL),
+(4, 'QTA2019050648', 'PM002', '1428.00', '2019-05-06 23:03:48', NULL),
+(5, 'INV2019050622', 'PM002', '120.00', '2019-05-06 23:04:22', NULL),
+(6, 'INV2019050616', 'PM001', '120.00', '2019-05-06 23:05:16', NULL),
+(7, 'QTA2019051113', 'PM001', '328.00', '2019-05-11 14:23:13', NULL),
+(8, 'QTA2019051114', 'PM002', '984.00', '2019-05-11 14:34:14', NULL),
+(9, 'INV2019051254', 'PM001', '328.00', '2019-05-12 10:00:36', NULL);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `t_audit_log`
+--
+ALTER TABLE `t_audit_log`
+  ADD PRIMARY KEY (`uid`);
+
+--
+-- Indexes for table `t_customers`
+--
+ALTER TABLE `t_customers`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `custcode_unique` (`cust_code`);
+
+--
+-- Indexes for table `t_delivery`
+--
+ALTER TABLE `t_delivery`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `deliverycode_unique` (`delivery_code`) USING BTREE,
+  ADD KEY `delivery_code_index` (`delivery_code`) USING BTREE;
+
+--
+-- Indexes for table `t_district`
+--
+ALTER TABLE `t_district`
+  ADD PRIMARY KEY (`uid`);
+
+--
+-- Indexes for table `t_employee`
+--
+ALTER TABLE `t_employee`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `unique_employee_code` (`employee_code`);
+
+--
+-- Indexes for table `t_employee_role`
+--
+ALTER TABLE `t_employee_role`
+  ADD PRIMARY KEY (`uid`);
+
+--
+-- Indexes for table `t_items`
+--
+ALTER TABLE `t_items`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `uid_unique` (`item_code`) USING BTREE,
+  ADD KEY `uid_index` (`item_code`) USING BTREE;
+
+--
+-- Indexes for table `t_items_category`
+--
+ALTER TABLE `t_items_category`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
+  ADD UNIQUE KEY `cate_code_unique` (`cate_code`) USING BTREE,
+  ADD KEY `uid_index` (`uid`) USING BTREE;
+
+--
+-- Indexes for table `t_items_price`
+--
+ALTER TABLE `t_items_price`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
+  ADD KEY `uid_index` (`uid`) USING BTREE;
+
+--
+-- Indexes for table `t_login`
+--
+ALTER TABLE `t_login`
+  ADD UNIQUE KEY `uid` (`uid`);
+
+--
+-- Indexes for table `t_payment_method`
+--
+ALTER TABLE `t_payment_method`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `pmcode_unique` (`pm_code`) USING BTREE;
+
+--
+-- Indexes for table `t_payment_term`
+--
+ALTER TABLE `t_payment_term`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `ptcode_unique` (`pt_code`) USING BTREE;
+
+--
+-- Indexes for table `t_prefix`
+--
+ALTER TABLE `t_prefix`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `prefix_unique` (`prefix`) USING BTREE,
+  ADD KEY `uid_index` (`uid`) USING BTREE;
+
+--
+-- Indexes for table `t_shop`
+--
+ALTER TABLE `t_shop`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `shopcode_unique` (`shop_code`) USING BTREE,
+  ADD KEY `shopcode_index` (`shop_code`) USING BTREE;
+
+--
+-- Indexes for table `t_stock`
+--
+ALTER TABLE `t_stock`
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `uid_unique` (`inv_code`) USING BTREE,
+  ADD KEY `uid_index` (`inv_code`) USING BTREE;
+
+--
+-- Indexes for table `t_transaction_d`
+--
+ALTER TABLE `t_transaction_d`
+  ADD PRIMARY KEY (`uid`),
+  ADD KEY `uid_index` (`uid`) USING BTREE,
+  ADD KEY `transcode_unique` (`trans_code`) USING BTREE;
+
+--
+-- Indexes for table `t_transaction_h`
+--
+ALTER TABLE `t_transaction_h`
+  ADD PRIMARY KEY (`uid`) USING BTREE,
+  ADD UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
+  ADD UNIQUE KEY `uid_index` (`uid`) USING BTREE,
+  ADD KEY `transcode_index` (`trans_code`) USING BTREE;
+
+--
+-- Indexes for table `t_transaction_t`
+--
+ALTER TABLE `t_transaction_t`
+  ADD PRIMARY KEY (`uid`) USING BTREE,
+  ADD UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
+  ADD KEY `transcode_index` (`trans_code`) USING BTREE,
+  ADD KEY `uid_index` (`uid`) USING BTREE;
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `t_audit_log`
+--
+ALTER TABLE `t_audit_log`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `t_customers`
+--
+ALTER TABLE `t_customers`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `t_delivery`
+--
+ALTER TABLE `t_delivery`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `t_district`
+--
+ALTER TABLE `t_district`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `t_employee`
+--
+ALTER TABLE `t_employee`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `t_employee_role`
+--
+ALTER TABLE `t_employee_role`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `t_items`
+--
+ALTER TABLE `t_items`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
+
+--
+-- AUTO_INCREMENT for table `t_items_category`
+--
+ALTER TABLE `t_items_category`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT for table `t_items_price`
+--
+ALTER TABLE `t_items_price`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `t_login`
+--
+ALTER TABLE `t_login`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+
+--
+-- AUTO_INCREMENT for table `t_payment_method`
+--
+ALTER TABLE `t_payment_method`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `t_payment_term`
+--
+ALTER TABLE `t_payment_term`
+  MODIFY `uid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `t_prefix`
+--
+ALTER TABLE `t_prefix`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `t_shop`
+--
+ALTER TABLE `t_shop`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `t_stock`
+--
+ALTER TABLE `t_stock`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `t_transaction_d`
+--
+ALTER TABLE `t_transaction_d`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `t_transaction_h`
+--
+ALTER TABLE `t_transaction_h`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `t_transaction_t`
+--
+ALTER TABLE `t_transaction_t`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
