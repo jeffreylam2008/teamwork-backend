@@ -27,6 +27,7 @@ $app->group('/api/v1/customers', function () use($app) {
             return $response->withJson($callback, 200);
         }
     });
+
     /**
      * Customer GET Request
      * customer-get-by-code
