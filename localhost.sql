@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 12, 2019 at 01:08 PM
+-- Generation Time: May 12, 2019 at 11:35 PM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -131,7 +131,27 @@ CREATE TABLE `t_district` (
 --
 
 INSERT INTO `t_district` (`uid`, `district_code`, `district_chi`, `district_eng`, `region`) VALUES
-(1, 'HK01', '中西區', 'Central and Western', 'HONG KONG');
+(1, 'HK01', '中西區', 'Central and Western', 'HONG KONG'),
+(2, 'HK02', '東區', 'Eastern', 'HONG KONG'),
+(3, 'HK01', '中西區', 'Central and Western', 'HONG KONG'),
+(4, 'HK02', '東區', 'Eastern', 'HONG KONG'),
+(5, 'HK02', '東區', 'Eastern', 'HONG KONG'),
+(6, 'HK03', '南區', 'Southern', 'HONG KONG'),
+(7, 'HK04', '灣仔區', 'Wan Chai', 'HONG KONG'),
+(8, 'KL05', '深水埗區', 'Sham Shui Po', 'Kowloon'),
+(9, 'KL06', '九龍城區', 'Kowloon City', 'Kowloon'),
+(10, 'KL07', '觀塘區', 'Kwun Tong', 'Kowloon'),
+(11, 'KL08', '黃大仙區', 'Wong Tai Sin', 'Kowloon'),
+(12, 'KL09', '油尖旺區', 'Yau Tsim Mong', 'Kowloon'),
+(13, 'NT10', '離島區', 'Islands', 'New Territories'),
+(14, 'NT11', '葵青區', 'Kwai Tsing', 'New Territories'),
+(15, 'NT12', '北區', 'North', 'New Territories'),
+(16, 'NT13', '西貢區', 'Sai Kung', 'New Territories'),
+(17, 'NT14', '沙田區', 'Sha Tin', 'New Territories'),
+(18, 'NT15', '大埔區', 'Tai Po', 'New Territories'),
+(19, 'NT16', '荃灣區', 'Tsuen Wan', 'New Territories'),
+(20, 'NT17', '屯門區', 'Tuen Mun', 'New Territories'),
+(21, 'NT18', '元朗區', 'Yuen Long', 'New Territories');
 
 -- --------------------------------------------------------
 
@@ -159,7 +179,7 @@ CREATE TABLE `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-05-11 13:56:35', '5817ee76215e78a1065ec892bed4e78c', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-05-12 23:10:34', '92408176e68c7db12a62e841071cca27', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
@@ -434,7 +454,8 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (67, 'iamadmin', 'HQ01', '4b093d6dbb408fead4f9f08fde944388', 'out', '2019-05-07 23:21:24', '2019-05-09 11:15:37'),
 (68, 'iamadmin', 'HQ01', 'ff5b0c22dc8bc0089c8bbc13f09d0154', 'out', '2019-05-09 11:15:37', '2019-05-10 11:16:04'),
 (69, 'iamadmin', 'HQ01', '968ce71f964dc44cd254f4e3ba5eabab', 'out', '2019-05-10 11:16:18', '2019-05-11 13:56:35'),
-(70, 'iamadmin', 'HQ01', '5817ee76215e78a1065ec892bed4e78c', 'in', '2019-05-11 13:56:35', '2019-05-12 12:46:44');
+(70, 'iamadmin', 'HQ01', '5817ee76215e78a1065ec892bed4e78c', 'out', '2019-05-11 13:56:35', '2019-05-12 23:10:34'),
+(71, 'iamadmin', 'HQ01', '92408176e68c7db12a62e841071cca27', 'in', '2019-05-12 23:10:34', '2019-05-12 23:34:02');
 
 -- --------------------------------------------------------
 
@@ -813,7 +834,7 @@ ALTER TABLE `t_delivery`
 -- AUTO_INCREMENT for table `t_district`
 --
 ALTER TABLE `t_district`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `t_employee`
@@ -849,7 +870,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`
