@@ -10,10 +10,14 @@ $app->group('/api/v1/systems/shops', function () {
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $err = [];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $q = $db->prepare("select * from `t_shop`;");
         $q->execute();
         $err = $q->errorinfo();
+        // disconnect DB
+        $pdo->disconnect_db();
+        
         //$result = $db->query( "select * from `t_shop`;");
         foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
             $dbData[] = $val;
@@ -33,7 +37,8 @@ $app->group('/api/v1/systems/shops', function () {
      */
     $this->patch('/{shop_code}', function (Request $request, Response $response, array $args) {
         $_err = [];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $_shop_code = $args['shop_code'];
         $_body = json_decode($request->getBody(), true);
         $_now = date('Y-m-d H:i:s');
@@ -49,6 +54,9 @@ $app->group('/api/v1/systems/shops', function () {
         $q->execute();
         $_err = $q->errorinfo();
         $db->commit();
+        // disconnect DB
+        $pdo->disconnect_db();
+
         $callback = [
             "query" => "",
             "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]

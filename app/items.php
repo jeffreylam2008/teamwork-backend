@@ -10,10 +10,16 @@ $app->group('/api/v1/products/items', function () {
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $err=[];
-        $db = connect_db();
+
+        $pdo = new Database();
+        $db = $pdo->connect_db();
         $q = $db->prepare("SELECT * FROM `t_items` ORDER BY 'item_code';");
         $q->execute();
         $err = $q->errorinfo();
+        //disconnection DB
+        $pdo->disconnect_db();
+
+
         foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
             $dbData[] = $val;
         }
@@ -34,11 +40,15 @@ $app->group('/api/v1/products/items', function () {
     $this->get('/has/category/{cate_code}', function(Request $request, Response $response, array $args){
         $err=[];
         $_cate_code = $args['cate_code'];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $q = $db->prepare("select count(*) as counter from `t_items` WHERE cate_code = '".$_cate_code."';");
         $q->execute();
         $dbData = $q->fetch();
         $err = $q->errorinfo();
+        //disconnection DB
+        $pdo->disconnect_db();
+
         $callback = [
             "query" => "",
             "error" => []
@@ -68,13 +78,16 @@ $app->group('/api/v1/products/items', function () {
         $_req = $request->getAttribute('attr');
         $_req = str_replace("/","','", $_req);
         
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $q = $db->prepare("select * from `t_items` WHERE cate_code in ( '".$_req."');");
         
         $q->execute();
         $dbData = $q->fetchAll();
         $err = $q->errorinfo();
-    
+        //disconnection DB
+        $pdo->disconnect_db();
+
         $callback = [
             "query" => $dbData,
             "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -92,12 +105,15 @@ $app->group('/api/v1/products/items', function () {
     $this->get('/{item_code}', function(Request $request, Response $response, array $args){
         $err=[];
         $_item_code = $args['item_code'];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $q = $db->prepare("select * from `t_items` WHERE item_code = '".$_item_code."';");
         $q->execute();
         $dbData = $q->fetch();
         $err = $q->errorinfo();
-    
+        //disconnection DB
+        $pdo->disconnect_db();
+
         $callback = [
             "query" => $dbData,
             "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -113,9 +129,9 @@ $app->group('/api/v1/products/items', function () {
      */
     $this->post('/',function(Request $request, Response $response, array $args){
         $err=[];
-        $db = connect_db();
+        $pdo = new Database();
+        $db = $pdo->connect_db();
         
-    
         // POST Data here
         $body = json_decode($request->getBody(), true);
         //extract($body);
@@ -138,6 +154,9 @@ $app->group('/api/v1/products/items', function () {
         $q->execute();
         $err = $q->errorinfo();
         $db->commit();
+        //disconnection DB
+        $pdo->disconnect_db();
+
         $callback = [
             "query" => "",
             "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -153,7 +172,8 @@ $app->group('/api/v1/products/items', function () {
     $this->patch('/{item_code}', function(Request $request, Response $response, array $args){
         
         $_item_code = $args['item_code'];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $_now = date('Y-m-d H:i:s');
         // // POST Data here
         $body = json_decode($request->getBody(), true);
@@ -173,6 +193,9 @@ $app->group('/api/v1/products/items', function () {
         $q->execute();
         $err = $q->errorinfo();
         $db->commit();
+        //disconnection DB
+        $pdo->disconnect_db();
+
         $callback = [
             "query" => "",
             "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -187,11 +210,14 @@ $app->group('/api/v1/products/items', function () {
      */
     $this->delete('/{item_code}', function (Request $request, Response $response, array $args) {
         $_item_code = $args['item_code'];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $q = $db->prepare("DELETE FROM `t_items` WHERE item_code = '".$_item_code."';");
         $q->execute();
         $err = $q->errorinfo();
-    
+        //disconnection DB
+        $pdo->disconnect_db();
+
         $callback = [
             "query" => "",
             "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]

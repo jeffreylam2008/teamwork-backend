@@ -11,7 +11,8 @@ $app->group('/api/v1/systems/employees', function () {
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $err = [];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $q = $db->prepare(
             "SELECT emp.employee_code, 
             emp.username, 
@@ -25,6 +26,9 @@ $app->group('/api/v1/systems/employees', function () {
         $q->execute();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
         $err = $q->errorinfo();
+        // disconnect DB
+        $pdo->disconnect_db();
+        
         if(!empty($res))
         {
             foreach ($res as $key => $val) {
@@ -46,11 +50,15 @@ $app->group('/api/v1/systems/employees', function () {
     $this->get('/{username}', function (Request $request, Response $response, array $args) {
         $_username = $args['username'];
         $err = "";
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $q = $db->prepare("select `employee_code`, `username`, `default_shopcode`, `access_level`, `role`, `status` from `t_employee` where `username` = '".$_username."';");
         $q->execute();
         $err = $q->errorinfo();
         $res = $q->fetch(PDO::FETCH_ASSOC);
+        // disconnect DB
+        $pdo->disconnect_db();
+
         if(!empty($res))
         {
             $callback = [

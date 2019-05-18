@@ -29,7 +29,8 @@ $app->group('/api/v1/systems/login', function () {
             $_salt = "password";
             $_token = "";
             $_callback = [];
-            $db = connect_db();
+            $pdo = new Database();
+		    $db = $pdo->connect_db();
             // SQL statement here
             $q = $db->prepare("select * from `t_employee` where `username` =  '".$_body['username']."'; ");
             $q->execute();
@@ -159,7 +160,8 @@ $app->group('/api/v1/systems/login', function () {
         {
             $_this_token = $args['token'];
             $_err = [];
-            $db = connect_db();
+            $pdo = new Database();
+		    $db = $pdo->connect_db();
             // SQL statement here
             $q = $db->prepare("select `username`, `status`, `create_date` from `t_login` where `token` =  '".$_this_token."'; ");
             $q->execute();
@@ -234,6 +236,9 @@ $app->group('/api/v1/systems/login', function () {
             $_err['api']['code'] = "10003";
             $_err['api']['msg'] = "No token or token not valid";
         }
+        // disconnect DB
+        $pdo->disconnect_db();
+        
         // return API
         $_callback = [
             "query" => $_dbData,

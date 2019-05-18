@@ -9,7 +9,8 @@ $app->group('/api/v1/systems/payments',function(){
      * To get all payment record 
      */
     $this->get('/method/', function (Request $request, Response $response, array $args) {
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $sql = "select * from `t_payment_method`; ";
         $q = $db->prepare($sql);
         $q->execute();
@@ -23,6 +24,9 @@ $app->group('/api/v1/systems/payments',function(){
             $new[$pm_code] = $v;
         }
         $err = $q->errorinfo();
+        // disconnect DB
+        $pdo->disconnect_db();
+        
         $callback = [
             "query" => $new,
             "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -36,12 +40,16 @@ $app->group('/api/v1/systems/payments',function(){
      * To get all payment record 
      */
      $this->get('/term/', function (Request $request, Response $response, array $args) {
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $sql = "select * from `t_payment_term`;";
         $q = $db->prepare($sql);
         $q->execute();
         $err = $q->errorinfo();
         $result = $q->fetchAll();
+        // disconnect DB
+        $pdo->disconnect_db();
+
         //var_dump($result);
         $new = [];
         foreach($result as $k => $v)

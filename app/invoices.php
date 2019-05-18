@@ -16,7 +16,8 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_pm = [];
         $_cust = [];
         $_query = [];
-        $db = connect_db();
+        $pdo = new Database();
+	    $db = $pdo->connect_db();
 
         // t_transaction_h SQL
         $q = $db->prepare("SELECT * FROM `t_transaction_h` as th left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'INV';");
@@ -41,7 +42,9 @@ $app->group('/api/v1/inventory/invoices', function () {
         $q->execute();
         $_err4 = $q->errorinfo();
         $_res4 = $q->fetchAll(PDO::FETCH_ASSOC);
-        
+
+        //disconnection DB
+        $pdo->disconnect_db();
 
         // convert payment_method to key and value array
         foreach($_res2 as $k => $v)
@@ -110,7 +113,8 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_err3 = [];
         $_customers = [];
     
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $sql = "
             SELECT 
                 th.trans_code as 'invoicenum',
@@ -157,6 +161,8 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_err3 = $q->errorinfo();
         $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
         
+        //disconnection DB
+        $pdo->disconnect_db();
     
         // export data
         if(!empty($res))
@@ -214,7 +220,8 @@ $app->group('/api/v1/inventory/invoices', function () {
 		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_now = date('Y-m-d H:i:s');
         $_new_res = "";
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         //$sql_d = "";
         // POST Data here
         $body = json_decode($request->getBody(), true);
@@ -314,7 +321,9 @@ $app->group('/api/v1/inventory/invoices', function () {
         }
 		$_done = true;
         $db->commit();
-		
+		//disconnection DB
+        $pdo->disconnect_db();
+
 		if($_done)
         {
             if($_err[0][0] == "00000")
@@ -349,7 +358,8 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_err = [];
         $_done = false;
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         
         // POST Data here
         $body = json_decode($request->getBody(), true);
@@ -423,7 +433,9 @@ $app->group('/api/v1/inventory/invoices', function () {
         }
 
         $db->commit();
-    
+        //disconnection DB
+        $pdo->disconnect_db();
+        
         if($_err[0][0] = "00000")
         {
             $_callback['query'] = "";
@@ -459,14 +471,18 @@ $app->group('/api/v1/inventory/invoices', function () {
          */
         $this->get('/{item_code}', function (Request $request, Response $response, array $args) {
             $item_code = $args['item_code'];
-            $db = connect_db();
+
+            $pdo = new Database();
+		    $db = $pdo->connect_db();
             $sql = "SELECT * FROM `t_transaction_d` where item_code = '". $item_code ."';";
         
             $q = $db->prepare($sql);
             $q->execute();
             $dbData = $q->fetch();
             $err = $q->errorinfo();
-        
+            //disconnection DB
+            $pdo->disconnect_db();
+
             $callback = [
                 "query" => $dbData,
                 "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -483,14 +499,18 @@ $app->group('/api/v1/inventory/invoices', function () {
          */
          $this->get('/trans_code/{trans_code}', function (Request $request, Response $response, array $args) {
             $_trans_code = $args['trans_code'];
-            $db = connect_db();
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            
             $sql = "SELECT * FROM `t_transaction_d` where trans_code = '". $_trans_code ."';";
         
             $q = $db->prepare($sql);
             $q->execute();
             $dbData = $q->fetchAll(PDO::FETCH_ASSOC);
             $err = $q->errorinfo();
-        
+            //disconnection DB
+            $pdo->disconnect_db();
+
             $callback = [
                 "query" => $dbData,
                 "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -512,14 +532,17 @@ $app->group('/api/v1/inventory/invoices', function () {
          */
         $this->get('/{cust_code}', function (Request $request, Response $response, array $args) {
             $item_code = $args['cust_code'];
-            $db = connect_db();
+            $pdo = new Database();
+		    $db = $pdo->connect_db();
             $sql = "SELECT * FROM `t_transaction_h` where cust_code = '". $item_code ."';";
         
             $q = $db->prepare($sql);
             $q->execute();
             $dbData = $q->fetch();
             $err = $q->errorinfo();
-        
+            //disconnection DB
+            $pdo->disconnect_db();
+            
             $callback = [
                 "query" => $dbData,
                 "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]

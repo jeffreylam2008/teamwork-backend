@@ -10,13 +10,17 @@ $app->group('/api/v1/products/categories', function() use($app) {
 	 */
 	$app->get('/', function (Request $request, Response $response, array $args) {
 		$err="";
-		$db = connect_db();
+		$pdo = new Database();
+		$db = $pdo->connect_db();
 		$q = $db->prepare("SELECT * FROM `t_items_category` ORDER BY 'cate_code';");
 		$q->execute();
 		$err = $q->errorinfo();
 		foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
 			$dbData[] = $val;
 		}
+		// disconnect DB
+		$pdo->disconnect_db();
+		
 		$callback = [
 			"query" => $dbData,
 			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -32,12 +36,14 @@ $app->group('/api/v1/products/categories', function() use($app) {
 	$app->get('/{cate_code}', function(Request $request, Response $response, array $args){
 		$err="";
 		$_cate_code = $args['cate_code'];
-		$db = connect_db();
-
+		$pdo = new Database();
+		$db = $pdo->connect_db();
 		$q = $db->prepare("select * from `t_items_category` WHERE cate_code = '".$_cate_code."';");
 		$q->execute();
 		$dbData = $q->fetch();
 		$err = $q->errorinfo();
+		// disconnect DB
+		$pdo->disconnect_db();
 
 		$callback = [
 			"query" => $dbData,
@@ -54,7 +60,8 @@ $app->group('/api/v1/products/categories', function() use($app) {
 	$app->patch('/{cate_code}', function(Request $request, Response $response, array $args){
 		$err = [];
 		$_cate_code = $args['cate_code'];
-		$db = connect_db();
+		$pdo = new Database();
+		$db = $pdo->connect_db();
 		// POST Data here
 		$body = json_decode($request->getBody(), true);
 		$_now = date('Y-m-d H:i:s');
@@ -64,6 +71,9 @@ $app->group('/api/v1/products/categories', function() use($app) {
 		// no fatch on update 
 		$err = $q->errorinfo();
 		$db->commit();
+		// disconnect DB
+		$pdo->disconnect_db();
+		
 		$callback = [
 			"query" => "",
 			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
@@ -79,7 +89,8 @@ $app->group('/api/v1/products/categories', function() use($app) {
 		*/
 	$app->post('/', function(Request $request, Response $response, array $args){
 		$err = [];
-		$db = connect_db();
+		$pdo = new Database();
+		$db = $pdo->connect_db();
 		// POST Data here
 		$body = json_decode($request->getBody(), true);
 		$_now = date('Y-m-d H:i:s');
@@ -89,6 +100,8 @@ $app->group('/api/v1/products/categories', function() use($app) {
 		// no fatch on insert
 		$err = $q->errorinfo();
 		$db->commit();
+		// disconnect DB
+        $pdo->disconnect_db();
 		
 		$callback = [
 			"query" => "", 
@@ -105,11 +118,14 @@ $app->group('/api/v1/products/categories', function() use($app) {
 	$app->delete('/{cate_code}', function(Request $request, Response $response, array $args){
 		$err = [];
 		$_cate_code = $args['cate_code'];
-		$db = connect_db();
+		$pdo = new Database();
+		$db = $pdo->connect_db();
 		$q = $db->prepare("DELETE FROM `t_items_category` WHERE cate_code = '".$_cate_code."';");
 		$q->execute();
 		$dbData = $q->fetch();
 		$err = $q->errorinfo();
+		// disconnect DB
+		$pdo->disconnect_db();
 
 		$callback = [
 			"query" => $dbData,

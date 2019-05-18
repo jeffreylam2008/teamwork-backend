@@ -19,7 +19,8 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_pm = [];
         $_cust = [];
         $_query = [];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
 
         // t_transaction_h SQL
         $q = $db->prepare("SELECT * FROM `t_transaction_h` as th LEFT JOIN `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'QTA';");
@@ -44,7 +45,9 @@ $app->group('/api/v1/inventory/quotations', function () {
         $q->execute();
         $_err[3] = $q->errorinfo();
         $_res4 = $q->fetchAll(PDO::FETCH_ASSOC);
-
+        // disconnect DB
+        $pdo->disconnect_db();
+        
         // convert payment_method to key and value array
         foreach($_res2 as $k => $v)
         {  
@@ -130,7 +133,8 @@ $app->group('/api/v1/inventory/quotations', function () {
 
         $_customers = [];
     
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         $sql = "
             SELECT 
                 th.trans_code as 'quotation',
@@ -176,7 +180,9 @@ $app->group('/api/v1/inventory/quotations', function () {
         $q->execute();
         $_err[2] = $q->errorinfo();
         $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
-
+        // disconnect DB
+        $pdo->disconnect_db();
+        
         if($_err[0][0] == "00000")
         {
             // export data
@@ -239,7 +245,8 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_now = date('Y-m-d H:i:s');
         $_new_res = "";
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
@@ -337,7 +344,10 @@ $app->group('/api/v1/inventory/quotations', function () {
         }
         $_done = true;
         $db->commit();
-    
+
+        // disconnect DB
+        $pdo->disconnect_db();
+        
         if($_done)
         {
             if($_err[0][0] == "00000")
@@ -373,7 +383,8 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_err = [];
         $_done = false;
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
-        $db = connect_db();
+        $pdo = new Database();
+		$db = $pdo->connect_db();
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
@@ -432,7 +443,9 @@ $app->group('/api/v1/inventory/quotations', function () {
             $_err[2] = $tr->errorinfo();
         }
         $db->commit();
-
+        // disconnect DB
+        $pdo->disconnect_db();
+        
         if($_err[0][0] = "00000")
         {
             $_callback['query'] = "";
