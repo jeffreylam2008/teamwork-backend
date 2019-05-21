@@ -29,6 +29,34 @@ $app->group('/api/v1/customers', function () use($app) {
         }
     });
 
+     /**
+     * Customer GET Request
+     * customer-get
+     * 
+     * To get next customer code
+     */
+    $app->get('/next', function(Request $request, Response $response, array $args) {
+        $err = [];
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $q = $db->prepare("SELECT `cust_code` FROM `t_customers` ORDER BY `cust_code` DESC LIMIT 1;");
+        $q->execute();
+        $err = $q->errorinfo();
+        $res = $q->fetch();
+        $str = substr($res['cust_code'],1);
+        $str = (int) $str + 1;
+        $str = "C".$str;
+        $res['cust_code'] = $str;
+        if(!empty($res))
+        {
+            $callback = [
+                "query" => $res,
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            ];
+            return $response->withJson($callback, 200);
+        }
+    });
+
     /**
      * Customer GET Request
      * customer-get-by-code
