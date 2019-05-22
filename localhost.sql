@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 19, 2019 at 11:55 AM
+-- Generation Time: May 22, 2019 at 10:46 PM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -47,10 +47,9 @@ CREATE TABLE `t_audit_log` (
 CREATE TABLE `t_customers` (
   `uid` int(10) NOT NULL,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
-  `district_code` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `mail_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `shop_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `delivery_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `employee_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `attn_1` varchar(15) COLLATE utf8_unicode_ci NOT NULL,
   `phone_1` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `fax_1` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
@@ -65,7 +64,12 @@ CREATE TABLE `t_customers` (
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL COMMENT 'payment method code',
   `pt_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL COMMENT 'payment term',
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
-  `status` enum('Active','Closed') COLLATE utf8_unicode_ci NOT NULL,
+  `district_code` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `delivery_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `form_time` time NOT NULL,
+  `to_time` time NOT NULL,
+  `delivery_remark` text COLLATE utf8_unicode_ci NOT NULL,
+  `status` enum('Active','Closed') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Active',
   `create_date` datetime DEFAULT NULL,
   `modify_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -74,40 +78,32 @@ CREATE TABLE `t_customers` (
 -- Dumping data for table `t_customers`
 --
 
-INSERT INTO `t_customers` (`uid`, `cust_code`, `district_code`, `mail_addr`, `shop_addr`, `delivery_addr`, `attn_1`, `phone_1`, `fax_1`, `email_1`, `attn_2`, `phone_2`, `fax_2`, `email_2`, `statement_remark`, `name`, `group_name`, `pm_code`, `pt_code`, `remark`, `status`, `create_date`, `modify_date`) VALUES
-(1, 'C150301', '0', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '豪哥', '97148829', '0', '', '', '', '', '', '不用寄月結單', '峰飲食 MI-NE Restaurant', '', 'PM001', 'PT001', '', '', '0000-00-00 00:00:00', '2019-05-19 11:32:57'),
-(2, 'C150302', '0', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '戴先生', '6797 8829', '0', '', '', '', '', '', '', '孖寶車仔麵12', '', 'PM001', 'PT002', '', '', '0000-00-00 00:00:00', '2019-04-22 00:05:00'),
-(3, 'C150401', '0', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', 'Mo哥', '9125 8829', '2345 1234', '', '', '', '', '', '', '金蒂餐廳 Cinta-J', '', 'PM002', 'PT001', '', '', '0000-00-00 00:00:00', '2019-04-22 00:03:37'),
-(4, 'C150402', '0', '香港柴灣利眾街24號東貿廣場6/F', '香港循理會-社會服務部香港北角百福道21號香港青年協會大廈1901室', '香港柴灣利眾街24號東貿廣場6/F', '蘇小姐(店長)', '9634 8829', '3634 8829', '', '', '', '', '', '附上回郵信封', 'Fantastic Cafe (柴灣)', '香港循理會', 'PM001', 'PT001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(5, 'C150403', '0', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '李院長', '2474 8829', '0', '', '', '', '', '', '', '基德(泰衡)護老院有限公司', '', 'PM001', 'PT002', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(6, 'C150404', '0', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '波仔', '9813 8829', '0', '', '', '', '', '', '', '好德來小籠包店', '', 'PM002', 'PT001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(7, 'C150405', '0', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', 'Angel', '9132 8829', '0', '', '', '', '', '', '附上回郵信封', '福村日本料理', '', 'PM002', 'PT001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(8, 'C150406', '0', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '朱經理', '6236 8829', '0', '', '', '', '', '', '', '粵來順 (旺角)', '', 'PM001', 'PT001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(9, 'C150407', '0', '香港太古城太古城道26號漢宮閣地下411號舖', '九龍灣常悅道1號 恩浩國際中心5樓D室', '香港太古城太古城道26號漢宮閣地下411號舖', '黃經理', '9870 8829', '0', '', '', '', '', '', '附上回郵信封', '華昌粥麵', '', 'PM001', 'PT002', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(10, 'C150408', '0', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記廚房 (西環店) A Plus Kitchen', '', 'PM001', 'PT001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(11, 'C150409', '0', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記 (尖沙咀店)   A Plus Kitchen', '', 'PM001', 'PT001', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(12, 'C150410', '0', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '', '2234 8829', '0', '', '', '', '', '', '', 'OUT DART (尖沙咀)', '', 'PM001', 'PT002', '', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `employee_code`, `attn_1`, `phone_1`, `fax_1`, `email_1`, `attn_2`, `phone_2`, `fax_2`, `email_2`, `statement_remark`, `name`, `group_name`, `pm_code`, `pt_code`, `remark`, `district_code`, `delivery_addr`, `form_time`, `to_time`, `delivery_remark`, `status`, `create_date`, `modify_date`) VALUES
+(1, 'C150301', '九龍旺角花園街217號地下', '九龍旺角花園街217號地下', '', '豪哥', '97148829', '0', '', '', '', '', '', '不用寄月結單', '峰飲食 MI-NE Restaurant', '', 'PM001', 'PT001', '', '0', '九龍旺角花園街217號地下', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '2019-05-19 11:32:57'),
+(2, 'C150302', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '', '戴先生', '6797 8829', '0', '', '', '', '', '', '', '孖寶車仔麵12', '', 'PM001', 'PT002', '', '0', '新界葵涌葵豐街18-26號永康工業大廈3樓 H室', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '2019-04-22 00:05:00'),
+(3, 'C150401', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '', 'Mo哥', '9125 8829', '2345 1234', '', '', '', '', '', '', '金蒂餐廳 Cinta-J', '', 'PM002', 'PT001', '', '0', '香港灣仔謝斐道69號馬來西亞大廈地下G4號舖', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '2019-04-22 00:03:37'),
+(4, 'C150402', '香港柴灣利眾街24號東貿廣場6/F', '香港循理會-社會服務部香港北角百福道21號香港青年協會大廈1901室', '', '蘇小姐(店長)', '9634 8829', '3634 8829', '', '', '', '', '', '附上回郵信封', 'Fantastic Cafe (柴灣)', '香港循理會', 'PM001', 'PT001', '', '0', '香港柴灣利眾街24號東貿廣場6/F', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(5, 'C150403', '新界元朗泰衡街4號東堤街14號1樓', '新界元朗泰衡街4號東堤街14號1樓', '', '李院長', '2474 8829', '0', '', '', '', '', '', '', '基德(泰衡)護老院有限公司', '', 'PM001', 'PT002', '', '0', '新界元朗泰衡街4號東堤街14號1樓', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(6, 'C150404', '九龍佐敦德興銜18號地下', '九龍佐敦德興銜18號地下', '', '波仔', '9813 8829', '0', '', '', '', '', '', '', '好德來小籠包店', '', 'PM002', 'PT001', '', '0', '九龍佐敦德興銜18號地下', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(7, 'C150405', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '', 'Angel', '9132 8829', '0', '', '', '', '', '', '附上回郵信封', '福村日本料理', '', 'PM002', 'PT001', '', '0', '九龍尖沙咀廣東道33號中港城第3座平台2-3號舖', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(8, 'C150406', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '', '朱經理', '6236 8829', '0', '', '', '', '', '', '', '粵來順 (旺角)', '', 'PM001', 'PT001', '', '0', '九龍旺角登打士街2A寶亨大廈地下 10號鋪', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(9, 'C150407', '香港太古城太古城道26號漢宮閣地下411號舖', '九龍灣常悅道1號 恩浩國際中心5樓D室', '', '黃經理', '9870 8829', '0', '', '', '', '', '', '附上回郵信封', '華昌粥麵', '', 'PM001', 'PT002', '', '0', '香港太古城太古城道26號漢宮閣地下411號舖', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(10, 'C150408', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記廚房 (西環店) A Plus Kitchen', '', 'PM001', 'PT001', '', '0', '香港西環皇后大道西576-584號新景樓地下A', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(11, 'C150409', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記 (尖沙咀店)   A Plus Kitchen', '', 'PM001', 'PT001', '', '0', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(12, 'C150410', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '', '', '2234 8829', '0', '', '', '', '', '', '', 'OUT DART (尖沙咀)', '', 'PM001', 'PT002', '', '0', '九龍尖沙咀厚福街8號H8 17樓', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_delivery`
+-- Table structure for table `t_delivery_note`
 --
 
-CREATE TABLE `t_delivery` (
+CREATE TABLE `t_delivery_note` (
   `uid` int(10) NOT NULL,
   `delivery_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
+  `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `district_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
-  `delivery_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `from_time` time NOT NULL,
-  `to_time` time NOT NULL,
-  `phone1` int(10) NOT NULL,
-  `attn1` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-  `fax1` int(10) NOT NULL,
-  `phone2` int(10) NOT NULL,
-  `attn2` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-  `fax2` int(10) NOT NULL,
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
   `post_time` datetime DEFAULT NULL,
   `update_time` datetime DEFAULT NULL
@@ -180,7 +176,7 @@ CREATE TABLE `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-05-19 11:31:23', '3ea0f72e2cbb27960d201d0792061112', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-05-21 23:45:21', '37b403b0381c85a0b5bc7bdf06f9c2ed', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
@@ -459,7 +455,9 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (71, 'iamadmin', 'HQ01', '92408176e68c7db12a62e841071cca27', 'out', '2019-05-12 23:10:34', '2019-05-16 08:38:26'),
 (72, 'iamadmin', 'HQ01', '408e295e46c5d6d0fbdd4fa9c6df8c15', 'out', '2019-05-16 08:38:26', '2019-05-17 22:21:17'),
 (73, 'iamadmin', 'HQ01', '48f617b0e48282661e1e67034b68bf84', 'out', '2019-05-17 22:21:17', '2019-05-19 11:31:23'),
-(74, 'iamadmin', 'HQ01', '3ea0f72e2cbb27960d201d0792061112', 'in', '2019-05-19 11:31:23', '2019-05-19 11:33:04');
+(74, 'iamadmin', 'HQ01', '3ea0f72e2cbb27960d201d0792061112', 'out', '2019-05-19 11:31:23', '2019-05-20 23:40:57'),
+(75, 'iamadmin', 'HQ01', '3e274db66139e1226c23a13f227aa550', 'out', '2019-05-20 23:40:57', '2019-05-21 23:45:16'),
+(76, 'iamadmin', 'HQ01', '37b403b0381c85a0b5bc7bdf06f9c2ed', 'in', '2019-05-21 23:45:21', '2019-05-22 22:34:25');
 
 -- --------------------------------------------------------
 
@@ -604,7 +602,8 @@ INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `ch
 (9, 'INV2019050616', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-05-06 23:05:16', NULL),
 (10, 'QTA2019051113', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-11 14:23:13', NULL),
 (11, 'QTA2019051114', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '3.0', '10 Ltr / Pail', '328.00', '', '2019-05-11 14:34:14', NULL),
-(12, 'INV2019051254', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-12 10:00:36', NULL);
+(12, 'INV2019051254', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-12 10:00:36', NULL),
+(13, 'INV2019051940', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '3.0', '4X5L', '120.00', '', '2019-05-19 22:04:40', NULL);
 
 -- --------------------------------------------------------
 
@@ -641,7 +640,8 @@ INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code
 (6, 'INV2019050616', 'C150402', '', 'INV', '120.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:05:16', NULL),
 (7, 'QTA2019051113', 'C150301', '', 'QTA', '328.00', 123456, 'HQ01', '', 0, 0, '2019-05-11 14:23:13', NULL),
 (9, 'QTA2019051114', 'C150301', '', 'QTA', '984.00', 123456, 'HQ02', '', 0, 0, '2019-05-11 14:34:14', NULL),
-(10, 'INV2019051254', 'C150402', '', 'INV', '328.00', 123456, 'HQ01', '', 0, 0, '2019-05-12 10:00:36', NULL);
+(10, 'INV2019051254', 'C150402', '', 'INV', '328.00', 123456, 'HQ01', '', 0, 0, '2019-05-12 10:00:36', NULL),
+(11, 'INV2019051940', 'C150402', '', 'INV', '360.00', 123456, 'HQ02', '', 0, 0, '2019-05-19 22:04:40', NULL);
 
 -- --------------------------------------------------------
 
@@ -671,7 +671,8 @@ INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_
 (6, 'INV2019050616', 'PM001', '120.00', '2019-05-06 23:05:16', NULL),
 (7, 'QTA2019051113', 'PM001', '328.00', '2019-05-11 14:23:13', NULL),
 (8, 'QTA2019051114', 'PM002', '984.00', '2019-05-11 14:34:14', NULL),
-(9, 'INV2019051254', 'PM001', '328.00', '2019-05-12 10:00:36', NULL);
+(9, 'INV2019051254', 'PM001', '328.00', '2019-05-12 10:00:36', NULL),
+(10, 'INV2019051940', 'PM001', '360.00', '2019-05-19 22:04:40', NULL);
 
 --
 -- Indexes for dumped tables
@@ -691,9 +692,9 @@ ALTER TABLE `t_customers`
   ADD UNIQUE KEY `custcode_unique` (`cust_code`);
 
 --
--- Indexes for table `t_delivery`
+-- Indexes for table `t_delivery_note`
 --
-ALTER TABLE `t_delivery`
+ALTER TABLE `t_delivery_note`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `deliverycode_unique` (`delivery_code`) USING BTREE,
   ADD KEY `delivery_code_index` (`delivery_code`) USING BTREE;
@@ -829,9 +830,9 @@ ALTER TABLE `t_customers`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
--- AUTO_INCREMENT for table `t_delivery`
+-- AUTO_INCREMENT for table `t_delivery_note`
 --
-ALTER TABLE `t_delivery`
+ALTER TABLE `t_delivery_note`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
 
 --
@@ -874,7 +875,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`
@@ -910,19 +911,19 @@ ALTER TABLE `t_stock`
 -- AUTO_INCREMENT for table `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `t_transaction_h`
 --
 ALTER TABLE `t_transaction_h`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `t_transaction_t`
 --
 ALTER TABLE `t_transaction_t`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
