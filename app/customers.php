@@ -12,7 +12,20 @@ $app->group('/api/v1/customers', function () use($app) {
         $err = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $q = $db->prepare("select * from `t_customers`;");
+        $q = $db->prepare("
+        SELECT tc.*, 
+        td.district_chi,
+        td.district_eng,
+        td.region,
+        te.username,
+        te.default_shopcode,
+        tpm.payment_method,
+        tpt.terms FROM `t_customers` as tc 
+        LEFT JOIN `t_district` as td ON tc.district_code = td.district_code 
+        LEFT JOIN `t_employee` as te ON tc.employee_code = te.employee_code 
+        LEFT JOIN `t_payment_method` as tpm ON tc.pm_code = tpm.pm_code
+        LEFT JOIN `t_payment_term` as tpt ON tc.pt_code = tpt.pt_code
+        ");
         $q->execute();
         $err = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
@@ -68,7 +81,9 @@ $app->group('/api/v1/customers', function () use($app) {
         $err = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $q = $db->prepare("select * from `t_customers` where cust_code = '".$_cust_code."';");
+        $q = $db->prepare("
+            SELECT * FROM `t_customers` as tc LEFT JOIN `t_district` as td ON (tc.district_code = td.district_code) WHERE `cust_code` = '".$_cust_code."';
+        ");
         $q->execute();
         $err = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
