@@ -68,4 +68,9 @@ require './app/shops.php';
  */
 require './app/employee.php';
 
+/**
+ * district API
+ */
+require './app/district.php';
+
 $app->run();
