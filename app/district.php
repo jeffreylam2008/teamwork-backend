@@ -24,7 +24,7 @@ $app->group('/api/v1/systems/district', function () {
         if(!empty($res))
         {
             foreach ($res as $key => $val) {
-                $dbData[] = $val;
+                $dbData[$val['district_code']] = $val;
             }
             $callback = [
                 "query" => $dbData,
