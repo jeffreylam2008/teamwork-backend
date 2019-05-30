@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 27, 2019 at 11:28 PM
+-- Generation Time: May 31, 2019 at 12:41 AM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -44,6 +44,13 @@ CREATE TABLE `t_accounts_info` (
   `create_date` datetime NOT NULL,
   `modify_date` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `t_accounts_info`
+--
+
+INSERT INTO `t_accounts_info` (`uid`, `cust_code`, `company_BR`, `company_sign`, `group_name`, `attn`, `tel`, `fax`, `email`, `create_date`, `modify_date`) VALUES
+(1, 'C150404', '1234567890123456789', 'Ocean Park Company', 'Group of OC Company', 'Mrs Chan Chan', '90092234', '23223323', 'acc@oc.com', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -148,10 +155,7 @@ CREATE TABLE `t_district` (
 --
 
 INSERT INTO `t_district` (`uid`, `district_code`, `district_chi`, `district_eng`, `region`) VALUES
-(1, 'HK01', '中西區', 'Central and Western', 'HONG KONG'),
-(2, 'HK02', '東區', 'Eastern', 'HONG KONG'),
 (3, 'HK01', '中西區', 'Central and Western', 'HONG KONG'),
-(4, 'HK02', '東區', 'Eastern', 'HONG KONG'),
 (5, 'HK02', '東區', 'Eastern', 'HONG KONG'),
 (6, 'HK03', '南區', 'Southern', 'HONG KONG'),
 (7, 'HK04', '灣仔區', 'Wan Chai', 'HONG KONG'),
@@ -196,7 +200,7 @@ CREATE TABLE `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-05-27 21:54:46', '53ee5a45c05862821f695aea70f265b9', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-05-30 22:50:10', '9e3470078096d8c92f2d87eb503cf18a', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
@@ -479,7 +483,10 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (75, 'iamadmin', 'HQ01', '3e274db66139e1226c23a13f227aa550', 'out', '2019-05-20 23:40:57', '2019-05-21 23:45:16'),
 (76, 'iamadmin', 'HQ01', '37b403b0381c85a0b5bc7bdf06f9c2ed', 'out', '2019-05-21 23:45:21', '2019-05-23 21:53:49'),
 (77, 'iamadmin', 'HQ01', 'd52ab2b6e998ae9f68a77266404f3ede', 'out', '2019-05-23 21:53:49', '2019-05-27 21:54:46'),
-(78, 'iamadmin', 'HQ01', '53ee5a45c05862821f695aea70f265b9', 'in', '2019-05-27 21:54:46', '2019-05-27 23:27:43');
+(78, 'iamadmin', 'HQ01', '53ee5a45c05862821f695aea70f265b9', 'out', '2019-05-27 21:54:46', '2019-05-28 22:27:46'),
+(79, 'iamadmin', 'HQ01', '8db36b34278eade666dcd58fae3f6eed', 'out', '2019-05-28 22:27:46', '2019-05-29 22:49:00'),
+(80, 'iamadmin', 'HQ01', '78041c4bf44eaca672586a5024670088', 'out', '2019-05-29 22:49:00', '2019-05-30 22:49:55'),
+(81, 'iamadmin', 'HQ01', '9e3470078096d8c92f2d87eb503cf18a', 'in', '2019-05-30 22:50:10', '2019-05-31 00:39:19');
 
 -- --------------------------------------------------------
 
@@ -849,7 +856,7 @@ ALTER TABLE `t_transaction_t`
 -- AUTO_INCREMENT for table `t_accounts_info`
 --
 ALTER TABLE `t_accounts_info`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `t_audit_log`
@@ -909,7 +916,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`

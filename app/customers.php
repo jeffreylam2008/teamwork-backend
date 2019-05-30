@@ -20,11 +20,20 @@ $app->group('/api/v1/customers', function () use($app) {
         te.username,
         te.default_shopcode,
         tpm.payment_method,
-        tpt.terms FROM `t_customers` as tc 
+        tpt.terms,
+        taci.company_BR,
+        taci.company_sign,
+        taci.group_name,
+        taci.attn,
+        taci.tel,
+        taci.fax,
+        taci.email
+        FROM `t_customers` as tc 
         LEFT JOIN `t_district` as td ON tc.district_code = td.district_code 
         LEFT JOIN `t_employee` as te ON tc.employee_code = te.employee_code 
         LEFT JOIN `t_payment_method` as tpm ON tc.pm_code = tpm.pm_code
         LEFT JOIN `t_payment_term` as tpt ON tc.pt_code = tpt.pt_code
+        LEFT JOIN `t_accounts_info` as taci ON tc.cust_code = taci.cust_code
         ");
         $q->execute();
         $err = $q->errorinfo();
@@ -48,7 +57,7 @@ $app->group('/api/v1/customers', function () use($app) {
      * 
      * To get next customer code
      */
-    $app->get('/next', function(Request $request, Response $response, array $args) {
+    $app->get('/last', function(Request $request, Response $response, array $args) {
         $err = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
@@ -82,19 +91,37 @@ $app->group('/api/v1/customers', function () use($app) {
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $q = $db->prepare("
-            SELECT * FROM `t_customers` as tc LEFT JOIN `t_district` as td ON (tc.district_code = td.district_code) WHERE `cust_code` = '".$_cust_code."';
+        SELECT tc.*, 
+        td.district_chi,
+        td.district_eng,
+        td.region,
+        te.username,
+        te.default_shopcode,
+        tpm.payment_method,
+        tpt.terms,
+        taci.company_BR,
+        taci.company_sign,
+        taci.group_name,
+        taci.attn,
+        taci.tel,
+        taci.fax,
+        taci.email
+        FROM `t_customers` as tc 
+        LEFT JOIN `t_district` as td ON tc.district_code = td.district_code 
+        LEFT JOIN `t_employee` as te ON tc.employee_code = te.employee_code 
+        LEFT JOIN `t_payment_method` as tpm ON tc.pm_code = tpm.pm_code
+        LEFT JOIN `t_payment_term` as tpt ON tc.pt_code = tpt.pt_code
+        LEFT JOIN `t_accounts_info` as taci ON tc.cust_code = taci.cust_code
+        WHERE tc.cust_code = '".$_cust_code."';
         ");
         $q->execute();
         $err = $q->errorinfo();
-        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+        $res = $q->fetch();
         //var_dump($res);
         if(!empty($res))
         {
-            foreach ($res as $key => $val) {
-                $dbData[$key] = $val;
-            }
             $callback = [
-                "query" => $dbData,
+                "query" => $res,
                 "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
             return $response->withJson($callback, 200);
