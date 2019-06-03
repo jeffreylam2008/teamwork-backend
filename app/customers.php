@@ -140,7 +140,7 @@ $app->group('/api/v1/customers', function () use($app) {
 		// POST Data here
 		$body = json_decode($request->getBody(), true);
         $_now = date('Y-m-d H:i:s');
-        //var_dump($body);
+        // var_dump($body);
 		$db->beginTransaction();
 		$q = $db->prepare("
             INSERT INTO `t_customers` (
@@ -199,41 +199,68 @@ $app->group('/api/v1/customers', function () use($app) {
 		$pdo = new Database();
 		$db = $pdo->connect_db();
 		// POST Data here
-		$body = json_decode($request->getBody(), true);
-		$_now = date('Y-m-d H:i:s');
+        $body = json_decode($request->getBody(), true);
+        //var_dump($body);
+        $_now = date('Y-m-d H:i:s');
+    
 		$db->beginTransaction();
 		$q = $db->prepare("
             UPDATE `t_customers` SET 
+            `status` = '".$body["i-status"]."',
+            `name` = '".$body["i-name"]."',
+            `attn_1` = '".$body["i-attn_1"]."',
+            `attn_2` = '".$body["i-attn_2"]."',
             `mail_addr` = '".$body["i-mail_addr"]."',
             `shop_addr` = '".$body["i-shop_addr"]."',
-            `delivery_addr` = '".$body["i-delivery_addr"]."',
-            `attn_1` = '".$body["i-attn_1"]."',
-            `phone_1` = '".$body["i-phone_1"]."',
             `email_1` = '".$body["i-email_1"]."',
-            `attn_2` = '".$body["i-attn_2"]."',
-            `phone_2` = '".$body["i-phone_2"]."',
-            `fax_1` = '".$body["i-fax_1"]."',
-            `fax_2` = '".$body["i-fax_2"]."',
             `email_2` = '".$body["i-email_2"]."',
+            `phone_1` = '".$body["i-phone_1"]."',
+            `fax_1` = '".$body["i-fax_1"]."',
             `statement_remark` = '".$body["i-statement_remark"]."',
-            `name` = '".$body["i-name"]."',
-            `group_name` = '".$body["i-group_name"]."',
+            `remark` = '".$body["i-remark"]."',
             `pm_code` = '".$body["i-pm_code"]."',
             `pt_code` = '".$body["i-pt_code"]."',
-            `remark` = '".$body["i-remark"]."',
+            `district_code` = '".$body["i-district"]."',
+            `delivery_addr` = '".$body["i-delivery_addr"]."',
+            `from_time` = '".$body["i-from_time"]."',
+            `to_time` = '".$body["i-to_time"]."',
+            `phone_2` = '".$body["i-delivery_phone"]."',
+            `fax_2` = '".$body["i-delivery_fax"]."',
+            `delivery_remark` = '".$body["i-delivery_remark"]."',
             `modify_date` = '".$_now."'
             WHERE `cust_code` = '".$_cust_code."';
         ");
-		$q->execute();
+
+        $q->execute();
+        
+        $q2 = $db->prepare("
+            UPDATE `t_accounts_info` SET 
+            `company_br` = '".$body["i-acc_company_br"]."',
+            `company_sign` = '".$body["i-acc_company_sign"]."',
+            `group_name` = '".$body["i-acc_group_name"]."',
+            `attn` = '".$body["i-acc_attn"]."',
+            `tel` = '".$body["i-acc_phone"]."',
+            `fax` = '".$body["i-acc_fax"]."',
+            `email` = '".$body["i-acc_email"]."',
+            `modify_date` = '".$_now."'
+            WHERE `cust_code` = '".$_cust_code."';
+        ");
+        $q2->execute();
+
 		// no fatch on update 
-		$err = $q->errorinfo();
+        $err[0] = $q->errorinfo();
+        $err[1] = $q2->errorinfo();
         $db->commit();
+    
         // disconnect DB
         $pdo->disconnect_db();
-        
+
 		$callback = [
-			"query" => "", 
-			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+			"query" => "",
+            "error" => [
+                "code" => $err[1][0] ,
+                "message" => $err[0][1]." ".$err[1][1]." ".$err[0][2]." ".$err[1][2]
+            ]
 		];
 		return $response->withJson($callback, 200);
 		
