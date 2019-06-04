@@ -144,31 +144,33 @@ $app->group('/api/v1/customers', function () use($app) {
 		$db->beginTransaction();
 		$q = $db->prepare("
             INSERT INTO `t_customers` (
-                `cust_code`, `mail_addr`, `shop_addr`,
-                `delivery_addr`, `attn_1`, `phone_1`,
-                `fax_1`, `email_1`, `attn_2`, 
-                `phone_2`, `fax_2`, `email_2`, 
-                `statement_remark`, `name`, `group_name`,
-                `pm_code`, `pt_code`, `remark`, `create_date`
+                `status`, `name`, `attn_1`, `attn_2`,
+				`mail_addr`, `shop_addr`, `email_1`, `email_2`,
+				`phone_1`, `fax_1`, `statement_remark`, `remark`,
+				`pm_code`, `pt_code`, `district_code`, `delivery_addr`,
+				`from_time`, `to_time`, `phone_2`, `fax_2`, `delivery_remark`
             ) VALUES (
-                '".$body["i-cust_code"]."',
+                '".$body["i-status"]."',
+                '".$body["i-name"]."',
+                '".$body["i-attn_1"]."',
+                '".$body["i-attn_2"]."',
                 '".$body["i-mail_addr"]."',
                 '".$body["i-shop_addr"]."',
-                '".$body["i-delivery_addr"]."',
-                '".$body["i-attn_1"]."',
+                '".$body["i-email_1"]."',
+                '".$body["i-email_2"]."',
                 '".$body["i-phone_1"]."',
                 '".$body["i-fax_1"]."',
-                '".$body["i-email_1"]."',
-                '".$body["i-attn_2"]."',
-                '".$body["i-phone_2"]."',
-                '".$body["i-fax_2"]."',
-                '".$body["i-email_2"]."',
                 '".$body["i-statement_remark"]."',
-                '".$body["i-name"]."',
-                '".$body["i-group_name"]."',
+                '".$body["i-remark"]."',
                 '".$body["i-pm_code"]."',
                 '".$body["i-pt_code"]."',
-                '".$body["i-remark"]."',
+                '".$body["i-district"]."',
+                '".$body["i-delivery_addr"]."',
+                '".$body["i-from_time"]."',
+                '".$body["i-to_time"]."',
+				'".$body["i-delivery_phone"]."',
+                '".$body["i-delivery_fax"]."',
+				'".$body["i-delivery_remark"]."',	
                 '".$_now."'
             );
         ");
@@ -230,7 +232,6 @@ $app->group('/api/v1/customers', function () use($app) {
             `modify_date` = '".$_now."'
             WHERE `cust_code` = '".$_cust_code."';
         ");
-
         $q->execute();
         
         $q2 = $db->prepare("
