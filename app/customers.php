@@ -134,22 +134,37 @@ $app->group('/api/v1/customers', function () use($app) {
      * To create new record on customer table 
      */
     $app->post("/", function(Request $request, Response $response, array $args){
-        $err = [];
+        $err1 = [];
+        $err2 = [];
 		$pdo = new Database();
 		$db = $pdo->connect_db();
 		// POST Data here
 		$body = json_decode($request->getBody(), true);
         $_now = date('Y-m-d H:i:s');
-        // var_dump($body);
-		$db->beginTransaction();
-		$q = $db->prepare("
-            INSERT INTO `t_customers` (
+        
+        //var_dump($body);
+
+        $db->beginTransaction();
+        $q1 = $db->prepare("SELECT `cust_code` FROM `t_customers` ORDER BY `cust_code` DESC LIMIT 1;");
+        $q1->execute();
+        $err1 = $q1->errorinfo();
+        $res = $q1->fetch();
+        $cust_code = substr($res['cust_code'],1);
+        $cust_code = (int) $cust_code + 1;
+        $cust_code = "C".$cust_code;
+
+
+	    $q2 = $db->prepare("
+                INSERT INTO `t_customers` (
+                `cust_code`,
                 `status`, `name`, `attn_1`, `attn_2`,
 				`mail_addr`, `shop_addr`, `email_1`, `email_2`,
 				`phone_1`, `fax_1`, `statement_remark`, `remark`,
 				`pm_code`, `pt_code`, `district_code`, `delivery_addr`,
-				`from_time`, `to_time`, `phone_2`, `fax_2`, `delivery_remark`
+                `from_time`, `to_time`, `phone_2`, `fax_2`, 
+                `delivery_remark`, `create_date`
             ) VALUES (
+                '".$cust_code."',
                 '".$body["i-status"]."',
                 '".$body["i-name"]."',
                 '".$body["i-attn_1"]."',
@@ -174,17 +189,21 @@ $app->group('/api/v1/customers', function () use($app) {
                 '".$_now."'
             );
         ");
-		$q->execute();
+		$q2->execute();
 		// no fatch on update 
-		$err = $q->errorinfo();
+		$err2 = $q2->errorinfo();
         $db->commit();
 
         // disconnect DB
         $pdo->disconnect_db();
         
+        // $err2[0] = "";
+        // $err2[1] = "";
+        // $err2[2] = "";
+
 		$callback = [
 			"query" => "", 
-			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+			"error" => ["code" => $err2[0], "message" => $err2[1]." ".$err2[2]]
 		];
 		return $response->withJson($callback, 200);
     });
