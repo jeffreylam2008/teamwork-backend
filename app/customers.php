@@ -9,7 +9,11 @@ $app->group('/api/v1/customers', function () use($app) {
      * To get all customer record
      */
     $app->get('/', function(Request $request, Response $response, array $args) {
-        $err = [];
+        $err1 = [];
+        $_data = "";
+        $err[0] = "";
+        $err[1] = "";
+        $dbData = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $q = $db->prepare("
@@ -36,45 +40,31 @@ $app->group('/api/v1/customers', function () use($app) {
         LEFT JOIN `t_accounts_info` as taci ON tc.cust_code = taci.cust_code
         ");
         $q->execute();
-        $err = $q->errorinfo();
+        $err1 = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
         if(!empty($res))
         {
             foreach ($res as $key => $val) {
                 $dbData[] = $val;
             }
-            $callback = [
-                "query" => $dbData,
-                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-            ];
-            return $response->withJson($callback, 200);
-        }
-    });
 
-     /**
-     * Customer GET Request
-     * customer-get
-     * 
-     * To get next customer code
-     */
-    $app->get('/last', function(Request $request, Response $response, array $args) {
-        $err = [];
-        $pdo = new Database();
-		$db = $pdo->connect_db();
-        $q = $db->prepare("SELECT `cust_code` FROM `t_customers` ORDER BY `cust_code` DESC LIMIT 1;");
-        $q->execute();
-        $err = $q->errorinfo();
-        $res = $q->fetch();
-        $str = substr($res['cust_code'],1);
-        $str = (int) $str + 1;
-        $str = "C".$str;
-        $res['cust_code'] = $str;
-        if(!empty($res))
-        {
+            if($err1[0] == "00000")
+            {
+                $err[0] = $err1[0];
+                $err[1] = "DB: " .$err1[1]. " ".$err1[2];
+                $_data = $dbData;
+            } 
+            else
+            {
+                $err[0] = $err1[0];
+                $err[1] = "DB: " .$err1[1]. " ".$err1[2];
+            }
+
             $callback = [
-                "query" => $res,
-                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+                "query" => $_data, 
+                "error" => ["code" => $err[0], "message" => $err[1]]
             ];
+
             return $response->withJson($callback, 200);
         }
     });
@@ -87,7 +77,10 @@ $app->group('/api/v1/customers', function () use($app) {
      */
     $app->get('/{cust_code}', function(Request $request, Response $response, array $args){
         $_cust_code = $args['cust_code'];
-        $err = [];
+        $err1 = [];
+        $_data = "";
+        $err[0] = "";
+        $err[1] = "";
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $q = $db->prepare("
@@ -115,14 +108,26 @@ $app->group('/api/v1/customers', function () use($app) {
         WHERE tc.cust_code = '".$_cust_code."';
         ");
         $q->execute();
-        $err = $q->errorinfo();
+        $err1 = $q->errorinfo();
         $res = $q->fetch();
         //var_dump($res);
         if(!empty($res))
         {
+            if($err1[0] == "00000")
+            {
+                $err[0] = $err1[0];
+                $err[1] = "DB: " .$err1[1]. " ".$err1[2];
+                $_data = $res;
+            } 
+            else
+            {
+                $err[0] = $err1[0];
+                $err[1] = "DB: " .$err1[1]. " ".$err1[2];
+            }
+
             $callback = [
-                "query" => $res,
-                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+                "query" => $_data, 
+                "error" => ["code" => $err[0], "message" => $err[1]]
             ];
             return $response->withJson($callback, 200);
         }
@@ -208,7 +213,7 @@ $app->group('/api/v1/customers', function () use($app) {
         else
         {
             $err[0] = $err2[0];
-            $err[1] = "DB: ".$err2[1] . "" . $err2[2];
+            $err[1] = "DB: ".$err2[1] . " " . $err2[2];
             $_data = "";
         }
 		$callback = [
@@ -225,7 +230,11 @@ $app->group('/api/v1/customers', function () use($app) {
 	 * To update current record on DB
 	 */
 	$app->patch('/{cust_code}', function(Request $request, Response $response, array $args){
-		$err = [];
+        $err1 = [];
+        $err2 = [];
+        $err[0] = "";
+        $err[1] = "";
+        $_data = "";
 		$_cust_code = $args['cust_code'];
 		$pdo = new Database();
 		$db = $pdo->connect_db();
@@ -235,7 +244,7 @@ $app->group('/api/v1/customers', function () use($app) {
         $_now = date('Y-m-d H:i:s');
     
 		$db->beginTransaction();
-		$q = $db->prepare("
+		$q1 = $db->prepare("
             UPDATE `t_customers` SET 
             `status` = '".$body["i-status"]."',
             `name` = '".$body["i-name"]."',
@@ -261,7 +270,7 @@ $app->group('/api/v1/customers', function () use($app) {
             `modify_date` = '".$_now."'
             WHERE `cust_code` = '".$_cust_code."';
         ");
-        $q->execute();
+        $q1->execute();
         
         $q2 = $db->prepare("
             UPDATE `t_accounts_info` SET 
@@ -278,21 +287,40 @@ $app->group('/api/v1/customers', function () use($app) {
         $q2->execute();
 
 		// no fatch on update 
-        $err[0] = $q->errorinfo();
-        $err[1] = $q2->errorinfo();
+        $err1 = $q1->errorinfo();
+        $err2 = $q2->errorinfo();
         $db->commit();
     
         // disconnect DB
         $pdo->disconnect_db();
 
-		$callback = [
-			"query" => "",
-            "error" => [
-                "code" => $err[1][0] ,
-                "message" => $err[0][1]." ".$err[1][1]." ".$err[0][2]." ".$err[1][2]
-            ]
-		];
+        if($err1[0] == "00000" && $err2[0] == "00000")
+        {
+            $err[0] = $err1[0];
+            $err[1] = "DB: " .$err1[1]. " ".$err1[2] ." & ".$err2[1]. " ".$err2[2] ;
+        } 
+        else
+        {
+            $err[0] = $err1[0]. " " .$err2[0];
+            $err[1] = "DB: " .$err1[1]. " ".$err1[2] ." & ".$err2[1]. " ".$err2[2] ;
+        }
+
+        $callback = [
+			"query" => $_data, 
+			"error" => ["code" => $err[0], "message" => $err[1]]
+        ];
+        
 		return $response->withJson($callback, 200);
-		
-	});
+    });
+    
+    /**
+     * Customers DELETE Request
+	 * Customers-delete
+	 * 
+     * To delete customer record by customer code
+     */
+    $app->delete('/{cust_code}', function(Request $request, Response $response, array $args){
+
+        return $response->withJson("", 200);
+    });
 });
