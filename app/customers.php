@@ -136,6 +136,9 @@ $app->group('/api/v1/customers', function () use($app) {
     $app->post("/", function(Request $request, Response $response, array $args){
         $err1 = [];
         $err2 = [];
+        $_data = "";
+        $err[0] = "";
+        $err[1] = "";
 		$pdo = new Database();
 		$db = $pdo->connect_db();
 		// POST Data here
@@ -148,62 +151,69 @@ $app->group('/api/v1/customers', function () use($app) {
         $q1 = $db->prepare("SELECT `cust_code` FROM `t_customers` ORDER BY `cust_code` DESC LIMIT 1;");
         $q1->execute();
         $err1 = $q1->errorinfo();
-        $res = $q1->fetch();
-        $cust_code = substr($res['cust_code'],1);
-        $cust_code = (int) $cust_code + 1;
-        $cust_code = "C".$cust_code;
-
-
-	    $q2 = $db->prepare("
-                INSERT INTO `t_customers` (
-                `cust_code`,
-                `status`, `name`, `attn_1`, `attn_2`,
-				`mail_addr`, `shop_addr`, `email_1`, `email_2`,
-				`phone_1`, `fax_1`, `statement_remark`, `remark`,
-				`pm_code`, `pt_code`, `district_code`, `delivery_addr`,
-                `from_time`, `to_time`, `phone_2`, `fax_2`, 
-                `delivery_remark`, `create_date`
-            ) VALUES (
-                '".$cust_code."',
-                '".$body["i-status"]."',
-                '".$body["i-name"]."',
-                '".$body["i-attn_1"]."',
-                '".$body["i-attn_2"]."',
-                '".$body["i-mail_addr"]."',
-                '".$body["i-shop_addr"]."',
-                '".$body["i-email_1"]."',
-                '".$body["i-email_2"]."',
-                '".$body["i-phone_1"]."',
-                '".$body["i-fax_1"]."',
-                '".$body["i-statement_remark"]."',
-                '".$body["i-remark"]."',
-                '".$body["i-pm_code"]."',
-                '".$body["i-pt_code"]."',
-                '".$body["i-district"]."',
-                '".$body["i-delivery_addr"]."',
-                '".$body["i-from_time"]."',
-                '".$body["i-to_time"]."',
-				'".$body["i-delivery_phone"]."',
-                '".$body["i-delivery_fax"]."',
-				'".$body["i-delivery_remark"]."',	
-                '".$_now."'
-            );
-        ");
-		$q2->execute();
-		// no fatch on update 
-		$err2 = $q2->errorinfo();
+        if($err1[0] == "00000")
+        {
+            $res = $q1->fetch();
+            $cust_code = substr($res['cust_code'],1);
+            $cust_code = (int) $cust_code + 1;
+            $cust_code = "C".$cust_code;
+            $q2 = $db->prepare("
+                    INSERT INTO `t_customers` (
+                    `cust_code`,
+                    `status`, `name`, `attn_1`, `attn_2`,
+                    `mail_addr`, `shop_addr`, `email_1`, `email_2`,
+                    `phone_1`, `fax_1`, `statement_remark`, `remark`,
+                    `pm_code`, `pt_code`, `district_code`, `delivery_addr`,
+                    `from_time`, `to_time`, `phone_2`, `fax_2`, 
+                    `delivery_remark`, `create_date`
+                ) VALUES (
+                    '".$cust_code."',
+                    '".$body["i-status"]."',
+                    '".$body["i-name"]."',
+                    '".$body["i-attn_1"]."',
+                    '".$body["i-attn_2"]."',
+                    '".$body["i-mail_addr"]."',
+                    '".$body["i-shop_addr"]."',
+                    '".$body["i-email_1"]."',
+                    '".$body["i-email_2"]."',
+                    '".$body["i-phone_1"]."',
+                    '".$body["i-fax_1"]."',
+                    '".$body["i-statement_remark"]."',
+                    '".$body["i-remark"]."',
+                    '".$body["i-pm_code"]."',
+                    '".$body["i-pt_code"]."',
+                    '".$body["i-district"]."',
+                    '".$body["i-delivery_addr"]."',
+                    '".$body["i-from_time"]."',
+                    '".$body["i-to_time"]."',
+                    '".$body["i-delivery_phone"]."',
+                    '".$body["i-delivery_fax"]."',
+                    '".$body["i-delivery_remark"]."',	
+                    '".$_now."'
+                );
+            ");
+            $q2->execute();
+            // no fatch on update 
+            $err2 = $q2->errorinfo();
+        }
         $db->commit();
-
         // disconnect DB
         $pdo->disconnect_db();
-        
-        // $err2[0] = "";
-        // $err2[1] = "";
-        // $err2[2] = "";
-
+        if($err2[0] == "00000")
+        {
+            $err[0] = $err2[0];
+            $err[1] = "Customer Code: ".$cust_code. " created!";
+            $_data = ["cust_code" => $cust_code];
+        } 
+        else
+        {
+            $err[0] = $err2[0];
+            $err[1] = "DB: ".$err2[1] . "" . $err2[2];
+            $_data = "";
+        }
 		$callback = [
-			"query" => "", 
-			"error" => ["code" => $err2[0], "message" => $err2[1]." ".$err2[2]]
+			"query" => $_data, 
+			"error" => ["code" => $err[0], "message" => $err[1]]
 		];
 		return $response->withJson($callback, 200);
     });
