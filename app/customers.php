@@ -141,6 +141,7 @@ $app->group('/api/v1/customers', function () use($app) {
     $app->post("/", function(Request $request, Response $response, array $args){
         $err1 = [];
         $err2 = [];
+        $err3 = [];
         $_data = "";
         $err[0] = "";
         $err[1] = "";
@@ -163,7 +164,7 @@ $app->group('/api/v1/customers', function () use($app) {
             $cust_code = (int) $cust_code + 1;
             $cust_code = "C".$cust_code;
             $q2 = $db->prepare("
-                    INSERT INTO `t_customers` (
+                INSERT INTO `t_customers` (
                     `cust_code`,
                     `status`, `name`, `attn_1`, `attn_2`,
                     `mail_addr`, `shop_addr`, `email_1`, `email_2`,
@@ -198,9 +199,32 @@ $app->group('/api/v1/customers', function () use($app) {
                 );
             ");
             $q2->execute();
-            // no fatch on update 
+            
+            $q3= $db->prepare("
+                INSERT INTO `t_accounts_info` (
+                    `cust_code`,`company_br`,`company_sign`,`group_name`,
+                    `attn`, `tel`, `fax`,`email`
+                ) VALUES (
+                    '".$cust_code."',
+                    '".$body["i-acc_company_br"]."',
+                    '".$body["i-acc_company_sign"]."',
+                    '".$body["i-acc_group_name"]."',
+                    '".$body["i-acc_attn"]."',
+                    '".$body["i-acc_phone"]."',
+                    '".$body["i-acc_fax"]."',
+                    '".$body["i-acc_email"]."'
+                );
+                
+            ");
+            $q3->execute();
+            
+            // catch error here 
             $err2 = $q2->errorinfo();
+            $err3 = $q3->errorinfo();
+
         }
+
+
         $db->commit();
         // disconnect DB
         $pdo->disconnect_db();
