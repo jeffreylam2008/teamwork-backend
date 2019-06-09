@@ -51,13 +51,13 @@ $app->group('/api/v1/customers', function () use($app) {
             if($err1[0] == "00000")
             {
                 $err[0] = $err1[0];
-                $err[1] = "DB: " .$err1[1]. " ".$err1[2];
+                $err[1] = "Success!<br>DB: " .$err1[1]. " ".$err1[2];
                 $_data = $dbData;
             } 
             else
             {
                 $err[0] = $err1[0];
-                $err[1] = "DB: " .$err1[1]. " ".$err1[2];
+                $err[1] = "Error<br>DB: " .$err1[1]. " ".$err1[2];
             }
 
             $callback = [
@@ -116,13 +116,13 @@ $app->group('/api/v1/customers', function () use($app) {
             if($err1[0] == "00000")
             {
                 $err[0] = $err1[0];
-                $err[1] = "DB: " .$err1[1]. " ".$err1[2];
+                $err[1] = "Success! DB: " .$err1[1]. " ".$err1[2];
                 $_data = $res;
             } 
             else
             {
                 $err[0] = $err1[0];
-                $err[1] = "DB: " .$err1[1]. " ".$err1[2];
+                $err[1] = "Error! DB: " .$err1[1]. " ".$err1[2];
             }
 
             $callback = [
@@ -221,7 +221,6 @@ $app->group('/api/v1/customers', function () use($app) {
             // catch error here 
             $err2 = $q2->errorinfo();
             $err3 = $q3->errorinfo();
-
         }
 
 
@@ -237,7 +236,7 @@ $app->group('/api/v1/customers', function () use($app) {
         else
         {
             $err[0] = $err2[0];
-            $err[1] = "DB: ".$err2[1] . " " . $err2[2];
+            $err[1] = "Error! DB: ".$err2[1] . " " . $err2[2];
             $_data = "";
         }
 		$callback = [
@@ -321,12 +320,12 @@ $app->group('/api/v1/customers', function () use($app) {
         if($err1[0] == "00000" && $err2[0] == "00000")
         {
             $err[0] = $err1[0];
-            $err[1] = "DB: " .$err1[1]. " ".$err1[2] ." & ".$err2[1]. " ".$err2[2] ;
+            $err[1] = "Update Completed! DB: " .$err1[1]. " ".$err1[2] ." ".$err2[1]. " ".$err2[2] ;
         } 
         else
         {
             $err[0] = $err1[0]. " " .$err2[0];
-            $err[1] = "DB: " .$err1[1]. " ".$err1[2] ." & ".$err2[1]. " ".$err2[2] ;
+            $err[1] = "Error! DB: " .$err1[1]. " ".$err1[2] ." ".$err2[1]. " ".$err2[2] ;
         }
 
         $callback = [
@@ -344,7 +343,94 @@ $app->group('/api/v1/customers', function () use($app) {
      * To delete customer record by customer code
      */
     $app->delete('/{cust_code}', function(Request $request, Response $response, array $args){
+        $err1 = [];
+        $err2 = [];
+        $err[0] = "";
+        $err[1] = "";
+        $_has = 0;        
+        $_data = "";
+    
+        $_cust_code = $args['cust_code'];
+		$pdo = new Database();
+        $db = $pdo->connect_db();
+        
+        $db->beginTransaction();
+        $q1 = $db->prepare("
+            SELECT Count(*) as `has`, `trans_code` FROM `t_transaction_h`
+            WHERE `cust_code` = '".$_cust_code."' AND `prefix` = 'INV';
+        ");
+        $q1->execute();
+        $_has = $q1->fetch();
+        $err1 = $q1->errorinfo();
 
-        return $response->withJson("", 200);
+        // SQL Query success
+        if($err1[0] == "00000")
+        {
+            if($_has === 1)
+            {
+                $err[0] = "90000";
+                $err[1] = "Customer code already exist on Transaction (".$_has['trans_code'].") cannot be delete!";
+            }
+        }
+        
+        $db->commit();
+        // disconnect DB
+        $pdo->disconnect_db();
+
+        // gethering the data to send it back to client
+        $callback = [
+			"query" => $_data, 
+			"error" => ["code" => $err[0], "message" => $err[1]]
+        ];
+        return $response->withJson($callback, 200);
+    });
+
+    /**
+     * Customer GET Request
+     * Customer-get-by-code
+     * 
+     * To verify current code record is exist
+     */
+    $this->get('/has/customer/{cust_code}', function(Request $request, Response $response, array $args){
+        $err1 = [];
+        $err2 = [];
+        $err[0] = "";
+        $err[1] = "";
+        $_has = 0;        
+        $_data = "";
+    
+        $_cust_code = $args['cust_code'];
+		$pdo = new Database();
+        $db = $pdo->connect_db();
+        
+        $db->beginTransaction();
+        $q1 = $db->prepare("
+            SELECT Count(*) as `has`, `trans_code` FROM `t_transaction_h`
+            WHERE `cust_code` = '".$_cust_code."' AND `prefix` = 'INV';
+        ");
+        $q1->execute();
+        $_has = $q1->fetch();
+        $err1 = $q1->errorinfo();
+
+        // SQL Query success
+        if($err1[0] == "00000")
+        {
+            if($_has === 1)
+            {
+                $err[0] = "90000";
+                $err[1] = "Customer code already exist on Transaction (".$_has['trans_code'].") cannot be delete!";
+            }
+        }
+        
+        $db->commit();
+        // disconnect DB
+        $pdo->disconnect_db();
+
+        // gethering the data to send it back to client
+        $callback = [
+			"query" => $_data, 
+			"error" => ["code" => $err[0], "message" => $err[1]]
+        ];
+        return $response->withJson($callback, 200);
     });
 });
