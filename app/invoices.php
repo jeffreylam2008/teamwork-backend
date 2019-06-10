@@ -534,7 +534,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $item_code = $args['cust_code'];
             $pdo = new Database();
 		    $db = $pdo->connect_db();
-            $sql = "SELECT * FROM `t_transaction_h` where cust_code = '". $item_code ."';";
+            $sql = "SELECT * FROM `t_transaction_h` where cust_code = '". $item_code ."' AND prefix = 'INV';";
         
             $q = $db->prepare($sql);
             $q->execute();
