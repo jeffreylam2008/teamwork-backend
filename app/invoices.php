@@ -530,22 +530,30 @@ $app->group('/api/v1/inventory/invoices', function () {
          * 
          * To check customer code on transaction h table (use it on delete customer)
          */
-        $this->get('/{cust_code}', function (Request $request, Response $response, array $args) {
+        $this->get('/{prefix}/{cust_code}', function (Request $request, Response $response, array $args) {
+            $err[0] = "";
+            $err[1] = "";
+            $_data = "";
             $item_code = $args['cust_code'];
+            $prefix = $args['prefix'];
             $pdo = new Database();
-		    $db = $pdo->connect_db();
-            $sql = "SELECT * FROM `t_transaction_h` where cust_code = '". $item_code ."' AND prefix = 'INV';";
-        
+            $db = $pdo->connect_db();
+
+            $sql = "SELECT * FROM `t_transaction_h` where cust_code = '". $item_code ."' AND prefix = '".$prefix."';";
+            
             $q = $db->prepare($sql);
             $q->execute();
-            $dbData = $q->fetch();
+            $_data = $q->fetch();
             $err = $q->errorinfo();
             //disconnection DB
             $pdo->disconnect_db();
             
             $callback = [
-                "query" => $dbData,
-                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+                "query" => $_data,
+                "error" => [
+                    "code" => $err[0], 
+                    "message" => $err[1]
+                ]
             ];
         
             return $response->withJson($callback, 200);
