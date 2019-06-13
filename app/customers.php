@@ -344,7 +344,6 @@ $app->group('/api/v1/customers', function () use($app) {
      */
     $app->delete('/{cust_code}', function(Request $request, Response $response, array $args){
         $err1 = [];
-        $err2 = [];
         $err[0] = "";
         $err[1] = "";
         $_has = 0;        
@@ -353,27 +352,24 @@ $app->group('/api/v1/customers', function () use($app) {
         $_cust_code = $args['cust_code'];
 		$pdo = new Database();
         $db = $pdo->connect_db();
-        
-        $db->beginTransaction();
+       
         $q1 = $db->prepare("
-            SELECT Count(*) as `has`, `trans_code` FROM `t_transaction_h`
-            WHERE `cust_code` = '".$_cust_code."' AND `prefix` = 'INV';
+            DELETE FROM `t_customers` WHERE `cust_code` = '".$_cust_code."';
         ");
         $q1->execute();
-        $_has = $q1->fetch();
         $err1 = $q1->errorinfo();
 
         // SQL Query success
         if($err1[0] == "00000")
         {
-            if($_has === 1)
-            {
-                $err[0] = "90000";
-                $err[1] = "Customer code already exist on Transaction (".$_has['trans_code'].") cannot be delete!";
-            }
+            $err[0] = "00000";
+            $err[1] = "Customer code (".$_cust_code.") delete successful!";
         }
-        
-        $db->commit();
+        else
+        {
+            $err[0] = "90002";
+            $err[1] = "Wrong Customer code input";
+        }
         // disconnect DB
         $pdo->disconnect_db();
 

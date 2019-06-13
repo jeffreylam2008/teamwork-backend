@@ -534,12 +534,12 @@ $app->group('/api/v1/inventory/invoices', function () {
             $err[0] = "";
             $err[1] = "";
             $_data = "";
-            $item_code = $args['cust_code'];
+            $cust_code = $args['cust_code'];
             $prefix = $args['prefix'];
             $pdo = new Database();
             $db = $pdo->connect_db();
 
-            $sql = "SELECT * FROM `t_transaction_h` where cust_code = '". $item_code ."' AND prefix = '".$prefix."';";
+            $sql = "SELECT count(*) as count FROM `t_transaction_h` where cust_code = '". $cust_code ."' AND prefix = '".$prefix."';";
             
             $q = $db->prepare($sql);
             $q->execute();
