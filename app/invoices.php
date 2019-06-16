@@ -533,21 +533,30 @@ $app->group('/api/v1/inventory/invoices', function () {
         $this->get('/{prefix}/{cust_code}', function (Request $request, Response $response, array $args) {
             $err[0] = "";
             $err[1] = "";
-            $_data = "";
+            $_data = [];
             $cust_code = $args['cust_code'];
             $prefix = $args['prefix'];
             $pdo = new Database();
             $db = $pdo->connect_db();
 
-            $sql = "SELECT count(*) as count FROM `t_transaction_h` where cust_code = '". $cust_code ."' AND prefix = '".$prefix."';";
+            $sql = "SELECT * FROM `t_transaction_h` where cust_code = '". $cust_code ."' AND prefix = '".$prefix."';";
             
             $q = $db->prepare($sql);
             $q->execute();
-            $_data = $q->fetch();
+            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
             $err = $q->errorinfo();
             //disconnection DB
             $pdo->disconnect_db();
             
+            if(!$_data)
+            {
+                $_data = ["has" => false, "data"=> ""];
+            }
+            else
+            {
+                $_data = ["has" => true, "data"=> $_data];
+            }
+
             $callback = [
                 "query" => $_data,
                 "error" => [
