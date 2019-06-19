@@ -68,4 +68,51 @@ $app->group('/api/v1/systems/employees', function () {
             return $response->withJson($callback, 200);
         }
     });
+
+    /**
+     * employee GET request
+     * employee-get
+     * 
+     * To get all employee information 
+     */
+    $this->get('/code/{employee_code}', function (Request $request, Response $response, array $args) {
+        $_emp_code = $args['employee_code'];
+        $err1 = [];
+        $err[0] = "";
+        $err[1] = "";
+        $_data = "";
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $q = $db->prepare("select `username`, `default_shopcode`, `access_level`, `role`, `status` from `t_employee` where `employee_code` = '".$_emp_code."';");
+        $q->execute();
+        $err1 = $q->errorinfo();
+        
+        // SQL Query success
+        if($err1[0] == "00000")
+        {
+            $err[0] = "00000";
+            $err[1] = "";
+            $_data = $q->fetch();
+        }
+        else
+        {
+            $err[0] = "90002";
+            $err[1] = "Something went wrong on fetch employee API";
+        }
+        // disconnect DB
+        $pdo->disconnect_db();
+
+        if(!empty($_data))
+        {
+            $callback = [
+                "query" => $_data,
+                "error" => [
+                    "code" => $err[0], 
+                    "message" => $err[1]
+                ]
+            ];
+            return $response->withJson($callback, 200);
+        }
+    });
+
 });
