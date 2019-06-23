@@ -82,8 +82,12 @@ $app->group('/api/v1/systems/employees', function () {
         $err[1] = "";
         $_data = "";
         $pdo = new Database();
-		$db = $pdo->connect_db();
-        $q = $db->prepare("select `username`, `default_shopcode`, `access_level`, `role`, `status` from `t_employee` where `employee_code` = '".$_emp_code."';");
+        $db = $pdo->connect_db();
+        $q = $db->prepare("
+            select emp.employee_code, emp.username, emp.default_shopcode, shp.name,
+            emp.access_level, emp.role, emp.status
+            from `t_employee` emp LEFT JOIN `t_shop` shp ON emp.default_shopcode = shp.shop_code 
+            where `employee_code` = '".$_emp_code."';");
         $q->execute();
         $err1 = $q->errorinfo();
         
