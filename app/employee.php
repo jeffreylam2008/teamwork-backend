@@ -19,7 +19,7 @@ $app->group('/api/v1/systems/employees', function () {
             emp.default_shopcode,
             shp.name as `shop_name`,
             emp.access_level, 
-            emp.role, 
+            emp.role_code, 
             emp.status 
             FROM `t_employee` as `emp`LEFT JOIN `t_shop` as `shp` ON
             emp.default_shopcode = shp.shop_code;");
@@ -52,7 +52,14 @@ $app->group('/api/v1/systems/employees', function () {
         $err = "";
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $q = $db->prepare("select `employee_code`, `username`, `default_shopcode`, `access_level`, `role`, `status` from `t_employee` where `username` = '".$_username."';");
+        $q = $db->prepare("
+            select `employee_code`,
+            `username`,
+            `default_shopcode`, 
+            `access_level`, 
+            `role_code`, 
+            `status` 
+            from `t_employee` where `username` = '".$_username."';");
         $q->execute();
         $err = $q->errorinfo();
         $res = $q->fetch(PDO::FETCH_ASSOC);
@@ -84,10 +91,14 @@ $app->group('/api/v1/systems/employees', function () {
         $pdo = new Database();
         $db = $pdo->connect_db();
         $q = $db->prepare("
-            select emp.employee_code, emp.username, emp.default_shopcode, shp.name,
-            emp.access_level, emp.role, emp.status
-            from `t_employee` emp LEFT JOIN `t_shop` shp ON emp.default_shopcode = shp.shop_code 
-            where `employee_code` = '".$_emp_code."';");
+            select emp.employee_code, emp.username, emp.default_shopcode, shp.name as `shop_name`,
+            emp.status, role.role_code, role.access_level, role.name
+            from `t_employee` emp 
+            LEFT JOIN `t_shop` shp 
+            ON emp.default_shopcode = shp.shop_code
+            LEFT JOIN `t_employee_role` role
+            ON emp.role_code = role.role_code
+            where emp.employee_code = '".$_emp_code."';");
         $q->execute();
         $err1 = $q->errorinfo();
         

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jun 04, 2019 at 12:24 AM
+-- Generation Time: Jun 26, 2019 at 11:11 PM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -50,7 +50,10 @@ CREATE TABLE `t_accounts_info` (
 --
 
 INSERT INTO `t_accounts_info` (`uid`, `cust_code`, `company_BR`, `company_sign`, `group_name`, `attn`, `tel`, `fax`, `email`, `create_date`, `modify_date`) VALUES
-(1, 'C150404', '123456789012345679', 'Ocean Park Company', 'Group of OC Company', 'Mrs Chan Chan', '90092234', '23223323', 'acc@oc.com', '0000-00-00 00:00:00', '2019-06-04 00:22:44');
+(1, 'C150404', '123456789012345679', 'Ocean Park Company', 'Group of OC Company', 'Mrs Chan Chan', '90092234', '23223323', 'acc@oc.com', '0000-00-00 00:00:00', '2019-06-04 00:22:44'),
+(2, 'C150413', '123456789012345679', 'Ocean Park Company', 'Group of OC Company1', 'Mrs Chan Chan', '12321312', '12312323', 'adasd@jdj,com', '0000-00-00 00:00:00', '2019-06-07 22:58:53'),
+(3, 'C150414', '129912', 'New Company Ltd', 'New world Company', 'Chan', '48832112', '21102110', 'acc@newcom.com', '0000-00-00 00:00:00', '2019-06-13 23:50:57'),
+(4, 'C150410', '123456789012345679', 'Ocean Park Company', '', 'Mrs Chan Chan', '12321312', '12312323', 'du@oc.com', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -116,7 +119,7 @@ INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `employ
 (9, 'C150407', '香港太古城太古城道26號漢宮閣地下411號舖', '九龍灣常悅道1號 恩浩國際中心5樓D室', '', '黃經理', '9870 8829', '0', '', '', '', '', '', '附上回郵信封', '華昌粥麵', 'PM001', 'PT002', '', 'NT14', '香港太古城太古城道26號漢宮閣地下411號舖', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (10, 'C150408', '香港西環皇后大道西576-584號新景樓地下A', '香港西環皇后大道西576-584號新景樓地下A', '', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記廚房 (西環店) A Plus Kitchen', 'PM001', 'PT001', '', 'NT13', '香港西環皇后大道西576-584號新景樓地下A', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (11, 'C150409', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '', '蘭姐', '9707 8829', '0', '', '', '', '', '', '附上回郵信封', '讚記 (尖沙咀店)   A Plus Kitchen', 'PM001', 'PT001', '', 'HK02', '九龍尖沙咀寶勒巷6-8號 盈豐商業大廈地下B鋪', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(12, 'C150410', '九龍尖沙咀厚福街8號H8 17樓', '九龍尖沙咀厚福街8號H8 17樓', '', '', '2234 8829', '0', '', '', '', '', '', '', 'OUT DART (尖沙咀)', 'PM001', 'PT002', '', 'HK01', '九龍尖沙咀厚福街8號H8 17樓', '00:00:00', '00:00:00', '', 'Active', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+(13, 'C150410', 'address1', '九龍佐敦德興銜18號地下', '', '波仔', '98138829', '39939221', 'email2@mm.com', 'Mr Li', '12312332', '', '', '', '孖寶', 'PM001', 'PT001', '', 'NT11', '九龍佐敦德興銜18號地下', '12:00:00', '23:00:00', '', 'Active', '2019-06-17 22:50:56', NULL);
 
 -- --------------------------------------------------------
 
@@ -186,7 +189,7 @@ CREATE TABLE `t_employee` (
   `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `default_shopcode` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `access_level` int(3) NOT NULL,
-  `role` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `role_code` int(10) NOT NULL,
   `last_login` datetime NOT NULL,
   `last_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` tinyint(4) NOT NULL,
@@ -198,8 +201,8 @@ CREATE TABLE `t_employee` (
 -- Dumping data for table `t_employee`
 --
 
-INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 'sales', '2019-06-03 22:42:10', '908e6ee53b3d8b0038e3ddaf93545c3b', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role_code`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 0, '2019-06-26 23:08:15', 'ecaafcda6f8adfc88990ba55ab484759', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
@@ -242,7 +245,7 @@ CREATE TABLE `t_items` (
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
 (1, 'GIFT', 'GIFT12345', 'GIFT1234', '', '10.00', '0.00', 'PDT1', '20PCS/PACK', '2019-03-13 19:34:38', '2019-03-17 04:58:00'),
-(2, 'GUS0120', 'Gel Urinal Screen1', '香味尿格12', '', '110.00', '1.00', 'SVR', '20PCS/PACK1', '0000-00-00 00:00:00', '2019-03-17 04:13:17'),
+(2, 'GUS0120', 'Gel Urinal Screen1', '香味尿格', '', '110.00', '1.00', 'SVR', '20PCS/PACK1', '0000-00-00 00:00:00', '2019-06-10 23:13:50'),
 (3, 'Pentax', '', 'Pentax 水泵', '', '1100.00', '0.00', 'PDT', '', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (4, 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '', '328.00', '0.00', 'PDT', '10 Ltr / Pail', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (6, 'DA0405', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '', '0.00', '0.00', 'PDT', '4X5L', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
@@ -463,7 +466,22 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (81, 'iamadmin', 'HQ01', '9e3470078096d8c92f2d87eb503cf18a', 'out', '2019-05-30 22:50:10', '2019-05-31 23:09:45'),
 (82, 'iamadmin', 'HQ01', '572d93c20001654afe715d09ccb28127', 'out', '2019-05-31 23:09:45', '2019-06-02 10:32:07'),
 (83, 'iamadmin', 'HQ01', '46da2151a73224d25f9f39370a773b0f', 'out', '2019-06-02 10:32:07', '2019-06-03 22:42:10'),
-(84, 'iamadmin', 'HQ01', '908e6ee53b3d8b0038e3ddaf93545c3b', 'in', '2019-06-03 22:42:10', '2019-06-04 00:23:03');
+(84, 'iamadmin', 'HQ01', '908e6ee53b3d8b0038e3ddaf93545c3b', 'out', '2019-06-03 22:42:10', '2019-06-04 23:21:36'),
+(85, 'iamadmin', 'HQ01', 'b09b0a28ba176da519fe7a46c160a241', 'out', '2019-06-04 23:21:36', '2019-06-05 23:26:12'),
+(86, 'iamadmin', 'HQ01', 'f1b9a90f4abf5844057849143a1f463f', 'out', '2019-06-05 23:26:17', '2019-06-07 22:15:41'),
+(87, 'iamadmin', 'HQ01', '1050ea110154fc881958776a529210c0', 'out', '2019-06-07 22:15:41', '2019-06-09 11:23:24'),
+(88, 'iamadmin', 'HQ01', '507001756c89fb788eb31e3f2e9b92e2', 'out', '2019-06-09 11:23:24', '2019-06-10 21:57:34'),
+(89, 'iamadmin', 'HQ01', '3dbf360fb05c96519cead6321146a73e', 'out', '2019-06-10 21:57:34', '2019-06-11 23:25:33'),
+(90, 'iamadmin', 'HQ01', 'a5d65570e3a0faa7f7fa585500d80243', 'out', '2019-06-11 23:25:33', '2019-06-13 23:46:17'),
+(91, 'iamadmin', 'HQ01', '4f3818c638f325cd0a6cd9660f1a3c6b', 'out', '2019-06-13 23:46:17', '2019-06-16 21:21:48'),
+(92, 'iamadmin', 'HQ01', 'c8bc15279f7d29eee98e4eb3411c34dc', 'out', '2019-06-16 21:21:48', '2019-06-17 22:27:40'),
+(93, 'iamadmin', 'HQ01', 'bf0f2ada66e14fe34b286f370d4b3fb1', 'out', '2019-06-17 22:27:40', '2019-06-18 23:12:13'),
+(94, 'iamadmin', 'HQ01', '29e4fcafc29073968254f6202e5873d3', 'out', '2019-06-18 23:12:13', '2019-06-19 23:27:23'),
+(95, 'iamadmin', 'HQ01', '166b703ce3e6a8edb60ca71eb0a0be80', 'out', '2019-06-19 23:27:23', '2019-06-23 10:20:33'),
+(96, 'iamadmin', 'HQ01', '4ca54b28b24af32e928fe60e769a7ff4', 'out', '2019-06-23 10:20:33', '2019-06-24 21:48:12'),
+(97, 'iamadmin', 'HQ01', '21e05c93751c3ee4e6c40ea13a9d83db', 'out', '2019-06-24 21:48:12', '2019-06-25 22:51:07'),
+(98, 'iamadmin', 'HQ01', 'f00bd2e1ebac954bf5d1426f21a8a109', 'out', '2019-06-25 22:51:07', '2019-06-26 23:08:10'),
+(99, 'iamadmin', 'HQ01', 'ecaafcda6f8adfc88990ba55ab484759', 'in', '2019-06-26 23:08:15', '2019-06-26 23:09:22');
 
 -- --------------------------------------------------------
 
@@ -609,7 +627,10 @@ INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `ch
 (10, 'QTA2019051113', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-11 14:23:13', NULL),
 (11, 'QTA2019051114', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '3.0', '10 Ltr / Pail', '328.00', '', '2019-05-11 14:34:14', NULL),
 (12, 'INV2019051254', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-12 10:00:36', NULL),
-(13, 'INV2019051940', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '3.0', '4X5L', '120.00', '', '2019-05-19 22:04:40', NULL);
+(13, 'INV2019051940', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '3.0', '4X5L', '120.00', '', '2019-05-19 22:04:40', NULL),
+(14, 'INV2019062301', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2019-06-23 22:47:01', NULL),
+(15, 'QTA2019062302', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '5.0', '4X5L', '120.00', '', '2019-06-23 22:52:02', NULL),
+(16, 'QTA2019062302', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2019-06-23 22:52:02', NULL);
 
 -- --------------------------------------------------------
 
@@ -647,7 +668,9 @@ INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code
 (7, 'QTA2019051113', 'C150301', '', 'QTA', '328.00', 123456, 'HQ01', '', 0, 0, '2019-05-11 14:23:13', NULL),
 (9, 'QTA2019051114', 'C150301', '', 'QTA', '984.00', 123456, 'HQ02', '', 0, 0, '2019-05-11 14:34:14', NULL),
 (10, 'INV2019051254', 'C150402', '', 'INV', '328.00', 123456, 'HQ01', '', 0, 0, '2019-05-12 10:00:36', NULL),
-(11, 'INV2019051940', 'C150402', '', 'INV', '360.00', 123456, 'HQ02', '', 0, 0, '2019-05-19 22:04:40', NULL);
+(11, 'INV2019051940', 'C150402', '', 'INV', '360.00', 123456, 'HQ02', '', 0, 0, '2019-05-19 22:04:40', NULL),
+(12, 'INV2019062301', 'C150403', '', 'INV', '80.00', 123456, 'HQ01', '', 0, 0, '2019-06-23 22:47:01', NULL),
+(13, 'QTA2019062302', 'C150406', '', 'QTA', '780.00', 123456, 'HQ02', '', 0, 0, '2019-06-23 22:52:02', NULL);
 
 -- --------------------------------------------------------
 
@@ -678,7 +701,9 @@ INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_
 (7, 'QTA2019051113', 'PM001', '328.00', '2019-05-11 14:23:13', NULL),
 (8, 'QTA2019051114', 'PM002', '984.00', '2019-05-11 14:34:14', NULL),
 (9, 'INV2019051254', 'PM001', '328.00', '2019-05-12 10:00:36', NULL),
-(10, 'INV2019051940', 'PM001', '360.00', '2019-05-19 22:04:40', NULL);
+(10, 'INV2019051940', 'PM001', '360.00', '2019-05-19 22:04:40', NULL),
+(11, 'INV2019062301', 'PM001', '80.00', '2019-06-23 22:47:01', NULL),
+(12, 'QTA2019062302', 'PM001', '780.00', '2019-06-23 22:52:02', NULL);
 
 --
 -- Indexes for dumped tables
@@ -833,7 +858,7 @@ ALTER TABLE `t_transaction_t`
 -- AUTO_INCREMENT for table `t_accounts_info`
 --
 ALTER TABLE `t_accounts_info`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `t_audit_log`
@@ -845,7 +870,7 @@ ALTER TABLE `t_audit_log`
 -- AUTO_INCREMENT for table `t_customers`
 --
 ALTER TABLE `t_customers`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `t_delivery_note`
@@ -893,7 +918,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`
@@ -929,19 +954,19 @@ ALTER TABLE `t_stock`
 -- AUTO_INCREMENT for table `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `t_transaction_h`
 --
 ALTER TABLE `t_transaction_h`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `t_transaction_t`
 --
 ALTER TABLE `t_transaction_t`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
