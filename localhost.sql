@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jun 26, 2019 at 11:11 PM
+-- Generation Time: Jun 28, 2019 at 10:20 PM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -188,7 +188,6 @@ CREATE TABLE `t_employee` (
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `default_shopcode` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
-  `access_level` int(3) NOT NULL,
   `role_code` int(10) NOT NULL,
   `last_login` datetime NOT NULL,
   `last_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -201,8 +200,25 @@ CREATE TABLE `t_employee` (
 -- Dumping data for table `t_employee`
 --
 
-INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `access_level`, `role_code`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 5, 0, '2019-06-26 23:08:15', 'ecaafcda6f8adfc88990ba55ab484759', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `role_code`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 1232, '2019-06-28 20:52:47', '5d6e464fa5d41f79e767efab66c313af', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_employee_access`
+--
+
+CREATE TABLE `t_employee_access` (
+  `uid` int(10) NOT NULL,
+  `employee_code` int(10) NOT NULL,
+  `type` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
+  `sub_type` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
+  `a_create` tinyint(1) NOT NULL,
+  `a_edit` tinyint(1) NOT NULL,
+  `a_delete` tinyint(1) NOT NULL,
+  `a_show` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -218,6 +234,13 @@ CREATE TABLE `t_employee_role` (
   `create_date` datetime NOT NULL,
   `modify_date` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `t_employee_role`
+--
+
+INSERT INTO `t_employee_role` (`uid`, `role_code`, `name`, `access_level`, `create_date`, `modify_date`) VALUES
+(1, 1232, 'Sales', '5', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -481,7 +504,8 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (96, 'iamadmin', 'HQ01', '4ca54b28b24af32e928fe60e769a7ff4', 'out', '2019-06-23 10:20:33', '2019-06-24 21:48:12'),
 (97, 'iamadmin', 'HQ01', '21e05c93751c3ee4e6c40ea13a9d83db', 'out', '2019-06-24 21:48:12', '2019-06-25 22:51:07'),
 (98, 'iamadmin', 'HQ01', 'f00bd2e1ebac954bf5d1426f21a8a109', 'out', '2019-06-25 22:51:07', '2019-06-26 23:08:10'),
-(99, 'iamadmin', 'HQ01', 'ecaafcda6f8adfc88990ba55ab484759', 'in', '2019-06-26 23:08:15', '2019-06-26 23:09:22');
+(99, 'iamadmin', 'HQ01', 'ecaafcda6f8adfc88990ba55ab484759', 'out', '2019-06-26 23:08:15', '2019-06-28 20:52:47'),
+(100, 'iamadmin', 'HQ01', '5d6e464fa5d41f79e767efab66c313af', 'in', '2019-06-28 20:52:47', '2019-06-28 22:18:40');
 
 -- --------------------------------------------------------
 
@@ -894,7 +918,7 @@ ALTER TABLE `t_employee`
 -- AUTO_INCREMENT for table `t_employee_role`
 --
 ALTER TABLE `t_employee_role`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `t_items`
@@ -918,7 +942,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`

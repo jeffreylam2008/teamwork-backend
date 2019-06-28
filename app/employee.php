@@ -18,11 +18,12 @@ $app->group('/api/v1/systems/employees', function () {
             emp.username, 
             emp.default_shopcode,
             shp.name as `shop_name`,
-            emp.access_level, 
             emp.role_code, 
-            emp.status 
-            FROM `t_employee` as `emp`LEFT JOIN `t_shop` as `shp` ON
-            emp.default_shopcode = shp.shop_code;");
+            emp.status
+            FROM `t_employee` as `emp` LEFT JOIN `t_shop` as `shp` ON
+            emp.default_shopcode = shp.shop_code LEFT JOIN `t_employee_role` as `ro` ON 
+            emp.role_code = ro.role_code;
+        ");
         $q->execute();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
         $err = $q->errorinfo();
@@ -56,7 +57,6 @@ $app->group('/api/v1/systems/employees', function () {
             select `employee_code`,
             `username`,
             `default_shopcode`, 
-            `access_level`, 
             `role_code`, 
             `status` 
             from `t_employee` where `username` = '".$_username."';");
