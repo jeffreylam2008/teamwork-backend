@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jun 28, 2019 at 10:20 PM
+-- Generation Time: Jul 03, 2019 at 12:29 AM
 -- Server version: 10.1.30-MariaDB
 -- PHP Version: 7.2.1
 
@@ -201,7 +201,7 @@ CREATE TABLE `t_employee` (
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `role_code`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 1232, '2019-06-28 20:52:47', '5d6e464fa5d41f79e767efab66c313af', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 1232, '2019-07-02 23:36:12', '5c704e990c9cde85d63ec79a6b2ea246', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
@@ -505,7 +505,8 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (97, 'iamadmin', 'HQ01', '21e05c93751c3ee4e6c40ea13a9d83db', 'out', '2019-06-24 21:48:12', '2019-06-25 22:51:07'),
 (98, 'iamadmin', 'HQ01', 'f00bd2e1ebac954bf5d1426f21a8a109', 'out', '2019-06-25 22:51:07', '2019-06-26 23:08:10'),
 (99, 'iamadmin', 'HQ01', 'ecaafcda6f8adfc88990ba55ab484759', 'out', '2019-06-26 23:08:15', '2019-06-28 20:52:47'),
-(100, 'iamadmin', 'HQ01', '5d6e464fa5d41f79e767efab66c313af', 'in', '2019-06-28 20:52:47', '2019-06-28 22:18:40');
+(100, 'iamadmin', 'HQ01', '5d6e464fa5d41f79e767efab66c313af', 'out', '2019-06-28 20:52:47', '2019-07-02 23:36:12'),
+(101, 'iamadmin', 'HQ01', '5c704e990c9cde85d63ec79a6b2ea246', 'in', '2019-07-02 23:36:12', '2019-07-03 00:06:36');
 
 -- --------------------------------------------------------
 
@@ -942,7 +943,7 @@ ALTER TABLE `t_items_price`
 -- AUTO_INCREMENT for table `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
 
 --
 -- AUTO_INCREMENT for table `t_payment_method`
