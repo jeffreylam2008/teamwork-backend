@@ -13,16 +13,17 @@ $app->group('/api/v1/systems/employees', function () {
         $err = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $q = $db->prepare(
-            "SELECT emp.employee_code, 
+        $q = $db->prepare("
+            SELECT emp.employee_code, 
             emp.username, 
             emp.default_shopcode,
             shp.name as `shop_name`,
+            role.access_level,
             emp.role_code, 
             emp.status
-            FROM `t_employee` as `emp` LEFT JOIN `t_shop` as `shp` ON
-            emp.default_shopcode = shp.shop_code LEFT JOIN `t_employee_role` as `ro` ON 
-            emp.role_code = ro.role_code;
+            FROM `t_employee` as `emp` 
+            LEFT JOIN `t_shop` as shp ON emp.default_shopcode = shp.shop_code 
+            LEFT JOIN `t_employee_role` as role ON emp.role_code = role.role_code;
         ");
         $q->execute();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
