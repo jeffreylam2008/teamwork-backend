@@ -219,7 +219,7 @@ $app->group('/api/v1/inventory/invoices', function () {
 		$_done = false;
 		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_now = date('Y-m-d H:i:s');
-        $_new_res = "";
+        $_new_res = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
         //$sql_d = "";
@@ -231,99 +231,106 @@ $app->group('/api/v1/inventory/invoices', function () {
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
-        $res = $q->fetchAll(PDO::FETCH_ASSOC);
-         
-        foreach($res as $k => $v)
-        {
-            $_new_res[$v['item_code']] = $v["item_code"];
-        }
-        
-        $db->beginTransaction();
-		// transaction header
-        
-        $q = $db->prepare("UPDATE `t_transaction_h` SET 
-            cust_code = '".$customer['cust_code']."',
-            quotation_code = '".$quotation."', 
-            total = '".$total."', 
-            employee_code = '".$employeecode."', 
-            shop_code = '".$shopcode."', 
-            remark = '".$remark."', 
-            modify_date =  '".$_now."'
-            WHERE trans_code = '".$_trans_code."';"
-        );
-        $q->execute();
         $_err[0] = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
         
-        if($q->rowCount() != "0")
+        if($_err[0][0] == "00000")
         {
-            foreach($_new_res as $k_itcode => $v)
+            foreach($res as $k => $v)
             {
-                // delete items from this transaction
-                if(!array_key_exists($k_itcode,$items))
-                {
-
-                    $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
-                    $q = $db->prepare($sql_d);
-                    $q->execute();
-                    $_err[2] = $q->errorinfo();
-                    //echo $sql_d."\n";
-                }
+                $_new_res[$v['item_code']] = $v["item_code"];
             }
-            foreach($items as $k_itcode => $v)
-            {
-                // update item already in transaction
-                if(array_key_exists($k_itcode,$_new_res))
-                {
-
-                    $sql_d = "UPDATE `t_transaction_d` SET
-                        qty = '".$v['qty']."',
-                        unit = '".$v['unit']."',
-                        price = '".$v['price']."',
-                        modify_date = '".$_now."'
-                        WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
-                    //echo $sql_d."\n";
-                    $q = $db->prepare($sql_d);
-                    $q->execute();
-                    $_err[1] = $q->errorinfo();
-                }
-                // New add items
-                else
-                {
-                    $sql_d = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
-                        values (
-                            '".$_trans_code."',
-                            '".$v['item_code']."',
-                            '".$v['eng_name']."' ,
-                            '".$v['chi_name']."' ,
-                            '".$v['qty']."',
-                            '".$v['unit']."',
-                            '".$v['price']."',
-                            '',
-                            '".$date."'
-                        );";
-                    //echo $sql_d."\n";
-                    $q = $db->prepare($sql_d);
-                    $q->execute();
-                    $_err[3] = $q->errorinfo();
-                }   
-            }
-            
-            // tender information input here
-            $sql ="UPDATE `t_transaction_t` SET 
-                pm_code = '".$paymentmethod."',
-                total = '".$total."',
-                modify_date = '".$_now."'
-                WHERE trans_code = '".$_trans_code."';";
-            $q = $db->prepare($sql);
-            $q->execute();
-            $_err[4] = $q->errorinfo();
         }
-		$_done = true;
-        $db->commit();
-		//disconnection DB
-        $pdo->disconnect_db();
+        // after the new resource fill go next
+        if(!empty($_new_res))
+        {
+            $db->beginTransaction();
+            // transaction header
+            
+            $q = $db->prepare("UPDATE `t_transaction_h` SET 
+                cust_code = '".$customer['cust_code']."',
+                quotation_code = '".$quotation."', 
+                total = '".$total."', 
+                employee_code = '".$employeecode."', 
+                shop_code = '".$shopcode."', 
+                remark = '".$remark."', 
+                modify_date =  '".$_now."'
+                WHERE trans_code = '".$_trans_code."';"
+            );
+            $q->execute();
+            $_err[0] = $q->errorinfo();
+            
+            if($q->rowCount() != "0")
+            {
+                foreach($_new_res as $k_itcode => $v)
+                {
+                    // delete items from this transaction
+                    if(!array_key_exists($k_itcode,$items))
+                    {
 
+                        $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
+                        $q = $db->prepare($sql_d);
+                        $q->execute();
+                        $_err[2] = $q->errorinfo();
+                        //echo $sql_d."\n";
+                    }
+                }
+                foreach($items as $k_itcode => $v)
+                {
+                    // update item already in transaction
+                    if(array_key_exists($k_itcode,$_new_res))
+                    {
+
+                        $sql_d = "UPDATE `t_transaction_d` SET
+                            qty = '".$v['qty']."',
+                            unit = '".$v['unit']."',
+                            price = '".$v['price']."',
+                            modify_date = '".$_now."'
+                            WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
+                        //echo $sql_d."\n";
+                        $q = $db->prepare($sql_d);
+                        $q->execute();
+                        $_err[1] = $q->errorinfo();
+                    }
+                    // New add items
+                    else
+                    {
+                        $sql_d = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
+                            values (
+                                '".$_trans_code."',
+                                '".$v['item_code']."',
+                                '".$v['eng_name']."' ,
+                                '".$v['chi_name']."' ,
+                                '".$v['qty']."',
+                                '".$v['unit']."',
+                                '".$v['price']."',
+                                '',
+                                '".$date."'
+                            );";
+                        //echo $sql_d."\n";
+                        $q = $db->prepare($sql_d);
+                        $q->execute();
+                        $_err[3] = $q->errorinfo();
+                    }   
+                }
+                
+                // tender information input here
+                $sql ="UPDATE `t_transaction_t` SET 
+                    pm_code = '".$paymentmethod."',
+                    total = '".$total."',
+                    modify_date = '".$_now."'
+                    WHERE trans_code = '".$_trans_code."';";
+                $q = $db->prepare($sql);
+                $q->execute();
+                $_err[4] = $q->errorinfo();
+            }
+            $_done = true;
+            $db->commit();
+            //disconnection DB
+            $pdo->disconnect_db();
+        }
+
+        // finish up the flow
 		if($_done)
         {
             if($_err[0][0] == "00000")

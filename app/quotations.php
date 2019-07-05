@@ -80,7 +80,7 @@ $app->group('/api/v1/inventory/quotations', function () {
             {
                 $_res[$k]['shop_name'] = $_shops[$v['shop_code']]['name'];
             }
-            $_res[$k]['is_convert'] == 1 ? $_res[$k]['is_convert'] = "No" : $_res[$k]['is_convert'] = "Yes";
+            $_res[$k]['is_convert'] === 1 ? $_res[$k]['is_convert'] = "Yes" : $_res[$k]['is_convert'] = "No";
         }
 
         // export data
