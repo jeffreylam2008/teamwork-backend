@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.7
+-- version 4.8.3
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Jul 03, 2019 at 12:29 AM
--- Server version: 10.1.30-MariaDB
--- PHP Version: 7.2.1
+-- 主機: 127.0.0.1:3306
+-- 產生時間： 2019-07-12 05:25:25
+-- 伺服器版本: 10.3.9-MariaDB
+-- PHP 版本： 5.6.38
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `teamwork`
+-- 資料庫： `teamwork`
 --
 DROP DATABASE IF EXISTS `teamwork`;
 CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
@@ -28,11 +28,12 @@ USE `teamwork`;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_accounts_info`
+-- 資料表結構 `t_accounts_info`
 --
 
-CREATE TABLE `t_accounts_info` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_accounts_info`;
+CREATE TABLE IF NOT EXISTS `t_accounts_info` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `company_BR` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `company_sign` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
@@ -42,11 +43,12 @@ CREATE TABLE `t_accounts_info` (
   `fax` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `email` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime NOT NULL,
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_accounts_info`
+-- 資料表的匯出資料 `t_accounts_info`
 --
 
 INSERT INTO `t_accounts_info` (`uid`, `cust_code`, `company_BR`, `company_sign`, `group_name`, `attn`, `tel`, `fax`, `email`, `create_date`, `modify_date`) VALUES
@@ -58,24 +60,27 @@ INSERT INTO `t_accounts_info` (`uid`, `cust_code`, `company_BR`, `company_sign`,
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_audit_log`
+-- 資料表結構 `t_audit_log`
 --
 
-CREATE TABLE `t_audit_log` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_audit_log`;
+CREATE TABLE IF NOT EXISTS `t_audit_log` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `datetime` datetime DEFAULT NULL,
   `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
-  `event` varchar(255) COLLATE utf8_unicode_ci NOT NULL
+  `event` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_customers`
+-- 資料表結構 `t_customers`
 --
 
-CREATE TABLE `t_customers` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_customers`;
+CREATE TABLE IF NOT EXISTS `t_customers` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `mail_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `shop_addr` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -100,11 +105,13 @@ CREATE TABLE `t_customers` (
   `delivery_remark` text COLLATE utf8_unicode_ci NOT NULL,
   `status` enum('Active','Closed') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Active',
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `custcode_unique` (`cust_code`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_customers`
+-- 資料表的匯出資料 `t_customers`
 --
 
 INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `employee_code`, `attn_1`, `phone_1`, `fax_1`, `email_1`, `attn_2`, `phone_2`, `fax_2`, `email_2`, `statement_remark`, `name`, `pm_code`, `pt_code`, `remark`, `district_code`, `delivery_addr`, `from_time`, `to_time`, `delivery_remark`, `status`, `create_date`, `modify_date`) VALUES
@@ -124,36 +131,42 @@ INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `employ
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_delivery_note`
+-- 資料表結構 `t_delivery_note`
 --
 
-CREATE TABLE `t_delivery_note` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_delivery_note`;
+CREATE TABLE IF NOT EXISTS `t_delivery_note` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `delivery_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `district_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `remark` text COLLATE utf8_unicode_ci NOT NULL,
   `post_time` datetime DEFAULT NULL,
-  `update_time` datetime DEFAULT NULL
+  `update_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `deliverycode_unique` (`delivery_code`) USING BTREE,
+  KEY `delivery_code_index` (`delivery_code`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_district`
+-- 資料表結構 `t_district`
 --
 
-CREATE TABLE `t_district` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_district`;
+CREATE TABLE IF NOT EXISTS `t_district` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `district_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `district_chi` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `district_eng` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-  `region` varchar(50) COLLATE utf8_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `region` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_district`
+-- 資料表的匯出資料 `t_district`
 --
 
 INSERT INTO `t_district` (`uid`, `district_code`, `district_chi`, `district_eng`, `region`) VALUES
@@ -179,11 +192,12 @@ INSERT INTO `t_district` (`uid`, `district_code`, `district_chi`, `district_eng`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_employee`
+-- 資料表結構 `t_employee`
 --
 
-CREATE TABLE `t_employee` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_employee`;
+CREATE TABLE IF NOT EXISTS `t_employee` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `employee_code` int(10) NOT NULL,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -193,23 +207,26 @@ CREATE TABLE `t_employee` (
   `last_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` tinyint(4) NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `unique_employee_code` (`employee_code`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_employee`
+-- 資料表的匯出資料 `t_employee`
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `role_code`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 1232, '2019-07-02 23:36:12', '5c704e990c9cde85d63ec79a6b2ea246', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 1232, '2019-07-12 04:48:59', 'cb96e48b48432f5a7ba071aa7d3ea261', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_employee_access`
+-- 資料表結構 `t_employee_access`
 --
 
-CREATE TABLE `t_employee_access` (
+DROP TABLE IF EXISTS `t_employee_access`;
+CREATE TABLE IF NOT EXISTS `t_employee_access` (
   `uid` int(10) NOT NULL,
   `employee_code` int(10) NOT NULL,
   `type` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
@@ -223,20 +240,22 @@ CREATE TABLE `t_employee_access` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_employee_role`
+-- 資料表結構 `t_employee_role`
 --
 
-CREATE TABLE `t_employee_role` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_employee_role`;
+CREATE TABLE IF NOT EXISTS `t_employee_role` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `role_code` int(10) NOT NULL,
   `name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `access_level` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime NOT NULL,
-  `modify_date` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime NOT NULL,
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_employee_role`
+-- 資料表的匯出資料 `t_employee_role`
 --
 
 INSERT INTO `t_employee_role` (`uid`, `role_code`, `name`, `access_level`, `create_date`, `modify_date`) VALUES
@@ -245,11 +264,12 @@ INSERT INTO `t_employee_role` (`uid`, `role_code`, `name`, `access_level`, `crea
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_items`
+-- 資料表結構 `t_items`
 --
 
-CREATE TABLE `t_items` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_items`;
+CREATE TABLE IF NOT EXISTS `t_items` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `eng_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `chi_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
@@ -259,11 +279,14 @@ CREATE TABLE `t_items` (
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `unit` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `uid_unique` (`item_code`) USING BTREE,
+  KEY `uid_index` (`item_code`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=142 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_items`
+-- 資料表的匯出資料 `t_items`
 --
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
@@ -402,19 +425,24 @@ INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `pric
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_items_category`
+-- 資料表結構 `t_items_category`
 --
 
-CREATE TABLE `t_items_category` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_items_category`;
+CREATE TABLE IF NOT EXISTS `t_items_category` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `cate_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `desc` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
+  UNIQUE KEY `cate_code_unique` (`cate_code`) USING BTREE,
+  KEY `uid_index` (`uid`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_items_category`
+-- 資料表的匯出資料 `t_items_category`
 --
 
 INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modify_date`) VALUES
@@ -427,35 +455,41 @@ INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modi
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_items_price`
+-- 資料表結構 `t_items_price`
 --
 
-CREATE TABLE `t_items_price` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_items_price`;
+CREATE TABLE IF NOT EXISTS `t_items_price` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `price` decimal(10,2) NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
+  KEY `uid_index` (`uid`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_login`
+-- 資料表結構 `t_login`
 --
 
-CREATE TABLE `t_login` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_login`;
+CREATE TABLE IF NOT EXISTS `t_login` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `shop_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` enum('in','out') COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  UNIQUE KEY `uid` (`uid`)
+) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_login`
+-- 資料表的匯出資料 `t_login`
 --
 
 INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `create_date`, `modify_date`) VALUES
@@ -506,24 +540,30 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (98, 'iamadmin', 'HQ01', 'f00bd2e1ebac954bf5d1426f21a8a109', 'out', '2019-06-25 22:51:07', '2019-06-26 23:08:10'),
 (99, 'iamadmin', 'HQ01', 'ecaafcda6f8adfc88990ba55ab484759', 'out', '2019-06-26 23:08:15', '2019-06-28 20:52:47'),
 (100, 'iamadmin', 'HQ01', '5d6e464fa5d41f79e767efab66c313af', 'out', '2019-06-28 20:52:47', '2019-07-02 23:36:12'),
-(101, 'iamadmin', 'HQ01', '5c704e990c9cde85d63ec79a6b2ea246', 'in', '2019-07-02 23:36:12', '2019-07-03 00:06:36');
+(101, 'iamadmin', 'HQ01', '5c704e990c9cde85d63ec79a6b2ea246', 'out', '2019-07-02 23:36:12', '2019-07-04 01:25:41'),
+(102, 'iamadmin', 'HQ01', '8e1055b45065aa6e20766525ac22c0dc', 'out', '2019-07-04 01:25:41', '2019-07-06 01:54:44'),
+(103, 'iamadmin', 'HQ01', '369f17714194c36dadacfb19a5b5e827', 'out', '2019-07-06 01:54:44', '2019-07-12 04:48:59'),
+(104, 'iamadmin', 'HQ01', 'cb96e48b48432f5a7ba071aa7d3ea261', 'in', '2019-07-12 04:48:59', '2019-07-12 05:24:37');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_payment_method`
+-- 資料表結構 `t_payment_method`
 --
 
-CREATE TABLE `t_payment_method` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_payment_method`;
+CREATE TABLE IF NOT EXISTS `t_payment_method` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `payment_method` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `pmcode_unique` (`pm_code`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_payment_method`
+-- 資料表的匯出資料 `t_payment_method`
 --
 
 INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date`, `modify_date`) VALUES
@@ -533,19 +573,22 @@ INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_payment_term`
+-- 資料表結構 `t_payment_term`
 --
 
-CREATE TABLE `t_payment_term` (
-  `uid` int(11) NOT NULL,
+DROP TABLE IF EXISTS `t_payment_term`;
+CREATE TABLE IF NOT EXISTS `t_payment_term` (
+  `uid` int(11) NOT NULL AUTO_INCREMENT,
   `pt_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `terms` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `ptcode_unique` (`pt_code`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_payment_term`
+-- 資料表的匯出資料 `t_payment_term`
 --
 
 INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_date`) VALUES
@@ -555,18 +598,22 @@ INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_prefix`
+-- 資料表結構 `t_prefix`
 --
 
-CREATE TABLE `t_prefix` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_prefix`;
+CREATE TABLE IF NOT EXISTS `t_prefix` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `prefix` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `desc` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
-  `status` tinyint(4) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `status` tinyint(4) NOT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `prefix_unique` (`prefix`) USING BTREE,
+  KEY `uid_index` (`uid`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_prefix`
+-- 資料表的匯出資料 `t_prefix`
 --
 
 INSERT INTO `t_prefix` (`uid`, `prefix`, `desc`, `status`) VALUES
@@ -577,22 +624,26 @@ INSERT INTO `t_prefix` (`uid`, `prefix`, `desc`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_shop`
+-- 資料表結構 `t_shop`
 --
 
-CREATE TABLE `t_shop` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_shop`;
+CREATE TABLE IF NOT EXISTS `t_shop` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `shop_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `phone` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `address1` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `address2` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `shopcode_unique` (`shop_code`) USING BTREE,
+  KEY `shopcode_index` (`shop_code`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_shop`
+-- 資料表的匯出資料 `t_shop`
 --
 
 INSERT INTO `t_shop` (`uid`, `shop_code`, `name`, `phone`, `address1`, `address2`, `create_date`, `modify_date`) VALUES
@@ -602,27 +653,32 @@ INSERT INTO `t_shop` (`uid`, `shop_code`, `name`, `phone`, `address1`, `address2
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_stock`
+-- 資料表結構 `t_stock`
 --
 
-CREATE TABLE `t_stock` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_stock`;
+CREATE TABLE IF NOT EXISTS `t_stock` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `inv_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `item_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `qty` double NOT NULL,
   `type` enum('in','out','hold','') COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `uid_unique` (`inv_code`) USING BTREE,
+  KEY `uid_index` (`inv_code`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_transaction_d`
+-- 資料表結構 `t_transaction_d`
 --
 
-CREATE TABLE `t_transaction_d` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_transaction_d`;
+CREATE TABLE IF NOT EXISTS `t_transaction_d` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `item_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `eng_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
@@ -632,11 +688,14 @@ CREATE TABLE `t_transaction_d` (
   `price` decimal(10,2) NOT NULL,
   `discount` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`),
+  KEY `uid_index` (`uid`) USING BTREE,
+  KEY `transcode_unique` (`trans_code`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_transaction_d`
+-- 資料表的匯出資料 `t_transaction_d`
 --
 
 INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `chi_name`, `qty`, `unit`, `price`, `discount`, `create_date`, `modify_date`) VALUES
@@ -660,11 +719,12 @@ INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `ch
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_transaction_h`
+-- 資料表結構 `t_transaction_h`
 --
 
-CREATE TABLE `t_transaction_h` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_transaction_h`;
+CREATE TABLE IF NOT EXISTS `t_transaction_h` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `cust_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `quotation_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
@@ -676,11 +736,15 @@ CREATE TABLE `t_transaction_h` (
   `is_void` tinyint(1) NOT NULL,
   `is_convert` tinyint(1) NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`) USING BTREE,
+  UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
+  UNIQUE KEY `uid_index` (`uid`) USING BTREE,
+  KEY `transcode_index` (`trans_code`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_transaction_h`
+-- 資料表的匯出資料 `t_transaction_h`
 --
 
 INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `is_convert`, `create_date`, `modify_date`) VALUES
@@ -700,20 +764,25 @@ INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_transaction_t`
+-- 資料表結構 `t_transaction_t`
 --
 
-CREATE TABLE `t_transaction_t` (
-  `uid` int(10) NOT NULL,
+DROP TABLE IF EXISTS `t_transaction_t`;
+CREATE TABLE IF NOT EXISTS `t_transaction_t` (
+  `uid` int(10) NOT NULL AUTO_INCREMENT,
   `trans_code` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `pm_code` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `total` decimal(10,2) NOT NULL,
   `create_date` datetime DEFAULT NULL,
-  `modify_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `modify_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`uid`) USING BTREE,
+  UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
+  KEY `transcode_index` (`trans_code`) USING BTREE,
+  KEY `uid_index` (`uid`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_transaction_t`
+-- 資料表的匯出資料 `t_transaction_t`
 --
 
 INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_date`, `modify_date`) VALUES
@@ -729,269 +798,6 @@ INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_
 (10, 'INV2019051940', 'PM001', '360.00', '2019-05-19 22:04:40', NULL),
 (11, 'INV2019062301', 'PM001', '80.00', '2019-06-23 22:47:01', NULL),
 (12, 'QTA2019062302', 'PM001', '780.00', '2019-06-23 22:52:02', NULL);
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `t_accounts_info`
---
-ALTER TABLE `t_accounts_info`
-  ADD PRIMARY KEY (`uid`);
-
---
--- Indexes for table `t_audit_log`
---
-ALTER TABLE `t_audit_log`
-  ADD PRIMARY KEY (`uid`);
-
---
--- Indexes for table `t_customers`
---
-ALTER TABLE `t_customers`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `custcode_unique` (`cust_code`);
-
---
--- Indexes for table `t_delivery_note`
---
-ALTER TABLE `t_delivery_note`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `deliverycode_unique` (`delivery_code`) USING BTREE,
-  ADD KEY `delivery_code_index` (`delivery_code`) USING BTREE;
-
---
--- Indexes for table `t_district`
---
-ALTER TABLE `t_district`
-  ADD PRIMARY KEY (`uid`);
-
---
--- Indexes for table `t_employee`
---
-ALTER TABLE `t_employee`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `unique_employee_code` (`employee_code`);
-
---
--- Indexes for table `t_employee_role`
---
-ALTER TABLE `t_employee_role`
-  ADD PRIMARY KEY (`uid`);
-
---
--- Indexes for table `t_items`
---
-ALTER TABLE `t_items`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `uid_unique` (`item_code`) USING BTREE,
-  ADD KEY `uid_index` (`item_code`) USING BTREE;
-
---
--- Indexes for table `t_items_category`
---
-ALTER TABLE `t_items_category`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
-  ADD UNIQUE KEY `cate_code_unique` (`cate_code`) USING BTREE,
-  ADD KEY `uid_index` (`uid`) USING BTREE;
-
---
--- Indexes for table `t_items_price`
---
-ALTER TABLE `t_items_price`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `uid_unique` (`uid`) USING BTREE,
-  ADD KEY `uid_index` (`uid`) USING BTREE;
-
---
--- Indexes for table `t_login`
---
-ALTER TABLE `t_login`
-  ADD UNIQUE KEY `uid` (`uid`);
-
---
--- Indexes for table `t_payment_method`
---
-ALTER TABLE `t_payment_method`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `pmcode_unique` (`pm_code`) USING BTREE;
-
---
--- Indexes for table `t_payment_term`
---
-ALTER TABLE `t_payment_term`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `ptcode_unique` (`pt_code`) USING BTREE;
-
---
--- Indexes for table `t_prefix`
---
-ALTER TABLE `t_prefix`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `prefix_unique` (`prefix`) USING BTREE,
-  ADD KEY `uid_index` (`uid`) USING BTREE;
-
---
--- Indexes for table `t_shop`
---
-ALTER TABLE `t_shop`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `shopcode_unique` (`shop_code`) USING BTREE,
-  ADD KEY `shopcode_index` (`shop_code`) USING BTREE;
-
---
--- Indexes for table `t_stock`
---
-ALTER TABLE `t_stock`
-  ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `uid_unique` (`inv_code`) USING BTREE,
-  ADD KEY `uid_index` (`inv_code`) USING BTREE;
-
---
--- Indexes for table `t_transaction_d`
---
-ALTER TABLE `t_transaction_d`
-  ADD PRIMARY KEY (`uid`),
-  ADD KEY `uid_index` (`uid`) USING BTREE,
-  ADD KEY `transcode_unique` (`trans_code`) USING BTREE;
-
---
--- Indexes for table `t_transaction_h`
---
-ALTER TABLE `t_transaction_h`
-  ADD PRIMARY KEY (`uid`) USING BTREE,
-  ADD UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
-  ADD UNIQUE KEY `uid_index` (`uid`) USING BTREE,
-  ADD KEY `transcode_index` (`trans_code`) USING BTREE;
-
---
--- Indexes for table `t_transaction_t`
---
-ALTER TABLE `t_transaction_t`
-  ADD PRIMARY KEY (`uid`) USING BTREE,
-  ADD UNIQUE KEY `transcode_unique` (`trans_code`) USING BTREE,
-  ADD KEY `transcode_index` (`trans_code`) USING BTREE,
-  ADD KEY `uid_index` (`uid`) USING BTREE;
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `t_accounts_info`
---
-ALTER TABLE `t_accounts_info`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `t_audit_log`
---
-ALTER TABLE `t_audit_log`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `t_customers`
---
-ALTER TABLE `t_customers`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
-
---
--- AUTO_INCREMENT for table `t_delivery_note`
---
-ALTER TABLE `t_delivery_note`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `t_district`
---
-ALTER TABLE `t_district`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
-
---
--- AUTO_INCREMENT for table `t_employee`
---
-ALTER TABLE `t_employee`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `t_employee_role`
---
-ALTER TABLE `t_employee_role`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `t_items`
---
-ALTER TABLE `t_items`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
-
---
--- AUTO_INCREMENT for table `t_items_category`
---
-ALTER TABLE `t_items_category`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
-
---
--- AUTO_INCREMENT for table `t_items_price`
---
-ALTER TABLE `t_items_price`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `t_login`
---
-ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
-
---
--- AUTO_INCREMENT for table `t_payment_method`
---
-ALTER TABLE `t_payment_method`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `t_payment_term`
---
-ALTER TABLE `t_payment_term`
-  MODIFY `uid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `t_prefix`
---
-ALTER TABLE `t_prefix`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `t_shop`
---
-ALTER TABLE `t_shop`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `t_stock`
---
-ALTER TABLE `t_stock`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `t_transaction_d`
---
-ALTER TABLE `t_transaction_d`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
-
---
--- AUTO_INCREMENT for table `t_transaction_h`
---
-ALTER TABLE `t_transaction_h`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
-
---
--- AUTO_INCREMENT for table `t_transaction_t`
---
-ALTER TABLE `t_transaction_t`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
