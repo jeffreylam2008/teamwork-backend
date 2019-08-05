@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.7
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Jul 24, 2019 at 12:06 AM
--- Server version: 10.1.30-MariaDB
--- PHP Version: 7.2.1
+-- 主機： localhost
+-- 產生時間： 2019 年 08 月 05 日 17:33
+-- 伺服器版本： 10.3.16-MariaDB
+-- PHP 版本： 7.1.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `teamwork`
+-- 資料庫： `teamwork`
 --
 DROP DATABASE IF EXISTS `teamwork`;
 CREATE DATABASE IF NOT EXISTS `teamwork` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
@@ -28,7 +28,7 @@ USE `teamwork`;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_accounts_info`
+-- 資料表結構 `t_accounts_info`
 --
 
 CREATE TABLE `t_accounts_info` (
@@ -46,7 +46,7 @@ CREATE TABLE `t_accounts_info` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_accounts_info`
+-- 傾印資料表的資料 `t_accounts_info`
 --
 
 INSERT INTO `t_accounts_info` (`uid`, `cust_code`, `company_BR`, `company_sign`, `group_name`, `attn`, `tel`, `fax`, `email`, `create_date`, `modify_date`) VALUES
@@ -58,7 +58,7 @@ INSERT INTO `t_accounts_info` (`uid`, `cust_code`, `company_BR`, `company_sign`,
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_audit_log`
+-- 資料表結構 `t_audit_log`
 --
 
 CREATE TABLE `t_audit_log` (
@@ -71,7 +71,7 @@ CREATE TABLE `t_audit_log` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_customers`
+-- 資料表結構 `t_customers`
 --
 
 CREATE TABLE `t_customers` (
@@ -104,7 +104,7 @@ CREATE TABLE `t_customers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_customers`
+-- 傾印資料表的資料 `t_customers`
 --
 
 INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `employee_code`, `attn_1`, `phone_1`, `fax_1`, `email_1`, `attn_2`, `phone_2`, `fax_2`, `email_2`, `statement_remark`, `name`, `pm_code`, `pt_code`, `remark`, `district_code`, `delivery_addr`, `from_time`, `to_time`, `delivery_remark`, `status`, `create_date`, `modify_date`) VALUES
@@ -124,7 +124,7 @@ INSERT INTO `t_customers` (`uid`, `cust_code`, `mail_addr`, `shop_addr`, `employ
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_delivery_note`
+-- 資料表結構 `t_delivery_note`
 --
 
 CREATE TABLE `t_delivery_note` (
@@ -141,7 +141,7 @@ CREATE TABLE `t_delivery_note` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_district`
+-- 資料表結構 `t_district`
 --
 
 CREATE TABLE `t_district` (
@@ -153,7 +153,7 @@ CREATE TABLE `t_district` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_district`
+-- 傾印資料表的資料 `t_district`
 --
 
 INSERT INTO `t_district` (`uid`, `district_code`, `district_chi`, `district_eng`, `region`) VALUES
@@ -179,7 +179,7 @@ INSERT INTO `t_district` (`uid`, `district_code`, `district_chi`, `district_eng`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_employee`
+-- 資料表結構 `t_employee`
 --
 
 CREATE TABLE `t_employee` (
@@ -197,21 +197,22 @@ CREATE TABLE `t_employee` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_employee`
+-- 傾印資料表的資料 `t_employee`
 --
 
 INSERT INTO `t_employee` (`uid`, `employee_code`, `username`, `password`, `default_shopcode`, `role_code`, `last_login`, `last_token`, `status`, `create_date`, `modify_date`) VALUES
-(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 1232, '2019-07-23 21:25:17', 'e99429f774353a110a5916a123cd95eb', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53');
+(1, 123456, 'iamadmin', 'pa4.HHSXL55NA', 'HQ01', 1232, '2019-08-04 02:36:02', 'd700da57ba78eb7b0c48c4e04dfd98c0', 1, '2019-03-13 19:33:53', '2019-03-13 19:33:53'),
+(2, 15543, 'myname', 'pa4.HHSXL55NA', 'HQ02', 1232, '2019-08-04 00:00:00', '', 1, '2019-08-04 00:00:00', '2019-08-04 00:00:00');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_employee_access`
+-- 資料表結構 `t_employee_access`
 --
 
 CREATE TABLE `t_employee_access` (
   `uid` int(10) NOT NULL,
-  `role_code` int(10) NOT NULL,
+  `employee_code` int(10) NOT NULL,
   `type` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `sub_type` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
   `a_create` tinyint(1) NOT NULL,
@@ -223,7 +224,7 @@ CREATE TABLE `t_employee_access` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_employee_role`
+-- 資料表結構 `t_employee_role`
 --
 
 CREATE TABLE `t_employee_role` (
@@ -236,18 +237,16 @@ CREATE TABLE `t_employee_role` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_employee_role`
+-- 傾印資料表的資料 `t_employee_role`
 --
 
 INSERT INTO `t_employee_role` (`uid`, `role_code`, `name`, `access_level`, `create_date`, `modify_date`) VALUES
-(1, 1232, 'Sales', '5', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(2, 1234, 'System Operator', '3', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(3, 1235, 'Owner', '9', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+(1, 1232, 'Sales', '5', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_items`
+-- 資料表結構 `t_items`
 --
 
 CREATE TABLE `t_items` (
@@ -265,7 +264,7 @@ CREATE TABLE `t_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_items`
+-- 傾印資料表的資料 `t_items`
 --
 
 INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`, `cate_code`, `unit`, `create_date`, `modify_date`) VALUES
@@ -404,7 +403,7 @@ INSERT INTO `t_items` (`uid`, `item_code`, `eng_name`, `chi_name`, `desc`, `pric
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_items_category`
+-- 資料表結構 `t_items_category`
 --
 
 CREATE TABLE `t_items_category` (
@@ -416,7 +415,7 @@ CREATE TABLE `t_items_category` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_items_category`
+-- 傾印資料表的資料 `t_items_category`
 --
 
 INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modify_date`) VALUES
@@ -429,7 +428,7 @@ INSERT INTO `t_items_category` (`uid`, `cate_code`, `desc`, `create_date`, `modi
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_items_price`
+-- 資料表結構 `t_items_price`
 --
 
 CREATE TABLE `t_items_price` (
@@ -443,7 +442,7 @@ CREATE TABLE `t_items_price` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_login`
+-- 資料表結構 `t_login`
 --
 
 CREATE TABLE `t_login` (
@@ -457,7 +456,7 @@ CREATE TABLE `t_login` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_login`
+-- 傾印資料表的資料 `t_login`
 --
 
 INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `create_date`, `modify_date`) VALUES
@@ -508,16 +507,17 @@ INSERT INTO `t_login` (`uid`, `username`, `shop_code`, `token`, `status`, `creat
 (98, 'iamadmin', 'HQ01', 'f00bd2e1ebac954bf5d1426f21a8a109', 'out', '2019-06-25 22:51:07', '2019-06-26 23:08:10'),
 (99, 'iamadmin', 'HQ01', 'ecaafcda6f8adfc88990ba55ab484759', 'out', '2019-06-26 23:08:15', '2019-06-28 20:52:47'),
 (100, 'iamadmin', 'HQ01', '5d6e464fa5d41f79e767efab66c313af', 'out', '2019-06-28 20:52:47', '2019-07-02 23:36:12'),
-(101, 'iamadmin', 'HQ01', '5c704e990c9cde85d63ec79a6b2ea246', 'out', '2019-07-02 23:36:12', '2019-07-04 23:28:39'),
-(102, 'iamadmin', 'HQ01', 'e424e8ba65c48457ce6f61a840359d89', 'out', '2019-07-04 23:28:39', '2019-07-10 23:00:25'),
-(103, 'iamadmin', 'HQ01', 'cff476d6a1fb43ba01bb3b5e397f99cf', 'out', '2019-07-10 23:00:25', '2019-07-21 23:09:08'),
-(104, 'iamadmin', 'HQ01', 'd7814b59f50021ba903b739ac1ee793f', 'out', '2019-07-21 23:09:08', '2019-07-23 21:25:17'),
-(105, 'iamadmin', 'HQ01', 'e99429f774353a110a5916a123cd95eb', 'in', '2019-07-23 21:25:17', '2019-07-23 23:43:22');
+(101, 'iamadmin', 'HQ01', '5c704e990c9cde85d63ec79a6b2ea246', 'out', '2019-07-02 23:36:12', '2019-07-04 01:25:41'),
+(102, 'iamadmin', 'HQ01', '8e1055b45065aa6e20766525ac22c0dc', 'out', '2019-07-04 01:25:41', '2019-07-06 01:54:44'),
+(103, 'iamadmin', 'HQ01', '369f17714194c36dadacfb19a5b5e827', 'out', '2019-07-06 01:54:44', '2019-07-12 04:48:59'),
+(104, 'iamadmin', 'HQ01', 'cb96e48b48432f5a7ba071aa7d3ea261', 'out', '2019-07-12 04:48:59', '2019-07-30 18:41:16'),
+(105, 'iamadmin', 'HQ01', '1873e8dd90e4b98c3097dcc9cf47ee0f', 'out', '2019-07-30 18:41:16', '2019-08-04 02:36:02'),
+(106, 'iamadmin', 'HQ01', 'd700da57ba78eb7b0c48c4e04dfd98c0', 'in', '2019-08-04 02:36:02', '2019-08-04 11:40:44');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_payment_method`
+-- 資料表結構 `t_payment_method`
 --
 
 CREATE TABLE `t_payment_method` (
@@ -529,7 +529,7 @@ CREATE TABLE `t_payment_method` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_payment_method`
+-- 傾印資料表的資料 `t_payment_method`
 --
 
 INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date`, `modify_date`) VALUES
@@ -539,7 +539,7 @@ INSERT INTO `t_payment_method` (`uid`, `pm_code`, `payment_method`, `create_date
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_payment_term`
+-- 資料表結構 `t_payment_term`
 --
 
 CREATE TABLE `t_payment_term` (
@@ -551,7 +551,7 @@ CREATE TABLE `t_payment_term` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_payment_term`
+-- 傾印資料表的資料 `t_payment_term`
 --
 
 INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_date`) VALUES
@@ -561,7 +561,7 @@ INSERT INTO `t_payment_term` (`uid`, `pt_code`, `terms`, `create_date`, `modify_
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_prefix`
+-- 資料表結構 `t_prefix`
 --
 
 CREATE TABLE `t_prefix` (
@@ -572,7 +572,7 @@ CREATE TABLE `t_prefix` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_prefix`
+-- 傾印資料表的資料 `t_prefix`
 --
 
 INSERT INTO `t_prefix` (`uid`, `prefix`, `desc`, `status`) VALUES
@@ -583,7 +583,7 @@ INSERT INTO `t_prefix` (`uid`, `prefix`, `desc`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_shop`
+-- 資料表結構 `t_shop`
 --
 
 CREATE TABLE `t_shop` (
@@ -598,7 +598,7 @@ CREATE TABLE `t_shop` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_shop`
+-- 傾印資料表的資料 `t_shop`
 --
 
 INSERT INTO `t_shop` (`uid`, `shop_code`, `name`, `phone`, `address1`, `address2`, `create_date`, `modify_date`) VALUES
@@ -608,7 +608,7 @@ INSERT INTO `t_shop` (`uid`, `shop_code`, `name`, `phone`, `address1`, `address2
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_stock`
+-- 資料表結構 `t_stock`
 --
 
 CREATE TABLE `t_stock` (
@@ -624,7 +624,7 @@ CREATE TABLE `t_stock` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_transaction_d`
+-- 資料表結構 `t_transaction_d`
 --
 
 CREATE TABLE `t_transaction_d` (
@@ -642,15 +642,15 @@ CREATE TABLE `t_transaction_d` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_transaction_d`
+-- 傾印資料表的資料 `t_transaction_d`
 --
 
 INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `chi_name`, `qty`, `unit`, `price`, `discount`, `create_date`, `modify_date`) VALUES
-(1, 'INV2019032629', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '95.0', '4X5L', '120.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(2, 'INV2019032629', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '75.0', '20 Ltr / Pail', '180.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
+(1, 'INV2019032629', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-03-26 00:29:29', '2019-03-26 00:30:07'),
+(2, 'INV2019032629', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '2.0', '20 Ltr / Pail', '180.00', '', '2019-03-26 00:29:29', '2019-03-26 00:30:07'),
 (3, 'QTA2019032728', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '2.0', '10 Ltr / Pail', '328.00', '', '2019-03-27 23:11:28', NULL),
 (4, 'QTA2019032728', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '3.0', '20 Ltr / Pail', '180.00', '', '2019-03-27 23:11:28', NULL),
-(5, 'INV2019050643', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '16.0', '20L', '80.00', '', '2019-05-06 23:01:43', '2019-07-05 09:27:54'),
+(5, 'INV2019050643', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '2.0', '20L', '80.00', '', '2019-05-06 23:01:43', NULL),
 (6, 'QTA2019050648', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '1.0', '10 Ltr / Pail', '328.00', '', '2019-05-06 23:03:48', NULL),
 (7, 'QTA2019050648', 'Pentax', '', 'Pentax 水泵', '1.0', '', '1100.00', '', '2019-05-06 23:03:48', NULL),
 (8, 'INV2019050622', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '4X5L', '120.00', '', '2019-05-06 23:04:22', NULL),
@@ -661,26 +661,12 @@ INSERT INTO `t_transaction_d` (`uid`, `trans_code`, `item_code`, `eng_name`, `ch
 (13, 'INV2019051940', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '3.0', '4X5L', '120.00', '', '2019-05-19 22:04:40', NULL),
 (14, 'INV2019062301', 'DD0120', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '1.0', '20L', '80.00', '', '2019-06-23 22:47:01', NULL),
 (15, 'QTA2019062302', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '5.0', '4X5L', '120.00', '', '2019-06-23 22:52:02', NULL),
-(16, 'QTA2019062302', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2019-06-23 22:52:02', NULL),
-(17, 'INV2019032629', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '95.0', '4X5L', '120.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(18, 'INV2019032629', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '75.0', '20 Ltr / Pail', '180.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(19, 'INV2019032629', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '95.0', '4X5L', '120.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(20, 'INV2019032629', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '75.0', '20 Ltr / Pail', '180.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(21, 'INV2019032629', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '95.0', '4X5L', '120.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(22, 'INV2019032629', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '75.0', '20 Ltr / Pail', '180.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(23, 'INV2019032629', 'DD0405', 'Dishmachine Detergent', 'DD-100 洗碗碟機鹼液', '95.0', '4X5L', '120.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(24, 'INV2019032629', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '75.0', '20 Ltr / Pail', '180.00', '', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
-(25, 'QTA2019070526', 'DA0110', 'Graese Trap Cleaner', 'Drain Away 隔油池化油劑', '6.0', '10 Ltr / Pail', '328.00', '', '2019-07-05 09:47:27', NULL),
-(26, 'QTA2019070526', 'Pentax', '', 'Pentax 水泵', '9.0', '', '1100.00', '', '2019-07-05 09:47:27', NULL),
-(27, 'QTA2019070526', 'GT0205', 'Grease Trap Degreaser', 'GT-100 隔油池化油劑', '11.0', '2x5L', '340.00', '', '2019-07-05 09:47:27', NULL),
-(28, 'QTA2019070526', 'HF0105', 'Foam Type Hand Soap', 'H 1 消毒泡沬洗手皂液 ', '1.0', '5 KGS / Pail', '100.00', '', '2019-07-05 09:47:27', NULL),
-(29, 'QTA2019070526', 'DR01', 'Plate Rack', '洗碗碟機用針篩', '33.0', '1 Pcs', '60.00', '', '2019-07-05 09:47:27', NULL),
-(30, 'QTA2019070526', 'DR04', '', '8格刀叉籃', '1.0', '1 Pcs', '50.00', '', '2019-07-05 09:47:27', NULL);
+(16, 'QTA2019062302', 'DF0120', 'Concentrated Dishwasher Drying Agent', 'Dry F lash 高濃縮洗碗碟機快乾劑', '1.0', '20 Ltr / Pail', '180.00', '', '2019-06-23 22:52:02', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_transaction_h`
+-- 資料表結構 `t_transaction_h`
 --
 
 CREATE TABLE `t_transaction_h` (
@@ -700,13 +686,13 @@ CREATE TABLE `t_transaction_h` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_transaction_h`
+-- 傾印資料表的資料 `t_transaction_h`
 --
 
 INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code`, `prefix`, `total`, `employee_code`, `shop_code`, `remark`, `is_void`, `is_convert`, `create_date`, `modify_date`) VALUES
-(1, 'INV2019032629', 'C150405', '', 'INV', '11413.00', 123456, 'HQ01', '', 0, 0, '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
+(1, 'INV2019032629', 'C150405', '', 'INV', '480.00', 123456, 'HQ01', '', 0, 0, '2019-03-26 00:29:29', '2019-03-26 00:30:07'),
 (2, 'QTA2019032728', 'C150403', '', 'QTA', '1196.00', 123456, 'HQ02', '', 0, 1, '2019-03-27 23:11:28', '2019-05-06 23:01:43'),
-(3, 'INV2019050643', 'C150402', 'QTA2019032728', 'INV', '1280.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:01:43', '2019-07-05 09:27:54'),
+(3, 'INV2019050643', 'C150402', 'QTA2019032728', 'INV', '160.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:01:43', NULL),
 (4, 'QTA2019050648', 'C150405', '', 'QTA', '1428.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:03:48', NULL),
 (5, 'INV2019050622', 'C150401', '', 'INV', '120.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:04:22', NULL),
 (6, 'INV2019050616', 'C150402', '', 'INV', '120.00', 123456, 'HQ02', '', 0, 0, '2019-05-06 23:05:16', NULL),
@@ -715,13 +701,12 @@ INSERT INTO `t_transaction_h` (`uid`, `trans_code`, `cust_code`, `quotation_code
 (10, 'INV2019051254', 'C150402', '', 'INV', '328.00', 123456, 'HQ01', '', 0, 0, '2019-05-12 10:00:36', NULL),
 (11, 'INV2019051940', 'C150402', '', 'INV', '360.00', 123456, 'HQ02', '', 0, 0, '2019-05-19 22:04:40', NULL),
 (12, 'INV2019062301', 'C150403', '', 'INV', '80.00', 123456, 'HQ01', '', 0, 0, '2019-06-23 22:47:01', NULL),
-(13, 'QTA2019062302', 'C150406', '', 'QTA', '780.00', 123456, 'HQ02', '', 0, 0, '2019-06-23 22:52:02', NULL),
-(14, 'QTA2019070526', 'C150409', '', 'QTA', '17738.00', 123456, 'HQ02', 'number of test', 0, 0, '2019-07-05 09:47:27', NULL);
+(13, 'QTA2019062302', 'C150406', '', 'QTA', '780.00', 123456, 'HQ02', '', 0, 0, '2019-06-23 22:52:02', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `t_transaction_t`
+-- 資料表結構 `t_transaction_t`
 --
 
 CREATE TABLE `t_transaction_t` (
@@ -734,13 +719,13 @@ CREATE TABLE `t_transaction_t` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `t_transaction_t`
+-- 傾印資料表的資料 `t_transaction_t`
 --
 
 INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_date`, `modify_date`) VALUES
-(1, 'INV2019032629', 'PM002', '11413.00', '2019-03-26 00:29:29', '2019-07-05 09:27:36'),
+(1, 'INV2019032629', 'PM002', '480.00', '2019-03-26 00:29:29', '2019-03-26 00:30:07'),
 (2, 'QTA2019032728', 'PM001', '1196.00', '2019-03-27 23:11:28', NULL),
-(3, 'INV2019050643', 'PM001', '1280.00', '2019-05-06 23:01:43', '2019-07-05 09:27:54'),
+(3, 'INV2019050643', 'PM001', '160.00', '2019-05-06 23:01:43', NULL),
 (4, 'QTA2019050648', 'PM002', '1428.00', '2019-05-06 23:03:48', NULL),
 (5, 'INV2019050622', 'PM002', '120.00', '2019-05-06 23:04:22', NULL),
 (6, 'INV2019050616', 'PM001', '120.00', '2019-05-06 23:05:16', NULL),
@@ -749,34 +734,34 @@ INSERT INTO `t_transaction_t` (`uid`, `trans_code`, `pm_code`, `total`, `create_
 (9, 'INV2019051254', 'PM001', '328.00', '2019-05-12 10:00:36', NULL),
 (10, 'INV2019051940', 'PM001', '360.00', '2019-05-19 22:04:40', NULL),
 (11, 'INV2019062301', 'PM001', '80.00', '2019-06-23 22:47:01', NULL),
-(12, 'QTA2019062302', 'PM001', '780.00', '2019-06-23 22:52:02', NULL),
-(13, 'QTA2019070526', 'PM001', '17738.00', '2019-07-05 09:47:27', NULL);
+(12, 'QTA2019062302', 'PM001', '780.00', '2019-06-23 22:52:02', NULL);
 
 --
--- Indexes for dumped tables
+-- 已傾印資料表的索引
 --
 
 --
--- Indexes for table `t_accounts_info`
+-- 資料表索引 `t_accounts_info`
 --
 ALTER TABLE `t_accounts_info`
-  ADD PRIMARY KEY (`uid`);
+  ADD PRIMARY KEY (`uid`),
+  ADD UNIQUE KEY `cust_code` (`cust_code`);
 
 --
--- Indexes for table `t_audit_log`
+-- 資料表索引 `t_audit_log`
 --
 ALTER TABLE `t_audit_log`
   ADD PRIMARY KEY (`uid`);
 
 --
--- Indexes for table `t_customers`
+-- 資料表索引 `t_customers`
 --
 ALTER TABLE `t_customers`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `custcode_unique` (`cust_code`);
 
 --
--- Indexes for table `t_delivery_note`
+-- 資料表索引 `t_delivery_note`
 --
 ALTER TABLE `t_delivery_note`
   ADD PRIMARY KEY (`uid`),
@@ -784,26 +769,26 @@ ALTER TABLE `t_delivery_note`
   ADD KEY `delivery_code_index` (`delivery_code`) USING BTREE;
 
 --
--- Indexes for table `t_district`
+-- 資料表索引 `t_district`
 --
 ALTER TABLE `t_district`
   ADD PRIMARY KEY (`uid`);
 
 --
--- Indexes for table `t_employee`
+-- 資料表索引 `t_employee`
 --
 ALTER TABLE `t_employee`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `unique_employee_code` (`employee_code`);
 
 --
--- Indexes for table `t_employee_role`
+-- 資料表索引 `t_employee_role`
 --
 ALTER TABLE `t_employee_role`
   ADD PRIMARY KEY (`uid`);
 
 --
--- Indexes for table `t_items`
+-- 資料表索引 `t_items`
 --
 ALTER TABLE `t_items`
   ADD PRIMARY KEY (`uid`),
@@ -811,7 +796,7 @@ ALTER TABLE `t_items`
   ADD KEY `uid_index` (`item_code`) USING BTREE;
 
 --
--- Indexes for table `t_items_category`
+-- 資料表索引 `t_items_category`
 --
 ALTER TABLE `t_items_category`
   ADD PRIMARY KEY (`uid`),
@@ -820,7 +805,7 @@ ALTER TABLE `t_items_category`
   ADD KEY `uid_index` (`uid`) USING BTREE;
 
 --
--- Indexes for table `t_items_price`
+-- 資料表索引 `t_items_price`
 --
 ALTER TABLE `t_items_price`
   ADD PRIMARY KEY (`uid`),
@@ -828,27 +813,27 @@ ALTER TABLE `t_items_price`
   ADD KEY `uid_index` (`uid`) USING BTREE;
 
 --
--- Indexes for table `t_login`
+-- 資料表索引 `t_login`
 --
 ALTER TABLE `t_login`
   ADD UNIQUE KEY `uid` (`uid`);
 
 --
--- Indexes for table `t_payment_method`
+-- 資料表索引 `t_payment_method`
 --
 ALTER TABLE `t_payment_method`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `pmcode_unique` (`pm_code`) USING BTREE;
 
 --
--- Indexes for table `t_payment_term`
+-- 資料表索引 `t_payment_term`
 --
 ALTER TABLE `t_payment_term`
   ADD PRIMARY KEY (`uid`),
   ADD UNIQUE KEY `ptcode_unique` (`pt_code`) USING BTREE;
 
 --
--- Indexes for table `t_prefix`
+-- 資料表索引 `t_prefix`
 --
 ALTER TABLE `t_prefix`
   ADD PRIMARY KEY (`uid`),
@@ -856,7 +841,7 @@ ALTER TABLE `t_prefix`
   ADD KEY `uid_index` (`uid`) USING BTREE;
 
 --
--- Indexes for table `t_shop`
+-- 資料表索引 `t_shop`
 --
 ALTER TABLE `t_shop`
   ADD PRIMARY KEY (`uid`),
@@ -864,7 +849,7 @@ ALTER TABLE `t_shop`
   ADD KEY `shopcode_index` (`shop_code`) USING BTREE;
 
 --
--- Indexes for table `t_stock`
+-- 資料表索引 `t_stock`
 --
 ALTER TABLE `t_stock`
   ADD PRIMARY KEY (`uid`),
@@ -872,7 +857,7 @@ ALTER TABLE `t_stock`
   ADD KEY `uid_index` (`inv_code`) USING BTREE;
 
 --
--- Indexes for table `t_transaction_d`
+-- 資料表索引 `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
   ADD PRIMARY KEY (`uid`),
@@ -880,7 +865,7 @@ ALTER TABLE `t_transaction_d`
   ADD KEY `transcode_unique` (`trans_code`) USING BTREE;
 
 --
--- Indexes for table `t_transaction_h`
+-- 資料表索引 `t_transaction_h`
 --
 ALTER TABLE `t_transaction_h`
   ADD PRIMARY KEY (`uid`) USING BTREE,
@@ -889,7 +874,7 @@ ALTER TABLE `t_transaction_h`
   ADD KEY `transcode_index` (`trans_code`) USING BTREE;
 
 --
--- Indexes for table `t_transaction_t`
+-- 資料表索引 `t_transaction_t`
 --
 ALTER TABLE `t_transaction_t`
   ADD PRIMARY KEY (`uid`) USING BTREE,
@@ -898,122 +883,122 @@ ALTER TABLE `t_transaction_t`
   ADD KEY `uid_index` (`uid`) USING BTREE;
 
 --
--- AUTO_INCREMENT for dumped tables
+-- 在傾印的資料表使用自動遞增(AUTO_INCREMENT)
 --
 
 --
--- AUTO_INCREMENT for table `t_accounts_info`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_accounts_info`
 --
 ALTER TABLE `t_accounts_info`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `t_audit_log`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_audit_log`
 --
 ALTER TABLE `t_audit_log`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `t_customers`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_customers`
 --
 ALTER TABLE `t_customers`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- AUTO_INCREMENT for table `t_delivery_note`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_delivery_note`
 --
 ALTER TABLE `t_delivery_note`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `t_district`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_district`
 --
 ALTER TABLE `t_district`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
--- AUTO_INCREMENT for table `t_employee`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_employee`
 --
 ALTER TABLE `t_employee`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_employee_role`
+--
+ALTER TABLE `t_employee_role`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `t_employee_role`
---
-ALTER TABLE `t_employee_role`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `t_items`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_items`
 --
 ALTER TABLE `t_items`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
 
 --
--- AUTO_INCREMENT for table `t_items_category`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_items_category`
 --
 ALTER TABLE `t_items_category`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
--- AUTO_INCREMENT for table `t_items_price`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_items_price`
 --
 ALTER TABLE `t_items_price`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `t_login`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_login`
 --
 ALTER TABLE `t_login`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
 
 --
--- AUTO_INCREMENT for table `t_payment_method`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_payment_method`
 --
 ALTER TABLE `t_payment_method`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `t_payment_term`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_payment_term`
 --
 ALTER TABLE `t_payment_term`
   MODIFY `uid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `t_prefix`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_prefix`
 --
 ALTER TABLE `t_prefix`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `t_shop`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_shop`
 --
 ALTER TABLE `t_shop`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `t_stock`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_stock`
 --
 ALTER TABLE `t_stock`
   MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `t_transaction_d`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_transaction_d`
 --
 ALTER TABLE `t_transaction_d`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
--- AUTO_INCREMENT for table `t_transaction_h`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_transaction_h`
 --
 ALTER TABLE `t_transaction_h`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- AUTO_INCREMENT for table `t_transaction_t`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `t_transaction_t`
 --
 ALTER TABLE `t_transaction_t`
-  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -77,53 +77,6 @@ $app->group('/api/v1/systems/employees', function () {
         }
     });
 
-     /**
-     * employee GET request
-     * employee-get
-     * 
-     * To get all employee role information 
-     */
-    $this->get('/roles/', function (Request $request, Response $response, array $args) {
-        $err1 = [];
-        $err[0] = "";
-        $err[1] = "";
-        $_data = "";
-        $pdo = new Database();
-        $db = $pdo->connect_db();
-        $q = $db->prepare("
-            SELECT * FROM `t_employee_role`;
-        ");
-        $q->execute();
-        $err1 = $q->errorinfo();
-        // SQL Query success
-        if($err1[0] == "00000")
-        {
-            $err[0] = "00000";
-            $err[1] = "";
-            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
-        }
-        else
-        {
-            $err[0] = "90002";
-            $err[1] = "Something went wrong on fetch employee API";
-        }
-        // disconnect DB
-        $pdo->disconnect_db();
-
-        if(!empty($_data))
-        {
-            $callback = [
-                "query" => $_data,
-                "error" => [
-                    "code" => $err[0], 
-                    "message" => $err[1]
-                ]
-            ];
-            return $response->withJson($callback, 200);
-        }
-
-    });
-
     /**
      * employee GET request
      * employee-get
