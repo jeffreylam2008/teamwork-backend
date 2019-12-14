@@ -23,7 +23,7 @@ $app->group('/api/v1/systems/login', function () {
         $_body = json_decode($request->getBody(), true);
 
         // var_dump( $body);
-        if(!empty($_body["username"]) && !empty($_body['password']))
+        if(!empty($_body["username"]) && !empty($_body['password']) && !empty($_body['shopcode']))
         {
             $_err = [];
             $_salt = "password";
@@ -32,7 +32,7 @@ $app->group('/api/v1/systems/login', function () {
             $pdo = new Database();
 		    $db = $pdo->connect_db();
             // SQL statement here
-            $q = $db->prepare("select * from `t_employee` where `username` =  '".$_body['username']."'; ");
+            $q = $db->prepare("select * from `t_employee` where `username` =  '".$_body['username']."' AND `default_shopcode` = '".$_body['shopcode']."'; ");
             $q->execute();
             $_res = $q->fetch();
             $_err = $q->errorinfo();
@@ -63,7 +63,7 @@ $app->group('/api/v1/systems/login', function () {
                             // get back last token
                             $db->beginTransaction();
                             $q = $db->prepare(
-                                "update `t_login` set `status` = 'in', `modify_date` = '".$_now."' WHERE `username` = '".$_body['username']."' AND `token` = '".$last_token."';"
+                                "update `t_login` set `status` = 'in', `modify_date` = '".$_now."' WHERE `username` = '".$_body['username']."' AND `shop_code` = '".$_body['shopcode']."' AND `token` = '".$last_token."';"
                             );
                             $q->execute();
                             $_err['sql'][] = $q->errorinfo();
@@ -80,7 +80,7 @@ $app->group('/api/v1/systems/login', function () {
                             $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['shopcode']);
                             // logout last token
                             $q = $db->prepare(
-                                "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `username` = '".$_body['username']."' AND `status` = 'in';"
+                                "update `t_login` set `status` = 'OUT', `modify_date` = '".$_now."' WHERE `username` = '".$_body['username']."' AND `shop_code` = '".$_body['shopcode']."' AND `status` = 'in';"
                             );
                             $q->execute();
                             $_err['sql'][] = $q->errorinfo();
@@ -143,6 +143,7 @@ $app->group('/api/v1/systems/login', function () {
             "query" => $_dbData,
             "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
         ];
+        
         return $response->withJson($_callback, 200);
     }); // end POST
 

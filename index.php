@@ -48,10 +48,16 @@ require './app/invoices.php';
  * Payment API
  */
  require './app/payments.php';
+
 /**
- * Employee API
+ * Login API
  */
 require './app/login.php';
+
+/**
+ * Logout API
+ */
+require './app/logout.php';
 
 /** 
  * Menu 
@@ -72,5 +78,11 @@ require './app/employee.php';
  * district API
  */
 require './app/district.php';
+
+/**
+ * test
+ */
+require './app/test.php';
+
 
 $app->run();

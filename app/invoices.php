@@ -9,78 +9,38 @@ $app->group('/api/v1/inventory/invoices', function () {
      * To get all invoice record
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
+        $_param = array();
+        $_param = $request->getQueryParams();
+        if(empty($_param['page']) && empty( $_param['nshow']))
+        {
+            $_param['page'] = "50";
+            $_param['nshow'] = "3";
+        }
         $_callback = [];
         $_err = [];
-        $_err2 = [];
-        $_err3 = [];
-        $_pm = [];
-        $_cust = [];
         $_query = [];
         $pdo = new Database();
 	    $db = $pdo->connect_db();
 
         // t_transaction_h SQL
-        $q = $db->prepare("SELECT * FROM `t_transaction_h` as th left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'INV';");
+        //$q = $db->prepare("SELECT * FROM `t_transaction_h` as th left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'INV' LIMIT 9;");
+        $q = $db->prepare("
+        SELECT 
+            th.*,
+            tpm.payment_method, 
+            tc.name as `customer`, 
+            ts.name as `shop_name`,
+            ts.shop_code
+        FROM `t_transaction_h` as th 
+        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
+        LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
+        LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
+        WHERE th.prefix = 'INV' LIMIT ".$_param['page'].", ".$_param['nshow'].";
+        ");
         $q->execute();
         $_err = $q->errorinfo();
         $_res = $q->fetchAll(PDO::FETCH_ASSOC);
-    
-        // t_payment_method SQL
-        $q = $db->prepare("SELECT pm_code, payment_method FROM `t_payment_method`;");
-        $q->execute();
-        $_err2 = $q->errorinfo();
-        $_res2 = $q->fetchAll(PDO::FETCH_ASSOC);
-        
-        // t_customers SQL
-        $q = $db->prepare("SELECT * FROM `t_customers`;");
-        $q->execute();
-        $_err3 = $q->errorinfo();
-        $_res3 = $q->fetchAll(PDO::FETCH_ASSOC);
-        
-        // t_shop SQL
-        $q = $db->prepare("SELECT * FROM `t_shop`;");
-        $q->execute();
-        $_err4 = $q->errorinfo();
-        $_res4 = $q->fetchAll(PDO::FETCH_ASSOC);
-
-        //disconnection DB
-        $pdo->disconnect_db();
-
-        // convert payment_method to key and value array
-        foreach($_res2 as $k => $v)
-        {  
-            extract($v);
-            $_pm[$pm_code] = $payment_method;
-        }
-        // convert customer to key and value array
-        foreach($_res3 as $k => $v)
-        {
-            extract($v);
-            $_cust[$cust_code] = $v;
-        }
-
-        foreach ($_res4 as $k => $v) {
-            extract($v);
-            $_shops[$shop_code] = $v;
-        }
-        // Map payment_method to array
-        foreach($_res as $k => $v)
-        {
-            if(array_key_exists($v['pm_code'],$_pm))
-            {
-                $_res[$k]['payment_method'] = $_pm[$v['pm_code']];
-            }
-            if(array_key_exists($v['cust_code'], $_cust))
-            {
-                $_res[$k]['customer'] = $_cust[$v['cust_code']]['name'];
-            }
-            if(array_key_exists($v['shop_code'], $_shops))
-            {
-                $_res[$k]['shop_name'] = $_shops[$v['shop_code']]['name'];
-            }
-        }
-    
-        //var_dump($_cust);
     
         // export data
         if(!empty($_res))
@@ -127,9 +87,12 @@ $app->group('/api/v1/inventory/invoices', function () {
                 th.remark as 'remark',
                 th.shop_code as 'shopcode',
                 th.cust_code as 'cust_code',
-                th.total as 'total'
+                th.total as 'total',
+                tc.name 
             FROM `t_transaction_h` as th
-            left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.trans_code = '".$_trans_code."';
+            LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code
+            LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+            WHERE th.trans_code = '".$_trans_code."';
         ";
         $sql2 = "
             SELECT 
@@ -142,9 +105,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 discount
             FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';
         ";
-        $sql3 = "
-            SELECT * FROM `t_customers`;
-        ";
+        
         // execute SQL Statement 1
         $q = $db->prepare($sql);
         $q->execute();
@@ -155,11 +116,6 @@ $app->group('/api/v1/inventory/invoices', function () {
         $q->execute();
         $_err2 = $q->errorinfo();
         $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
-        // execute SQL statement 3
-        $q = $db->prepare($sql3);
-        $q->execute();
-        $_err3 = $q->errorinfo();
-        $res3 = $q->fetchAll(PDO::FETCH_ASSOC);
         
         //disconnection DB
         $pdo->disconnect_db();
@@ -171,25 +127,14 @@ $app->group('/api/v1/inventory/invoices', function () {
             foreach ($res2 as $key => $val) {
                  $_query["items"] = $res2;
             }
-            // Get customer data from DB
-            foreach($res3 as $k => $v)
-            {
-                extract($v);
-                $_customers[$cust_code] = $v;
-            }
-            // customer data marge
-            if(array_key_exists($_query['cust_code'], $_customers))
-            {
-                $_query['customer'] = [
-                    "cust_code" => $_query['cust_code'],
-                    "name" => $_customers[$_query['cust_code']]['name']
-                ];
-            }
             // calcuate subtotal
-            foreach($_query["items"] as $k => $v)
+            if(!empty($_query["items"]))
             {
-                extract($v);
-                $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
+                foreach($_query["items"] as $k => $v)
+                {
+                    extract($v);
+                    $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
+                }
             }
             //var_dump($_query);
             $_callback['query'] = $_query;

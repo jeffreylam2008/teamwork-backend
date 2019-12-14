@@ -29,6 +29,33 @@ $app->group('/api/v1/systems/shops', function () {
         return $response->withJson($callback, 200);
     });
 
+    /**
+     * Shop GET request with ID
+     * shop-get
+     * 
+     * To get shop record 
+     */
+     $this->get('/{shop_code}', function (Request $request, Response $response, array $args) {
+        $err = [];
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        $_shop_code = $args['shop_code'];
+        $q = $db->prepare("select * from `t_shop` wHERE `shop_code` = '".$_shop_code."';");
+        $q->execute();
+        $err = $q->errorinfo();
+        $res = $q->fetch(PDO::FETCH_ASSOC);
+        // disconnect DB
+        $pdo->disconnect_db();
+        if(!empty($res))
+        {
+            $callback = [
+                "query" => $res,
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            ];
+            return $response->withJson($callback, 200);
+        }
+    });
+
      /**
      * Shop Patch request
      * shop-patch
