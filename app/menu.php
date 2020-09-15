@@ -13,8 +13,11 @@ $app->group('/api/v1/systems/menu', function () {
         $data = [
             ["order" => 0, "id" => 2, "parent_id" => "", "name" => "Dushboard", "isParent" => "", "slug"=>"dushboard", "param" => "dushboard/index"],
             ["order" => 0, "id" => 5, "parent_id" => "", "name" => "Customers", "isParent" => "", "slug"=>"customers", "param" => "customers/index"],
+            ["order" => 0, "id" => 7, "parent_id" => "", "name" => "Suppliers", "isParent" => "", "slug"=>"suppliers", "param" => "suppliers/index"],
             ["order" => 0, "id" => 3, "parent_id" => "", "name" => "Products", "isParent" => "", "slug"=>"", "param" => "products/index"],
             ["order" => 0, "id" => 4, "parent_id" => "", "name" => "Inventories", "isParent" => "", "slug"=>"", "param" => "inventories/index"],
+            ["order" => 0, "id" => 8, "parent_id" => "", "name" => "Purchases", "isParent" => "", "slug"=>"", "param" => "purchases/index"],
+            ["order" => 0, "id" => 9, "parent_id" => "", "name" => "Warehouse", "isParent" => "", "slug"=>"", "param" => "stock/index"],
             ["order" => 0, "id" => 23, "parent_id" => 3, "name" => "Items", "isParent" => "", "slug"=>"products/items", "param" => "items/index"],		
             ["order" => 0, "id" => 54, "parent_id" => 3, "name" => "Categories", "isParent" => "", "slug"=>"products/categories", "param" => "categories/index"],
             ["order" => 0, "id" => 65, "parent_id" => 4, "name" => "Invoices", "isParent" => "", "slug"=>"invoices", "param" => "invoices"],
@@ -29,7 +32,10 @@ $app->group('/api/v1/systems/menu', function () {
             ["order" => 0, "id" => 332, "parent_id" => 33, "name" => "List", "isParent" => "", "slug"=>"quotations/list", "param" => "quotations/qualist"],
             ["order" => 0, "id" => 43, "parent_id" => 71, "name" => "Payment Method", "isParent" => "", "slug"=>"administration/payments/method", "param" => "payments/paymentmethod"],
             ["order" => 0, "id" => 45, "parent_id" => 71, "name" => "Payment Term", "isParent" => "", "slug"=>"administration/payments/term", "param" => "payments/paymentterm"],
-            ["order" => 0, "id" => 112, "parent_id" => 5, "name" => "Customers", "isParent" => "", "slug"=>"customers/customers", "param" => "customers/index"],
+            ["order" => 0, "id" => 57, "parent_id" => 8, "name" => "Purchases Order", "isParent" => "", "slug"=>"purchases/order", "param" => "purchases/index"],
+            ["order" => 0, "id" => 58, "parent_id" => 57, "name" => "Create", "isParent" => "", "slug"=>"purchases/order/donew", "param" => "purchases/create"],
+            ["order" => 0, "id" => 59, "parent_id" => 57, "name" => "List", "isParent" => "", "slug"=>"purchases/order", "param" => "purchases/index"],
+            ["order" => 0, "id" => 68, "parent_id" => 9, "name" => "Stock", "isParent" => "", "slug"=>"stocks", "param" => "stocks/index"]
         ];
         $_callback["query"] = $data;
         $_callback["error"] = ["code" => "00000", "message" => "Menu Loaded"];

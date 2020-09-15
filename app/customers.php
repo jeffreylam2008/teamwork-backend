@@ -47,26 +47,26 @@ $app->group('/api/v1/customers', function () use($app) {
             foreach ($res as $key => $val) {
                 $dbData[] = $val;
             }
-
-            if($err1[0] == "00000")
-            {
-                $err[0] = $err1[0];
-                $err[1] = "Success!<br>DB: " .$err1[1]. " ".$err1[2];
-                $_data = $dbData;
-            } 
-            else
-            {
-                $err[0] = $err1[0];
-                $err[1] = "Error<br>DB: " .$err1[1]. " ".$err1[2];
-            }
-
-            $callback = [
-                "query" => $_data, 
-                "error" => ["code" => $err[0], "message" => $err[1]]
-            ];
-
-            return $response->withJson($callback, 200);
         }
+        if($err1[0] == "00000")
+        {
+            $err[0] = $err1[0];
+            $err[1] = "Success!<br>DB: " .$err1[1]. " ".$err1[2];
+            $_data = $dbData;
+        } 
+        else
+        {
+            $err[0] = $err1[0];
+            $err[1] = "Error<br>DB: " .$err1[1]. " ".$err1[2];
+        }
+
+        $callback = [
+            "query" => $_data, 
+            "error" => ["code" => $err[0], "message" => $err[1]]
+        ];
+
+        return $response->withJson($callback, 200);
+    
     });
 
     /**
@@ -85,6 +85,8 @@ $app->group('/api/v1/customers', function () use($app) {
 		$db = $pdo->connect_db();
         $q = $db->prepare("
         SELECT tc.*, 
+        (SELECT `cust_code` FROM `t_customers` WHERE `cust_code` < '".$_cust_code."' ORDER BY `cust_code` DESC LIMIT 1) as `previous`,
+        (SELECT `cust_code` FROM `t_customers` WHERE `cust_code` > '".$_cust_code."' ORDER BY `cust_code` LIMIT 1) as `next`,
         td.district_chi,
         td.district_eng,
         td.region,
@@ -148,7 +150,9 @@ $app->group('/api/v1/customers', function () use($app) {
 		$pdo = new Database();
 		$db = $pdo->connect_db();
 		// POST Data here
-		$body = json_decode($request->getBody(), true);
+        $body = json_decode($request->getBody(), true);
+        if(empty($body["i-from_time"])) $body["i-from_time"] = "00:00";
+        if(empty($body["i-to_time"])) $body["i-to_time"] = "00:00";
         $_now = date('Y-m-d H:i:s');
         
         //var_dump($body);
@@ -160,8 +164,13 @@ $app->group('/api/v1/customers', function () use($app) {
         if($err1[0] == "00000")
         {
             $res = $q1->fetch();
+            if(empty($res['cust_code']))
+            {
+                $res['cust_code'] = "00";
+            }
             $cust_code = substr($res['cust_code'],1);
             $cust_code = (int) $cust_code + 1;
+            $cust_code = str_pad($cust_code, 5, "0", STR_PAD_LEFT);
             $cust_code = "C".$cust_code;
             $q2 = $db->prepare("
                 INSERT INTO `t_customers` (
@@ -202,17 +211,18 @@ $app->group('/api/v1/customers', function () use($app) {
             
             $q3= $db->prepare("
                 INSERT INTO `t_accounts_info` (
-                    `cust_code`,`company_br`,`company_sign`,`group_name`,
-                    `attn`, `tel`, `fax`,`email`
+                    `cust_code`,`company_br`,`company_sign`,`group_name`, `email`,
+                    `attn`, `tel`, `fax`, `create_date`
                 ) VALUES (
                     '".$cust_code."',
                     '".$body["i-acc_company_br"]."',
                     '".$body["i-acc_company_sign"]."',
                     '".$body["i-acc_group_name"]."',
+                    '".$body["i-acc_email"]."',
                     '".$body["i-acc_attn"]."',
                     '".$body["i-acc_phone"]."',
                     '".$body["i-acc_fax"]."',
-                    '".$body["i-acc_email"]."'
+                    '".$_now."'
                 );
                 
             ");
@@ -227,7 +237,7 @@ $app->group('/api/v1/customers', function () use($app) {
         $db->commit();
         // disconnect DB
         $pdo->disconnect_db();
-        if($err2[0] == "00000")
+        if($err2[0] == "00000" && $err3[0] == "00000")
         {
             $err[0] = $err2[0];
             $err[1] = "Customer Code: ".$cust_code. " created!";
@@ -236,7 +246,7 @@ $app->group('/api/v1/customers', function () use($app) {
         else
         {
             $err[0] = $err2[0];
-            $err[1] = "Error! DB: ".$err2[1] . " " . $err2[2];
+            $err[1] = "Error! DB: ".$err2[1]." ".$err2[2] ." " .$err3[1]." ".$err3[2] ;
             $_data = "";
         }
 		$callback = [
@@ -263,6 +273,8 @@ $app->group('/api/v1/customers', function () use($app) {
 		$db = $pdo->connect_db();
 		// POST Data here
         $body = json_decode($request->getBody(), true);
+        if(empty($body["i-from_time"])) $body["i-from_time"] = "00:00";
+        if(empty($body["i-to_time"])) $body["i-to_time"] = "00:00";
         //var_dump($body);
         $_now = date('Y-m-d H:i:s');
     
@@ -344,6 +356,7 @@ $app->group('/api/v1/customers', function () use($app) {
      */
     $app->delete('/{cust_code}', function(Request $request, Response $response, array $args){
         $err1 = [];
+        $err2 = [];
         $err[0] = "";
         $err[1] = "";
         $_has = 0;        
@@ -358,6 +371,12 @@ $app->group('/api/v1/customers', function () use($app) {
         ");
         $q1->execute();
         $err1 = $q1->errorinfo();
+        
+        $q2 = $db->prepare("
+            DELETE FROM `t_accounts_info` WHERE `cust_code` = '".$_cust_code."';
+        ");
+        $q2->execute();
+        $err2 = $q2->errorinfo();
 
         // SQL Query success
         if($err1[0] == "00000")

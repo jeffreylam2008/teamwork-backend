@@ -11,11 +11,11 @@ $app->group('/api/v1/inventory/invoices', function () {
     $this->get('/', function (Request $request, Response $response, array $args) {
         $_param = array();
         $_param = $request->getQueryParams();
-        if(empty($_param['page']) && empty( $_param['nshow']))
-        {
-            $_param['page'] = "50";
-            $_param['nshow'] = "3";
-        }
+        
+        // if(empty($_param['i-end-date']))
+        // {
+        //     $_param['i-end-date'] = strval(date("Y-m-d"));
+        // }
         $_callback = [];
         $_err = [];
         $_query = [];
@@ -36,8 +36,10 @@ $app->group('/api/v1/inventory/invoices', function () {
         LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
         LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
         LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
-        WHERE th.prefix = 'INV' LIMIT ".$_param['page'].", ".$_param['nshow'].";
+        WHERE th.is_void = 0 AND th.prefix = 'INV' AND date(th.create_date) BETWEEN '".$_param['i-start-date']."'
+        AND '".$_param['i-end-date']."' OR th.trans_code = '".$_param['i-invoice-num']."';
         ");
+
         $q->execute();
         $_err = $q->errorinfo();
         $_res = $q->fetchAll(PDO::FETCH_ASSOC);
@@ -80,32 +82,39 @@ $app->group('/api/v1/inventory/invoices', function () {
                 th.trans_code as 'invoicenum',
                 th.create_date as 'date',
                 th.employee_code as 'employee_code',
+                th.refer_code as 'refer_num',
                 th.modify_date as 'modifydate',
                 tt.pm_code as 'paymentmethod',
+                tpm.payment_method as 'paymentmethodname',
                 th.prefix as 'prefix',
                 th.quotation_code as 'quotation',
                 th.remark as 'remark',
                 th.shop_code as 'shopcode',
+                ts.name as 'shopname',
                 th.cust_code as 'cust_code',
-                th.total as 'total',
-                tc.name 
+                tc.name as 'cust_name', 
+                th.total as 'total'
             FROM `t_transaction_h` as th
             LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code
-            LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+            LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code
+            LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
+            LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
             WHERE th.trans_code = '".$_trans_code."';
         ";
         $sql2 = "
             SELECT 
-                item_code,
-                eng_name,
-                chi_name,
-                qty,
-                unit,
-                price,
-                discount
-            FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';
+                td.item_code,
+                td.eng_name,
+                td.chi_name,
+                td.qty,
+                td.unit,
+                td.price,
+                td.discount as 'price_special',
+                tw.qty as 'stockonhand'
+            FROM `t_transaction_d` as td 
+            LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code
+            WHERE trans_code = '".$_trans_code."';
         ";
-        
         // execute SQL Statement 1
         $q = $db->prepare($sql);
         $q->execute();
@@ -133,7 +142,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 foreach($_query["items"] as $k => $v)
                 {
                     extract($v);
-                    $_query["items"][$k]["subtotal"] = number_format(($qty * $price),2);
+                    $_query["items"][$k]["subtotal"] = ($qty * $price);
                 }
             }
             //var_dump($_query);
@@ -149,7 +158,119 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_callback["error"]["message"] = $_err[2];
         return $response->withJson($_callback, 200);
     });
+
+    /**
+     * Next invoice number
+     * Invoice number generator
+     * 
+     * To gen next invoices number
+     */
+    $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
+        $err[0] = "";
+        $err[1] = "";
+        $_data = "";
+        $prefix = "INV";
+        $_max = "00";
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        $q = $db->prepare("
+            SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$prefix."' ORDER BY `create_date` DESC;
+        ");
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        $_data = $q->fetch();
+        
+        if(!empty($_data['max']))
+        {
+            $_max = substr($_data['max'],-2);
+            $_max++;
+            if($_max >= 100)
+            {
+                $_max = 00;
+            }
+        }
+        $_data = $prefix.date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
+
+        $callback = [
+            "query" => $_data,
+            "error" => [
+                "code" => $err[0], 
+                "message" => $err[1]
+            ]
+        ];
     
+        return $response->withJson($callback, 200);
+    });
+
+    /**
+     * Get Prefix
+     * 
+     * To get prefix
+     */
+    $this->get('/getprefix/', function (Request $request, Response $response, array $args) {
+        $err[0] = "";
+        $err[1] = "";
+        $_data = "";
+        $prefix = "INV";
+        $err[1] = "done!";
+        $callback = [
+            "query" => $prefix,
+            "error" => [
+                "code" => $err[0], 
+                "message" => $err[1]
+            ]
+        ];
+    
+        return $response->withJson($callback, 200);
+    });
+
+
+    /**
+     * Invoice GET Request
+     * Invoice-find-latest-record
+     * 
+     * To get single Invoice record
+     */
+    $this->get('/getlast/cust/{cust_code}', function (Request $request, Response $response, array $args) {
+        $_callback = [];
+        $_err = [];
+        $_res = [];
+
+        $cust_code = $args['cust_code'];
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        
+        $sql = "
+        SELECT th.*, 
+        tpm.payment_method, 
+        tc.name as `customer`, 
+        ts.name as `shop_name`, 
+        ts.shop_code 
+        FROM `t_transaction_h` as th 
+        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
+        LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code 
+        LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
+        WHERE th.cust_code = '".$cust_code."' AND th.prefix = 'INV' ORDER BY `create_date` DESC;
+        ";
+
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        if($q->rowCount() != "0")
+        {
+            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        //disconnection DB
+        $pdo->disconnect_db();
+
+        $_callback['query'] = $_res;
+        $_callback["error"]["code"] = $_err[0];
+        $_callback["error"]["message"] = $_err[2];
+        return $response->withJson($_callback, 200);
+    });
+
     /** 
      * PATCH request
      * invoices-patch-by-code
@@ -158,8 +279,7 @@ $app->group('/api/v1/inventory/invoices', function () {
      * to update input to database
      */
     
-    $this->patch('/{trans_code}', function(Request $request, Response $response, array $args)
-    {
+    $this->patch('/{trans_code}', function(Request $request, Response $response, array $args){
         $_err = [];
 		$_done = false;
 		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
@@ -193,10 +313,10 @@ $app->group('/api/v1/inventory/invoices', function () {
             // transaction header
             
             $q = $db->prepare("UPDATE `t_transaction_h` SET 
-                cust_code = '".$customer['cust_code']."',
+                cust_code = '".$cust_code."',
                 quotation_code = '".$quotation."', 
                 total = '".$total."', 
-                employee_code = '".$employeecode."', 
+                employee_code = '".$employee_code."', 
                 shop_code = '".$shopcode."', 
                 remark = '".$remark."', 
                 modify_date =  '".$_now."'
@@ -249,7 +369,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                                 '".$v['qty']."',
                                 '".$v['unit']."',
                                 '".$v['price']."',
-                                '',
+                                '".$v['price_special']."',
                                 '".$date."'
                             );";
                         //echo $sql_d."\n";
@@ -283,7 +403,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 $_callback['query'] = "";
                 $_callback["error"] = [
                     "code" => "00000", 
-                    "message" => "Update Success!"
+                    "message" => $_trans_code ." Update Success!"
                 ]; 
             }
             else
@@ -297,8 +417,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         }
         return $response->withJson($_callback,200);
     });
-    
-    
+
     /**
      * POST request
      * invoices-post
@@ -312,21 +431,20 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
-    
+        // Start transaction 
         $db->beginTransaction();
         // insert record to transaction_h
         $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) 
             values (
                 '".$invoicenum."',
-                '".$customer['cust_code']."',
+                '".$cust_code."',
                 '".$quotation."',
                 '".$prefix."',
                 '".$total."',
-                '".$employeecode."',
+                '".$employee_code."',
                 '".$shopcode."',
                 '".$remark."',
                 '0',
@@ -351,7 +469,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                         '".$v['qty']."',
                         '".$v['unit']."',
                         '".$v['price']."',
-                        '',
+                        '".$v['price_special']."',
                         '".$date."'
                     );
                 ");
@@ -393,7 +511,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_callback['query'] = "";
             $_callback["error"] = [
                 "code" => "00000", 
-                "message" => "Insert Success!"
+                "message" => $invoicenum." Insert Success!"
             ]; 
         }
         else
@@ -409,8 +527,70 @@ $app->group('/api/v1/inventory/invoices', function () {
             ]; 
         }
         return $response->withJson($_callback,200);
-     });
-    
+    });
+
+    /**
+     * Invoices Delete Request
+     * Invoices-delete
+     * 
+     * To remove Invoices record based on invoices code
+     */
+    $this->delete('/{trans_code}', function(Request $request, Response $response, array $args){
+        $_trans_code = $args['trans_code'];
+        $_err = [];
+        $_callback = [
+            'query' => "",
+            'error' => [
+                "code" => "",
+                "message" => ""
+            ]
+        ];
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        // transaction start
+        $db->beginTransaction();
+        // sql statement
+        $sql = "
+            UPDATE `t_transaction_h` SET is_void = '1' WHERE trans_code = '".$_trans_code."';
+        ";
+        // prepare sql statement
+        $q = $db->prepare($sql);
+        // execute statement
+        $q->execute();
+        $_err[0] = $q->errorinfo();
+        $sql = "
+            UPDATE `t_transaction_h` SET is_void = '1' WHERE refer_code = '".$_trans_code."';
+        ";
+        // prepare sql statement
+        $q = $db->prepare($sql);
+        // execute statement
+        $q->execute();
+        $_err[1] = $q->errorinfo();
+        // transaction end
+        $db->commit();
+        // disconnect DB
+        $pdo->disconnect_db();
+
+        // SQL error return
+        if($_err[0][0] = "00000" && $_err[1][0] = "00000")
+        {
+            $_callback['query'] = "";
+            $_callback["error"] = [
+                "code" => "00000", 
+                "message" => $_trans_code . " Deleted!"
+            ]; 
+        }
+        else
+        { 
+            $_callback['query'] = "";
+            $_callback["error"] = [
+                "code" => "99999", 
+                "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]
+            ]; 
+        }
+        return $response->withJson($_callback,200);
+    });
+        
     /**
      * Check transaction_d item exist API
      */
@@ -471,18 +651,19 @@ $app->group('/api/v1/inventory/invoices', function () {
             return $response->withJson($callback, 200);
         });
     });
+
      /**
      * Check transaction_d item exist API
      */
-    $this->group('/transaction/h',function()
-    {
+    $this->group('/transaction/h',function(){
         /**
          * Transaction H GET Request
-         * Trans-h-get-by-cust-code
-         * 
+         * Customer Check
          * To check customer code on transaction h table (use it on delete customer)
+         * 
+         * @param cust_code customer code to look up record
          */
-        $this->get('/{prefix}/{cust_code}', function (Request $request, Response $response, array $args) {
+        $this->get('/{prefix}/customers/{cust_code}', function (Request $request, Response $response, array $args) {
             $err[0] = "";
             $err[1] = "";
             $_data = [];
@@ -519,5 +700,52 @@ $app->group('/api/v1/inventory/invoices', function () {
         
             return $response->withJson($callback, 200);
         });
+        
+        /**
+         * Transaction H GET Request
+         * Supplier Check 
+         * To check Supplier code on transaction h table (use it on delete customer)
+         * 
+         * @param prefix existing prefix 
+         * @param supp_code supplier code to look up record
+         */
+        $this->get('/{prefix}/suppliers/{supp_code}', function (Request $request, Response $response, array $args) {
+            $err[0] = "";
+            $err[1] = "";
+            $_data = [];
+            $supp_code = $args['supp_code'];
+            $prefix = $args['prefix'];
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+
+            $sql = "SELECT * FROM `t_transaction_h` where supp_code = '". $supp_code ."' AND prefix = '".$prefix."';";
+            
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
+            $err = $q->errorinfo();
+            //disconnection DB
+            $pdo->disconnect_db();
+            
+            if(!$_data)
+            {
+                $_data = ["has" => false, "data"=> ""];
+            }
+            else
+            {
+                $_data = ["has" => true, "data"=> $_data];
+            }
+
+            $callback = [
+                "query" => $_data,
+                "error" => [
+                    "code" => $err[0], 
+                    "message" => $err[1]
+                ]
+            ];
+        
+            return $response->withJson($callback, 200);
+        });
+
     });
 });

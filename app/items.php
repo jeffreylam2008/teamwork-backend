@@ -13,7 +13,22 @@ $app->group('/api/v1/products/items', function () {
 
         $pdo = new Database();
         $db = $pdo->connect_db();
-        $q = $db->prepare("SELECT * FROM `t_items` ORDER BY 'item_code';");
+        $q = $db->prepare("
+            SELECT 
+                ti.uid,
+                ti.item_code, 
+                ti.eng_name,
+                ti.chi_name,
+                ti.price,
+                ti.price_special,
+                ti.cate_code,
+                ti.unit,
+                tw.qty as 'stockonhand', 
+                tw.type 
+            FROM `t_items` as  ti
+            LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code
+            ORDER BY ti.item_code;
+        ");
         $q->execute();
         $err = $q->errorinfo();
         //disconnection DB
@@ -31,6 +46,7 @@ $app->group('/api/v1/products/items', function () {
         if($err[0] == "00000")
             return $response->withJson($callback, 200);
     });
+
     /**
      * Items GET Request
      * items-get-by-code
@@ -69,18 +85,24 @@ $app->group('/api/v1/products/items', function () {
         }
         return $response->withJson($callback, 200);
     });
-    /**
-     * 
-     */
 
-    $this->get('/where/{attr:.*}', function(Request $request, Response $response, array $args){
+    /**
+     * Items GET
+     * items-get-by
+     */
+    $this->get('/category/{attr:.*}', function(Request $request, Response $response, array $args){
         $_req = [];
         $_req = $request->getAttribute('attr');
         $_req = str_replace("/","','", $_req);
         
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $q = $db->prepare("select * from `t_items` WHERE cate_code in ( '".$_req."');");
+        $q = $db->prepare("
+            SELECT ti.*, tw.qty as 'stockonhand'
+            FROM `t_items` as ti
+            LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code
+            WHERE cate_code IN ( '".$_req."');
+        ");
         
         $q->execute();
         $dbData = $q->fetchAll();
@@ -92,9 +114,8 @@ $app->group('/api/v1/products/items', function () {
             "query" => $dbData,
             "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
         ];
-    
         return $response->withJson($callback, 200);
-     });
+    });
 
     /**
      * Items GET Request
@@ -107,7 +128,12 @@ $app->group('/api/v1/products/items', function () {
         $_item_code = $args['item_code'];
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $q = $db->prepare("select * from `t_items` WHERE item_code = '".$_item_code."';");
+        $q = $db->prepare("
+            SELECT *,
+            (SELECT `item_code` FROM `t_items` WHERE `item_code` < '".$_item_code."' ORDER BY `item_code` DESC LIMIT 1) as `previous`,
+            (SELECT `item_code` FROM `t_items` WHERE `item_code` > '".$_item_code."' ORDER BY `item_code` LIMIT 1) as `next`
+            FROM `t_items` WHERE item_code = '".$_item_code."';"
+        );
         $q->execute();
         $dbData = $q->fetch();
         $err = $q->errorinfo();
@@ -121,6 +147,7 @@ $app->group('/api/v1/products/items', function () {
     
         return $response->withJson($callback, 200);
     });
+
     /**
      * Items POST Request
      * items-post
@@ -128,7 +155,7 @@ $app->group('/api/v1/products/items', function () {
      * To create new items record 
      */
     $this->post('/',function(Request $request, Response $response, array $args){
-        $err=[];
+        $_err=[];
         $pdo = new Database();
         $db = $pdo->connect_db();
         
@@ -138,7 +165,7 @@ $app->group('/api/v1/products/items', function () {
         $db->beginTransaction();
         
         $_now = date('Y-m-d H:i:s');
-        $q = $db->prepare("insert into t_items (`item_code`, `eng_name` ,`chi_name`, `desc`, `price`, `price_special`, `cate_code`,`unit`, `create_date`) 
+        $q = $db->prepare("insert into t_items (`item_code`, `eng_name` ,`chi_name`, `desc`, `price`, `price_special`, `cate_code`,`unit`, `image_name`, `image_body`, `create_date`) 
             values (
                 '".$body['i-itemcode']."',
                 '".$body['i-engname']."',
@@ -148,21 +175,40 @@ $app->group('/api/v1/products/items', function () {
                 '".$body['i-specialprice']."',
                 '".$body['i-category']."',
                 '".$body['i-unit']."',
+                '".$body['i-img']['name']."',
+                '".$body['i-img']['content']."',
                 '".$_now."'
             );
         ");
         $q->execute();
-        $err = $q->errorinfo();
+        $_err = $q->errorinfo();
+
+        // create warehouse record
+        $q = $db->prepare("insert into t_warehouse (`item_code`, `qty` ,`type`, `create_date`) 
+            values (
+                '".$body['i-itemcode']."',
+                '0',
+                'in',
+                '".$_now."'
+            );
+        ");
+        $q->execute();
+        $_err = $q->errorinfo();
+        
         $db->commit();
         //disconnection DB
         $pdo->disconnect_db();
-
+        if($_err[0] === "00000")
+        {
+            $_err[1] = $body['i-itemcode'] . " - Created Successful!";
+        }
         $callback = [
             "query" => "",
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
         ];
         return $response->withJson($callback,200);
     });
+
     /**
      * Items PATCH Request
      * items-patch
@@ -170,13 +216,21 @@ $app->group('/api/v1/products/items', function () {
      * To update existing record
      */
     $this->patch('/{item_code}', function(Request $request, Response $response, array $args){
-        
+        $_err=[];
+        $_file = "";
         $_item_code = $args['item_code'];
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $_now = date('Y-m-d H:i:s');
-        // // POST Data here
+        //POST Data here
         $body = json_decode($request->getBody(), true);
+
+
+        if(array_key_exists('i-img', $body))
+        {
+            $_file = "`image_name` = '".$body['i-img']['name']."',
+            `image_body` = '".$body['i-img']['content']."',";
+        }
         $db->beginTransaction();
         $q = $db->prepare("
         UPDATE `t_items` SET 
@@ -187,21 +241,26 @@ $app->group('/api/v1/products/items', function () {
         `price_special` = '".$body['i-specialprice']."',
         `cate_code` = '".$body['i-category']."', 
         `unit`= '".$body['i-unit']."',
+        ".$_file."
         `modify_date` = '".$_now."'
         WHERE `item_code` = '".$_item_code."';");
         
         $q->execute();
-        $err = $q->errorinfo();
+        $_err = $q->errorinfo();
         $db->commit();
         //disconnection DB
         $pdo->disconnect_db();
-
+        if($_err[0] === "00000")
+        {
+            $_err[1] = $_item_code . " - Edit Successful!";
+        }
         $callback = [
             "query" => "",
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
         ];
         return $response->withJson($callback, 200);
     });
+
     /**
      * Items DELETE Request
      * items-delete
@@ -214,13 +273,22 @@ $app->group('/api/v1/products/items', function () {
 		$db = $pdo->connect_db();
         $q = $db->prepare("DELETE FROM `t_items` WHERE item_code = '".$_item_code."';");
         $q->execute();
-        $err = $q->errorinfo();
+        $_err = $q->errorinfo();
+        // delete item from warehouse
+        $q = $db->prepare("DELETE FROM `t_warehouse` WHERE item_code = '".$_item_code."';");
+        $q->execute();
+        $_err = $q->errorinfo();
+
         //disconnection DB
         $pdo->disconnect_db();
+        if($_err[0] === "00000")
+        {
+            $_err[1] = $_item_code." - Deleted Successful!";
+        }
 
         $callback = [
             "query" => "",
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
         ];
     
         return $response->withJson($callback, 200);

@@ -35,6 +35,11 @@ require './app/items.php';
 require './app/customers.php';
 
 /**
+ * Suppliers API
+ */
+require './app/suppliers.php';
+
+/**
  * Quotation API
  */
 require './app/quotations.php';
@@ -78,6 +83,21 @@ require './app/employee.php';
  * district API
  */
 require './app/district.php';
+
+/**
+ * Stocks
+ */
+ require './app/stocks.php';
+ 
+/**
+ * Stocks
+ */
+ require './app/transactions.php';
+ 
+/**
+ * purchases
+ */
+require './app/purchases.php';
 
 /**
  * test

@@ -38,7 +38,13 @@ $app->group('/api/v1/products/categories', function() use($app) {
 		$_cate_code = $args['cate_code'];
 		$pdo = new Database();
 		$db = $pdo->connect_db();
-		$q = $db->prepare("select * from `t_items_category` WHERE cate_code = '".$_cate_code."';");
+		$q = $db->prepare("
+			SELECT *,
+			(SELECT `cate_code` FROM `t_items_category` WHERE `cate_code` < '".$_cate_code."' ORDER BY `cate_code` DESC LIMIT 1) as `previous`,
+        	(SELECT `cate_code` FROM `t_items_category` WHERE `cate_code` > '".$_cate_code."' ORDER BY `cate_code` LIMIT 1) as `next`
+			FROM `t_items_category` 
+			WHERE cate_code = '".$_cate_code."';
+		");
 		$q->execute();
 		$dbData = $q->fetch();
 		$err = $q->errorinfo();

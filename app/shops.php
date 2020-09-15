@@ -40,7 +40,13 @@ $app->group('/api/v1/systems/shops', function () {
         $pdo = new Database();
         $db = $pdo->connect_db();
         $_shop_code = $args['shop_code'];
-        $q = $db->prepare("select * from `t_shop` wHERE `shop_code` = '".$_shop_code."';");
+        $q = $db->prepare("
+            SELECT * ,
+            (SELECT `shop_code` FROM `t_shop` WHERE `shop_code` < '".$_shop_code."' ORDER BY `shop_code` DESC LIMIT 1) as `previous`,
+            (SELECT `shop_code` FROM `t_shop` WHERE `shop_code` > '".$_shop_code."' ORDER BY `shop_code` LIMIT 1) as `next`
+            FROM `t_shop` 
+            WHERE `shop_code` = '".$_shop_code."';
+        ");
         $q->execute();
         $err = $q->errorinfo();
         $res = $q->fetch(PDO::FETCH_ASSOC);
