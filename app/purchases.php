@@ -72,7 +72,8 @@ $app->group('/api/v1/purchases/order', function () {
     });
 
     /**
-     * GET PO transaction request 
+     * GET Request 
+     * To PO record 
      * @param trans_code
      */
     $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
@@ -89,7 +90,8 @@ $app->group('/api/v1/purchases/order', function () {
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $sql = "
-            SELECT 
+            SELECT
+                (SELECT COUNT(*) FROM `t_transaction_h` WHERE refer_code = '".$_trans_code."') as `PO_has`,
                 th.trans_code,
                 th.create_date as 'date',
                 th.employee_code as 'employee_code',
@@ -172,9 +174,7 @@ $app->group('/api/v1/purchases/order', function () {
     });
 
     /**
-     * GET Next Number
-     * purchase number generator
-     * 
+     * GET Request
      * To gen next purchase number
      */
     $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
@@ -215,9 +215,8 @@ $app->group('/api/v1/purchases/order', function () {
     });
 
     /**
-     * Get Prefix
-     * 
-     * To get prefix
+     * Get Request
+     * To get PO prefix
      */
     $this->get('/getprefix/', function (Request $request, Response $response, array $args) {
         $err[0] = "";
@@ -237,10 +236,9 @@ $app->group('/api/v1/purchases/order', function () {
     });
 
     /**
-     * GET Last supplier
-     * quotations-find-latest-record
-     * 
-     * To get single quotations record
+     * GET search supplier
+     * To search latest transaction by supplier
+     * @param supp_code supplier code
      */
     $this->get('/getlast/supp/{supp_code}', function (Request $request, Response $response, array $args) {
         $_callback = [];
@@ -426,10 +424,8 @@ $app->group('/api/v1/purchases/order', function () {
 
     /**
      * POST request
-     * Purchase-post
+     * To insert new PO record
      * @param body
-     * 
-     * Add new record to DB
      */
      $this->post('/', function (Request $request, Response $response, array $args) {
         $_err = [];
@@ -445,7 +441,7 @@ $app->group('/api/v1/purchases/order', function () {
         // insert record to transaction_h
         $sql = "insert into t_transaction_h (trans_code, refer_code, supp_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) 
             values (
-                '".$purchasesnum."',
+                '".$purchasenum."',
                 '".$refernum."',
                 '".$suppcode."',
                 '".$prefix."',
@@ -468,7 +464,7 @@ $app->group('/api/v1/purchases/order', function () {
             {
                 $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
                     values (
-                        '".$purchasesnum."',
+                        '".$purchasenum."',
                         '".$v['item_code']."',
                         '".$v['eng_name']."' ,
                         '".$v['chi_name']."' ,
@@ -485,7 +481,7 @@ $app->group('/api/v1/purchases/order', function () {
             // tender information input here
             $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
                 values (
-                    '".$purchasesnum."',
+                    '".$purchasenum."',
                     '".$paymentmethod."',
                     '".$total."',
                     '".$date."'
@@ -504,7 +500,7 @@ $app->group('/api/v1/purchases/order', function () {
             $_callback['query'] = "";
             $_callback["error"] = [
                 "code" => "00000", 
-                "message" => $purchasesnum." Insert Success!"
+                "message" => $purchasenum." Insert Success!"
             ]; 
         }
         else
@@ -524,9 +520,8 @@ $app->group('/api/v1/purchases/order', function () {
     
     /**
      * Delete request
+     * To delete PO record
      * @param body
-     * 
-     * Add new record to DB
      */
     $this->delete('/{trans_code}', function (Request $request, Response $response, array $args) {
         $_trans_code = $args['trans_code'];
