@@ -224,12 +224,59 @@ $app->group('/api/v1/inventory/invoices', function () {
         return $response->withJson($callback, 200);
     });
 
+    /**
+     * GET Invoice information by items and customer code
+     * To show information based on customer code and item code, show previous 5 records of invoices
+     */
+     $this->get('/getinfo/cust/{cust_code}/item/{item_code}', function (Request $request, Response $response, array $args) {
+        $_callback = [];
+        $_err = [];
+        $_res = [];
+
+        $cust_code = $args['cust_code'];
+        $item_code = $args['item_code'];
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        
+        $sql = "
+            SELECT 
+                th.*,
+                td.trans_code, 
+                td.item_code, 
+                td.eng_name, 
+                td.chi_name, 
+                td.unit, 
+                td.price, 
+                td.qty 
+            FROM `t_transaction_h` as th 
+            LEFT JOIN `t_transaction_d` as td
+            ON th.trans_code = td.trans_code
+            WHERE th.cust_code = '".$cust_code."' AND th.prefix = 'INV' AND td.item_code = '".$item_code."' LIMIT 10;
+        ";
+
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        if($q->rowCount() != "0")
+        {
+            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
+        }
+        $pdo->disconnect_db();
+
+        $_callback['query'] = $_res;
+        $_callback["error"]["code"] = $_err[0];
+        $_callback["error"]["message"] = $_err[2];
+
+        //disconnection DB
+        
+        return $response->withJson($_callback, 200);
+    });
 
     /**
      * Invoice GET Request
      * Invoice-find-latest-record
      * 
-     * To get single Invoice record
+     * To get single invoice record by customer code while filter search
      */
     $this->get('/getlast/cust/{cust_code}', function (Request $request, Response $response, array $args) {
         $_callback = [];
