@@ -16,7 +16,7 @@ $app->group('/api/v1/suppliers', function () use($app) {
         $dbData = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $q = $db->prepare("SELECT * FROM `t_suppliers`;");
+        $q = $db->prepare("SELECT * FROM `t_suppliers`");
         $q->execute();
         $err1 = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
@@ -42,7 +42,6 @@ $app->group('/api/v1/suppliers', function () use($app) {
             "query" => $_data, 
             "error" => ["code" => $err[0], "message" => $err[1]]
         ];
-
         return $response->withJson($callback, 200);
     });
 

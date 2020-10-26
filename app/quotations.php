@@ -110,14 +110,17 @@ $app->group('/api/v1/inventory/quotations', function () {
         ";
         $sql2 = "
             SELECT 
-                item_code,
-                eng_name,
-                chi_name,
-                qty,
-                unit,
-                price,
-                discount as 'price_special'
-            FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';
+                td.item_code,
+                td.eng_name,
+                td.chi_name,
+                td.qty,
+                td.unit,
+                td.price,
+                td.discount as 'price_special',
+                tw.qty as 'stockonhand'
+            FROM `t_transaction_d` as td 
+            LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code
+            WHERE td.trans_code = '".$_trans_code."';
         ";
         // execute SQL Statement 1
         $q = $db->prepare($sql);
