@@ -462,7 +462,7 @@ $app->group('/api/v1/purchases/order', function () {
         {
             foreach($items as $k => $v)
             {
-                $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, create_date)
+                $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
                     values (
                         '".$purchasenum."',
                         '".$v['item_code']."',
@@ -471,6 +471,7 @@ $app->group('/api/v1/purchases/order', function () {
                         '".$v['qty']."',
                         '".$v['unit']."',
                         '".$v['price']."',
+                        '".$v['price_special']."',
                         '".$date."'
                     );
                 ");

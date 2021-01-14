@@ -9,17 +9,18 @@ $app->group('/api/v1/inventory/invoices', function () {
      * To get all invoice record
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
-
+        $_param = array();
         $_param = $request->getQueryParams();
-        if(empty($_param["i-start-date"])) $_param["i-start-date"] = "";
-        if(empty($_param["i-end-date"])) $_param["i-end-date"] = "";  
-        if(empty($_param["i-invoice-num"])) $_param["i-invoice-num"] = "";
-
+        
+        // if(empty($_param['i-end-date']))
+        // {
+        //     $_param['i-end-date'] = strval(date("Y-m-d"));
+        // }
         $_callback = [];
         $_err = [];
         $_query = [];
         $pdo = new Database();
-        $db = $pdo->connect_db();
+	    $db = $pdo->connect_db();
 
         // t_transaction_h SQL
         //$q = $db->prepare("SELECT * FROM `t_transaction_h` as th left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'INV' LIMIT 9;");
@@ -44,16 +45,17 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_res = $q->fetchAll(PDO::FETCH_ASSOC);
     
         // export data
-
-        foreach ($_res as $key => $val) {
-            $_query[] = $val;
+        if(!empty($_res))
+        {
+            foreach ($_res as $key => $val) {
+                $_query[] = $val;
+            }
+            $_callback = [
+                "query" => $_query,
+                "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
+            ];
+            return $response->withJson($_callback, 200);
         }
-        $_callback = [
-            "query" => $_query,
-            "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
-        ];
-        return $response->withJson($_callback, 200);
-       
     });
     
     /**
@@ -792,49 +794,5 @@ $app->group('/api/v1/inventory/invoices', function () {
             return $response->withJson($callback, 200);
         });
 
-        /**
-         * Transaction H GET Request
-         * Count number of mothly invoice
-         * @param queryparam start date
-         * @param queryparam end date
-         */
-        $this->get('/{prefix}/count/', function (Request $request, Response $response, array $args) {
-            $_prefix = $args['prefix'];
-            $_param = $request->getQueryParams();
-            if(empty($_param["month"])) $_param["month"] = "";
-            if(empty($_param["year"])) $_param["year"] = "";
-
-            $_callback = [];
-            $_err = [];
-            $_query = [];
-            $pdo = new Database();
-            $db = $pdo->connect_db();
-            
-            $q = $db->prepare("
-            SELECT 
-                count(*) as count,
-                sum(total) as income
-            FROM 
-                `t_transaction_h` as th
-            WHERE th.is_void = 0 AND th.prefix = '".$_prefix."' AND month(th.create_date) = '".$_param['month']."'
-            AND year(th.create_date) = '".$_param['year']."';
-            ");
-
-            $q->execute();
-            $_err = $q->errorinfo();
-            $_res = $q->fetch(PDO::FETCH_ASSOC);
-        
-            // export data
-
-            // foreach ($_res as $key => $val) {
-            //     $_query[] = $val;
-            // }
-            $_callback = [
-                "query" => $_res,
-                "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
-            ];
-            return $response->withJson($_callback, 200);
-       
-        });
     });
 });

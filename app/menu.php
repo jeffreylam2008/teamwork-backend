@@ -36,7 +36,7 @@ $app->group('/api/v1/systems/menu', function () {
             ["order" => 0, "id" => 58, "parent_id" => 57, "name" => "Create", "isParent" => "", "slug"=>"purchases/order/donew", "param" => "purchases/create"],
             ["order" => 0, "id" => 59, "parent_id" => 57, "name" => "List", "isParent" => "", "slug"=>"purchases/order", "param" => "purchases/index"],
             ["order" => 0, "id" => 68, "parent_id" => 9, "name" => "Stock", "isParent" => "", "slug"=>"stocks", "param" => "stocks/index"],
-            ["order" => 0, "id" => 10, "parent_id" => "", "name" => "Report", "isParent" => "", "slug"=>"reports", "param" => "reports/index"]
+            ["order" => 0, "id" => 10, "parent_id" => "", "name" => "Report", "isParent" => "", "slug"=>"report", "param" => "report/index"]
         ];
         $_callback["query"] = $data;
         $_callback["error"] = ["code" => "00000", "message" => "Menu Loaded"];
