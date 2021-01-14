@@ -8,8 +8,11 @@ $c = new \Slim\Container(); //Create Your container
 //Override the default Not Found Handler
 $c['notFoundHandler'] = function ($c) {
     return function ($request, $response) use ($c) {
-        $data = [ 
-            "message" => "param not define" 
+        $data = [
+            "error" => [
+                "code" => "44444",
+                "message" => "param not define" 
+            ]
         ];
         return $c['response']->withJson($data,404);
     };
@@ -32,6 +35,11 @@ require './app/items.php';
 require './app/customers.php';
 
 /**
+ * Suppliers API
+ */
+require './app/suppliers.php';
+
+/**
  * Quotation API
  */
 require './app/quotations.php';
@@ -45,10 +53,16 @@ require './app/invoices.php';
  * Payment API
  */
  require './app/payments.php';
+
 /**
- * Employee API
+ * Login API
  */
 require './app/login.php';
+
+/**
+ * Logout API
+ */
+require './app/logout.php';
 
 /** 
  * Menu 
@@ -59,5 +73,36 @@ require './app/login.php';
  * Shop API
  */
 require './app/shops.php';
+
+/**
+ * employee API
+ */
+require './app/employee.php';
+
+/**
+ * district API
+ */
+require './app/district.php';
+
+/**
+ * Stocks
+ */
+ require './app/stocks.php';
+ 
+/**
+ * Stocks
+ */
+ require './app/transactions.php';
+ 
+/**
+ * purchases
+ */
+require './app/purchases.php';
+
+/**
+ * test
+ */
+require './app/test.php';
+
 
 $app->run();
