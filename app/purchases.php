@@ -83,9 +83,8 @@ $app->group('/api/v1/purchases/order', function () {
         $_callback['has'] = false;
         $_trans_code= $args['trans_code'];
         $_err = [];
-        $_err2 = [];
-        $_err3 = [];
         $_customers = [];
+        $_settlement = 0;
     
         $pdo = new Database();
 		$db = $pdo->connect_db();
@@ -107,7 +106,8 @@ $app->group('/api/v1/purchases/order', function () {
                 th.cust_code as 'cust_code',
                 th.supp_code as 'supp_code',
                 tsp.name as 'supp_name', 
-                th.total as 'total'
+                th.total as 'total',
+                th.is_convert as 'is_settle'
             FROM `t_transaction_h` as th
             LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code
             LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code
@@ -129,6 +129,20 @@ $app->group('/api/v1/purchases/order', function () {
             LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code
             WHERE trans_code = '".$_trans_code."';
         ";
+        $sql3 = "
+            SELECT 
+                sum(td.qty) as 'po_items'
+            FROM `t_transaction_d` as td 
+            LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code
+            WHERE trans_code = '".$_trans_code."';
+        ";
+        $sql4 = "
+            SELECT
+                sum(td.qty) as 'grn_items'
+            FROM `t_transaction_h` as th 
+            LEFT JOIN `t_transaction_d` as td ON th.trans_code = td.trans_code
+            WHERE th.refer_code = '".$_trans_code."';
+        ";
     
         // execute SQL Statement 1
         $q = $db->prepare($sql);
@@ -140,16 +154,35 @@ $app->group('/api/v1/purchases/order', function () {
         $q->execute();
         $_err[] = $q->errorinfo();
         $po_items = $q->fetchAll(PDO::FETCH_ASSOC);
-        
+        $q = $db->prepare($sql3);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        $res3 = $q->fetch();
+        $q = $db->prepare($sql4);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        $res4 = $q->fetch();
+
         //disconnection DB
         $pdo->disconnect_db();
-    
+
+        
+
         // export data
         if(!empty($head))
         {
-            $_query = $head[0];   
+            $_query = $head[0];
+            $_settlement = ($res3['po_items'] - $res4['grn_items']);
             foreach ($po_items as $key => $val) {
                  $_query["items"] = $po_items;
+            }
+            if($_settlement === 0)
+            {
+                $_query["settlement"] = true; 
+            }
+            else
+            {
+                $_query["settlement"] = false; 
             }
             // calcuate subtotal
             if(!empty($_query["items"]))
@@ -310,16 +343,20 @@ $app->group('/api/v1/purchases/order', function () {
         return $response->withJson($_callback, 200);
     });
     /**
-     * 
+     * GET remain item count via GRN
+     * @param refer_code reference code
      */
     $this->get('/getgrn/po/{refer_code}', function (Request $request, Response $response, array $args) {
         // inital variable
         $_grn_combo = [];
         $_callback = [];
+        $_temp = [];
         $_query = [];
         $_callback['has'] = false;
         $_refer_code = $args['refer_code'];
         $_err = [];
+        $_counter = 0;
+        $_counter1 = 0;
         // retrieve GRN items SQL statement
         $pdo = new Database();
 		$db = $pdo->connect_db();
@@ -390,64 +427,200 @@ $app->group('/api/v1/purchases/order', function () {
         $_err[] = $q->errorinfo();
         $po_items = $q->fetchAll(PDO::FETCH_ASSOC);
 
-        // var_dump($po);
-        
         //disconnection DB
         $pdo->disconnect_db();
         
-         // export data
-         if(!empty($head))
-         {
-             $_query = $head[0];
-             // create item template
-             foreach($grn_items as $k => $v)
-             {
-                 $_grn_combo[$v['item_code']] = 0;
-             }
-             // addition same item qty
-             foreach($grn_items as $k => $v)
-             {
-                 $_grn_combo[$v['item_code']] += $v['qty'];
-             }
-             // subtrack same item qty to get remainer
-             foreach($po_items as $k => $v)
-             {  
-                 foreach($_grn_combo as $ik => $iv)
-                 {
-                     if( $v['item_code'] === $ik)
-                     {
-                         $po_items[$k]['qty'] = strval($v['qty'] - $iv);
-                     }
-                 }
-             }
-                 
-             foreach ($po_items as $key => $val) {
-                  $_query["items"] = $po_items;
-             }
-             // calcuate subtotal
-             if(!empty($_query["items"]))
-             {
-                 foreach($_query["items"] as $k => $v)
-                 {
-                     extract($v);
-                     $_query["items"][$k]["subtotal"] = ($qty * $price);
-                 }
-             }
-             //var_dump($_query);
-             $_callback['query'] = $_query;
-             $_callback['has'] = true;
-             $_callback["error"]["code"] = $_err;
-             $_callback["error"]["message"] = $_err;
-             return $response->withJson($_callback, 200);
-         }
-         else
-         {
-             $_callback['query'] = "";
-             $_callback['has'] = false;
-             $_callback["error"]["code"] = "99999";
-             $_callback["error"]["message"] = "Item not found";
-             return $response->withJson($_callback, 404);
-         }
+        // found po on transaction header and has grn record
+        if(!empty($head))
+        {
+            $_query = $head[0];
+            $_query["settlement"] = false;
+            
+            // create item template
+            foreach($grn_items as $k => $v)
+            {
+                $_grn_combo[$v['item_code']] = 0;
+            }
+            // addition same item qty
+            foreach($grn_items as $k => $v)
+            {
+      
+                $_grn_combo[$v['item_code']] += intval($v['qty']);
+            }
+            
+            foreach($po_items as $k => $v)
+            {  
+                $_counter += intval($v['qty']);
+            }
+            
+            // subtrack same item qty to get remainer
+            foreach($po_items as $k => $v)
+            {  
+                foreach($_grn_combo as $ik => $iv)
+                {    
+                    if( $v['item_code'] === $ik)
+                    {
+                        $po_items[$k]['qty'] = (intval($v['qty']) - $iv);
+                        $_counter1 += $iv;
+
+                    }
+                }
+            }
+            
+            
+            // check remain item on list
+            $_counter = $_counter - $_counter1;
+            //var_dump($_counter);
+            if($_counter === 0)
+            {
+                $_query["settlement"] = true;
+            }
+        
+            foreach ($po_items as $key => $val) {
+                $_query["items"] = $po_items;
+            }
+
+            // filter 0 qty items on list
+			foreach($_query['items'] as $k => $v)
+			{
+				if($v['qty'] != 0)
+				{
+					$_temp[] = $_query['items'][$k];
+				}
+			}
+            $_query['items'] = $_temp;
+            
+            // calcuate subtotal
+            if(!empty($_query["items"]))
+            {
+                foreach($_query["items"] as $k => $v)
+                {
+                    extract($v);
+                    $_query["items"][$k]["subtotal"] = ($qty * $price);
+                }
+            }
+            //var_dump($_query);
+            $_callback['query'] = $_query;
+            $_callback['has'] = true;
+            $_callback["error"]["code"] = $_err;
+            $_callback["error"]["message"] = $_err;
+            return $response->withJson($_callback, 200);
+        }
+        else
+        {
+            $_callback['query'] = "";
+            $_callback['has'] = false;
+            $_callback["error"]["code"] = "99999";
+            $_callback["error"]["message"] = "Item not found";
+            return $response->withJson($_callback, 404);
+        }
+    });
+
+    /**
+     * GET settlement info 
+     */
+    $this->get('/settlement/po/{refer_code}',function(Request $request, Response $response, array $args){
+        $_refer_code = $args['refer_code'];
+        $_err = [];
+        $_callback = [];
+        $_query = [];
+
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $sql = "
+            SELECT 
+                tt.trans_code,
+                tt.pm_code,
+                tt.total
+            FROM `t_transaction_h` as th 
+            LEFT JOIN t_transaction_t as tt 
+            ON th.trans_code = tt.trans_code 
+            WHERE th.refer_code = '".$_refer_code."';
+        ";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        $res = $q->fetchAll(PDO::FETCH_ASSOC);
+
+        $sql1 = "
+            SELECT 
+                sum(tt.total) as total
+            FROM `t_transaction_h` as th 
+            LEFT JOIN t_transaction_t as tt 
+            ON th.trans_code = tt.trans_code 
+            WHERE th.refer_code = '".$_refer_code."';
+        ";
+        $q = $db->prepare($sql1);
+        $q->execute();
+        $_err = $q->errorinfo();
+        $total = $q->fetch();
+
+        //disconnection DB
+        $pdo->disconnect_db();
+
+        if(!empty($res))
+        {
+            $_callback['query']['all_grn'] = $res;
+            $_callback['query']['total'] = $total['total'];
+            $_callback["error"]["code"] = $_err[0];
+            $_callback["error"]["message"] = $_err[1];
+            return $response->withJson($_callback, 200);
+        }
+        else
+        {
+            $_callback['query'] = "";
+            $_callback["error"]["code"] = "99999";
+            $_callback["error"]["message"] = "Record not found!";
+            return $response->withJson($_callback, 404);
+        }
+       
+    });
+    /**
+     * Edit PO record
+     * @param trans_code po number
+     */
+    $this->patch('/settlement/po/{trans_code}', function (Request $request, Response $response, array $args){
+        $_err = [];
+		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_now = date('Y-m-d H:i:s');
+        $_trans_code = $args['trans_code'];
+
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+
+        // transaction header
+        $q = $db->prepare("UPDATE `t_transaction_h` SET 
+            is_convert = 1,
+            remark = 'Settled', 
+            modify_date =  '".$_now."'
+            WHERE trans_code = '".$_trans_code."';"
+        );
+        $q->execute();
+        $_err = $q->errorinfo();
+    
+        //disconnection DB
+        $pdo->disconnect_db();
+
+
+        // finish up the flow
+
+        if($_err[0][0] == "00000")
+        {
+            $_callback['query'] = "";
+            $_callback["error"] = [
+                "code" => "00000", 
+                "message" => $_trans_code ." Update Success!"
+            ]; 
+        }
+        else
+        { 
+            $_callback['query'] = "";
+            $_callback["error"] = [
+                "code" => "99999", 
+                "message" => $_err
+            ]; 
+        }
+        return $response->withJson($_callback,200);
     });
 
     /**
@@ -460,6 +633,8 @@ $app->group('/api/v1/purchases/order', function () {
 		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_now = date('Y-m-d H:i:s');
         $_new_res = [];
+        $_trans_code = $args['trans_code'];
+
         $pdo = new Database();
 		$db = $pdo->connect_db();
         //$sql_d = "";
@@ -467,7 +642,6 @@ $app->group('/api/v1/purchases/order', function () {
         $body = json_decode($request->getBody(), true);
         extract($body);
     
-        $_trans_code = $args['trans_code'];
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         $q = $db->prepare($sql);
         $q->execute();

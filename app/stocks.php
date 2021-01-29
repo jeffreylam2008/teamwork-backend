@@ -558,8 +558,8 @@ $app->group('/api/v1/stocks/po/grn', function () {
                 th.remark as 'remark',
                 th.shop_code as 'shop_code',
                 ts.name as 'shopname',
-                th.supp_code as 'suppcode',
-                tsp.name as 'suppname', 
+                th.supp_code as 'supp_code',
+                tsp.name as 'supp_name', 
                 th.total as 'total'
             FROM `t_transaction_h` as th
             LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code
