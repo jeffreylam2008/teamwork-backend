@@ -10,7 +10,18 @@ $app->group('/api/v1/products/items', function () {
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $err=[];
-
+        $_param = $request->getQueryParams();
+        if(empty($_param["show_start"]) && empty($_param["show_end"]))
+        {
+            $show = "";
+        }
+        else
+        {
+            if($_param["show_start"] >= $_param["show_end"])
+                $_param["show_end"] = 99999;
+            $show = "LIMIT ".$_param["show_start"].", ".($_param["show_end"] - $_param["show_start"]);
+        }
+            
         $pdo = new Database();
         $db = $pdo->connect_db();
         $q = $db->prepare("
@@ -19,6 +30,7 @@ $app->group('/api/v1/products/items', function () {
                 ti.item_code, 
                 ti.eng_name,
                 ti.chi_name,
+                ti.desc,
                 ti.price,
                 ti.price_special,
                 ti.cate_code,
@@ -27,8 +39,8 @@ $app->group('/api/v1/products/items', function () {
                 tw.type 
             FROM `t_items` as  ti
             LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code
-            ORDER BY ti.item_code;
-        ");
+            ORDER BY ti.item_code ".$show
+        );
         $q->execute();
         $err = $q->errorinfo();
         //disconnection DB
@@ -165,7 +177,7 @@ $app->group('/api/v1/products/items', function () {
         $db->beginTransaction();
         
         $_now = date('Y-m-d H:i:s');
-        $q = $db->prepare("insert into t_items (`item_code`, `eng_name` ,`chi_name`, `desc`, `price`, `price_special`, `cate_code`,`unit`, `image_name`, `image_body`, `create_date`) 
+        $q = $db->prepare("insert into t_items (`item_code`, `eng_name` ,`chi_name`, `desc`, `price`, `price_special`, `type`, `cate_code`,`unit`, `image_name`, `image_body`, `create_date`) 
             values (
                 '".$body['i-itemcode']."',
                 '".$body['i-engname']."',
@@ -173,6 +185,7 @@ $app->group('/api/v1/products/items', function () {
                 '".$body['i-desc']."',
                 '".$body['i-price']."',
                 '".$body['i-specialprice']."',
+                '".$body['i-type']."',
                 '".$body['i-category']."',
                 '".$body['i-unit']."',
                 '".$body['i-img']['name']."',
@@ -180,6 +193,7 @@ $app->group('/api/v1/products/items', function () {
                 '".$_now."'
             );
         ");
+
         $q->execute();
         $_err = $q->errorinfo();
 

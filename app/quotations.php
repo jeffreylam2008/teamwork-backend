@@ -229,7 +229,9 @@ $app->group('/api/v1/inventory/quotations', function () {
         
         $sql = "
         SELECT 
+            th.prefix,
             td.trans_code, 
+            th.create_date,
             td.item_code, 
             td.eng_name, 
             td.chi_name, 
@@ -239,7 +241,13 @@ $app->group('/api/v1/inventory/quotations', function () {
         FROM `t_transaction_h` as th 
         LEFT JOIN `t_transaction_d` as td 
         ON th.trans_code = td.trans_code 
-        WHERE th.cust_code = '".$cust_code."' AND th.prefix = 'QTA' GROUP BY td.item_code LIMIT 10
+        WHERE th.cust_code = '".$cust_code."' 
+        AND (
+            th.prefix = ( SELECT prefix FROM t_prefix WHERE uid = 1 ) 
+            OR th.prefix = ( SELECT prefix FROM t_prefix WHERE uid = 3) 
+        )
+        GROUP BY td.item_code DESC
+        ORDER BY th.create_date DESC;
         ";
 
         $q = $db->prepare($sql);

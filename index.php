@@ -102,7 +102,13 @@ require './app/purchases.php';
 /**
  * test
  */
+require './app/systems.php';
+
+/**
+ * test
+ */
 require './app/test.php';
+
 
 
 $app->run();

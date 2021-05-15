@@ -7,69 +7,6 @@ use \Psr\Http\Message\ResponseInterface as Response;
  */
 $app->group('/api/v1/stocks/dn', function () {
     /**
-    * GET Operation to get all DN data
-    */
-    // $this->get('/', function (Request $request, Response $response, array $args) {
-    //     $_param = array();
-    //     $_param = $request->getQueryParams();
-    //     $_callback = [];
-    //     $_err = [];
-    //     $_query = [];
-    //     if(empty($_param["i-start-date"])) $_param["i-start-date"] = "";
-    //     if(empty($_param["i-end-date"])) $_param["i-end-date"] = "";
-    //     if(empty($_param["i-dn"])) $_param["i-dn"] = "";
-    //     $pdo = new Database();
-	//     $db = $pdo->connect_db();
-    //     $q1 = $db->prepare("
-    //         SELECT prefix FROM `t_prefix` WHERE `uid` = '4' LIMIT 1;
-    //     ");
-    //     $q1->execute();
-    //     $_err = $q1->errorinfo();
-    //     if($q1->rowCount() != "0")
-    //     {
-    //         $_prefix = $q1->fetch();
-    //     }
-
-    //     // t_transaction_h SQL
-    //     //$q = $db->prepare("SELECT * FROM `t_transaction_h` as th left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'INV' LIMIT 9;");
-    //     $q = $db->prepare("
-    //     SELECT 
-    //         th.*,
-    //         tc.name as `customer`, 
-    //         ts.name as `shop_name`,
-    //         tsp.name as 'supplier',
-    //         ts.shop_code
-    //     FROM `t_transaction_h` as th 
-    //     LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
-    //     LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
-    //     LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code 
-    //     LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-    //     WHERE th.prefix in ('".$_prefix['prefix']."') AND date(th.create_date) BETWEEN '".$_param['i-start-date']."'
-    //     AND '".$_param['i-end-date']."' OR th.trans_code = '".$_param['i-dn']."';
-    //     ");
-
-    //     $q->execute();
-    //     $_err = $q->errorinfo();
-    //     $_res = $q->fetchAll(PDO::FETCH_ASSOC);
-
-    //     //disconnection DB
-    //     $pdo->disconnect_db();
-
-    //     // export data
-    //     // if(!empty($_res))
-    //     // {
-    //         foreach ($_res as $key => $val) {
-    //             $_query[] = $val;
-    //         }
-    //         $_callback = [
-    //             "query" => $_query,
-    //             "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
-    //         ];
-    //         return $response->withJson($_callback, 200);
-    //     // }
-    // });
-
-    /**
      * GET Operation By transaction code
      * @param trans_code transaction code required
      */
@@ -277,17 +214,17 @@ $app->group('/api/v1/stocks/dn', function () {
      */
     $this->get('/getprefix/', function (Request $request, Response $response, array $args) {
         $_err = [];
-        $prefix["prefix"] = "";
+        $prefix = [];
         $pdo = new Database();
         $db = $pdo->connect_db();
         $q1 = $db->prepare("
-            SELECT prefix FROM `t_prefix` WHERE `uid` = '4' LIMIT 1;
+            SELECT * FROM `t_prefix` WHERE `uid` = '4' LIMIT 1;
         ");
         $q1->execute();
         $_err = $q1->errorinfo();
-        if($q1->rowCount() != "0")
+        if($q1->rowCount() > 0)
         {
-            $_prefix = $q1->fetch();
+            $prefix = $q1->fetch();
         }
         // disconnect DB session
         $pdo->disconnect_db();
@@ -305,7 +242,7 @@ $app->group('/api/v1/stocks/dn', function () {
      * POST Operation to Insert new DN information
      * @param body body as required
      */
-     $this->post('/', function (Request $request, Response $response, array $args) {
+    $this->post('/', function (Request $request, Response $response, array $args) {
         $_err = [];
         $_done = false;
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];

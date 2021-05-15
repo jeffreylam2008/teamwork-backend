@@ -90,7 +90,8 @@ $app->group('/api/v1/inventory/invoices', function () {
                 ts.name as 'shopname',
                 th.cust_code as 'cust_code',
                 tc.name as 'cust_name', 
-                th.total as 'total'
+                th.total as 'total',
+                th.is_void as 'is_void'
             FROM `t_transaction_h` as th
             LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code
             LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code
