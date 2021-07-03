@@ -151,8 +151,13 @@ $app->group('/api/v1/systems/login', function () {
                 {
                     // if not match
                     $_dbData = "";
-                    $_err['api']['code'] = "10002";
-                    $_err['api']['msg'] = "Password Incorrect";
+                    $_err['api']['code'] = "100011";
+                    $_err['api']['msg'] = "Username or Password Incorrect";
+                    $_callback = [
+                        "query" => $_dbData,
+                        "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
+                    ];
+                    return $response->withJson($_callback, 401);
                 } // end password not matach
             }
             // username and password, DB no record
@@ -161,6 +166,11 @@ $app->group('/api/v1/systems/login', function () {
                 $_dbData = "";
                 $_err['api']['code'] = "100011 ";
                 $_err['api']['msg'] = "Username or Password Incorrect";
+                $_callback = [
+                    "query" => $_dbData,
+                    "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
+                ];
+                return $response->withJson($_callback, 401);
             }
             $pdo->disconnect_db();
         }
@@ -170,6 +180,11 @@ $app->group('/api/v1/systems/login', function () {
             $_dbData = "";
             $_err['api']['code'] = "100012";
             $_err['api']['msg'] = "Username and Password Cannot Be Empty";
+            $_callback = [
+                "query" => $_dbData,
+                "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
+            ];
+            return $response->withJson($_callback, 404);
         }
         
         // return API

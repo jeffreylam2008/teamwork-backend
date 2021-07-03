@@ -109,13 +109,14 @@ $app->group('/api/v1/products/items', function () {
         
         $pdo = new Database();
 		$db = $pdo->connect_db();
+        
         $q = $db->prepare("
             SELECT ti.*, tw.qty as 'stockonhand'
             FROM `t_items` as ti
             LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code
             WHERE cate_code IN ( '".$_req."');
         ");
-        
+   
         $q->execute();
         $dbData = $q->fetchAll();
         $err = $q->errorinfo();
