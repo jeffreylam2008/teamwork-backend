@@ -162,6 +162,42 @@ $app->group('/api/v1/products/items', function () {
     });
 
     /**
+     * Items GET
+     * get-total-active-items-count
+     * 
+     * To get total number of items
+     */
+    $this->get('/count/',function(Request $request, Response $response, array $args){
+        $err1 = [];
+        $err[0] = "";
+        $err[1] = "";
+
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $q = $db->prepare("SELECT count(*) as count FROM `t_items`;");
+        $q->execute();
+        $err1 = $q->errorinfo();
+        $res = $q->fetch(PDO::FETCH_ASSOC);
+
+        if($err1[0] == "00000")
+        {
+            $err[0] = $err1[0];
+            $err[1] = "Success!<br>DB: " .$err1[1]. " ".$err1[2];
+        } 
+        else
+        {
+            $err[0] = $err1[0];
+            $err[1] = "Error<br>DB: " .$err1[1]. " ".$err1[2];
+        }
+
+        $callback = [
+            "query" => $res, 
+            "error" => ["code" => $err[0], "message" => $err[1]]
+        ];
+        return $response->withJson($callback, 200);
+    });
+
+    /**
      * Items POST Request
      * items-post
      * 

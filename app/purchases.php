@@ -164,9 +164,7 @@ $app->group('/api/v1/purchases/order', function () {
         $res4 = $q->fetch();
 
         //disconnection DB
-        $pdo->disconnect_db();
-
-        
+        $pdo->disconnect_db();        
 
         // export data
         if(!empty($head))
@@ -342,6 +340,7 @@ $app->group('/api/v1/purchases/order', function () {
         
         return $response->withJson($_callback, 200);
     });
+
     /**
      * GET remain item count via GRN
      * @param refer_code reference code
@@ -575,6 +574,57 @@ $app->group('/api/v1/purchases/order', function () {
         }
        
     });
+
+    /**
+     * Check transaction_d item exist API
+     */
+    $this->group('/transaction/h',function(){
+        /**
+         * Transaction H GET Request
+         * Count number of mothly invoice
+         * @param queryparam start date
+         * @param queryparam end date
+         */
+        $this->get('/count/', function (Request $request, Response $response, array $args) {
+            //$_prefix = $args['prefix'];
+            $_param = $request->getQueryParams();
+            if(empty($_param["month"])) $_param["month"] = "";
+            if(empty($_param["year"])) $_param["year"] = "";
+
+            $_callback = [];
+            $_err = [];
+            $_query = [];
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            
+            $q = $db->prepare("
+            SELECT 
+                count(*) as count,
+                sum(total) as expand
+            FROM 
+                `t_transaction_h` as th
+            WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM `t_prefix` WHERE `uid` = '2') AND month(th.create_date) = '".$_param['month']."'
+            AND year(th.create_date) = '".$_param['year']."';
+            ");
+
+            $q->execute();
+            $_err = $q->errorinfo();
+            $_res = $q->fetch(PDO::FETCH_ASSOC);
+        
+            // export data
+
+            // foreach ($_res as $key => $val) {
+            //     $_query[] = $val;
+            // }
+            $_callback = [
+                "query" => $_res,
+                "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
+            ];
+            return $response->withJson($_callback, 200);
+       
+        });
+    });
+
     /**
      * Edit PO record
      * @param trans_code po number

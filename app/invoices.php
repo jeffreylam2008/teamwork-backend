@@ -511,7 +511,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         // insert record to transaction_h
         $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) 
             values (
-                '".$invoicenum."',
+                '".$trans_code."',
                 '".$cust_code."',
                 '".$quotation."',
                 '".$prefix."',
@@ -534,7 +534,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             {
                 $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
                     values (
-                        '".$invoicenum."',
+                        '".$trans_code."',
                         '".$v['item_code']."',
                         '".$v['eng_name']."' ,
                         '".$v['chi_name']."' ,
@@ -551,7 +551,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             // tender information input here
             $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
                 values (
-                    '".$invoicenum."',
+                    '".$trans_code."',
                     '".$paymentmethod."',
                     '".$total."',
                     '".$date."'
@@ -583,7 +583,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_callback['query'] = "";
             $_callback["error"] = [
                 "code" => "00000", 
-                "message" => $invoicenum." Insert Success!"
+                "message" => $trans_code." Insert Success!"
             ]; 
         }
         else
@@ -825,11 +825,11 @@ $app->group('/api/v1/inventory/invoices', function () {
          * @param queryparam start date
          * @param queryparam end date
          */
-        $this->get('/{prefix}/count/', function (Request $request, Response $response, array $args) {
-            $_prefix = $args['prefix'];
+        $this->get('/count/', function (Request $request, Response $response, array $args) {
+            //$_prefix = $args['prefix'];
             $_param = $request->getQueryParams();
-            if(empty($_param["month"])) $_param["month"] = "";
-            if(empty($_param["year"])) $_param["year"] = "";
+            if(empty($_param["month"])) $_param["month"] = date('m');
+            if(empty($_param["year"])) $_param["year"] = date('Y');
 
             $_callback = [];
             $_err = [];
@@ -843,7 +843,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 sum(total) as income
             FROM 
                 `t_transaction_h` as th
-            WHERE th.is_void = 0 AND th.prefix = '".$_prefix."' AND month(th.create_date) = '".$_param['month']."'
+            WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM `t_prefix` WHERE `uid` = '1') AND month(th.create_date) = '".$_param['month']."'
             AND year(th.create_date) = '".$_param['year']."';
             ");
 

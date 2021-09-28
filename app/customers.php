@@ -8,7 +8,7 @@ $app->group('/api/v1/customers', function () use($app) {
      * 
      * To get all customer record
      */
-    $app->get('/', function(Request $request, Response $response, array $args) {
+    $this->get('/', function(Request $request, Response $response, array $args) {
         $err1 = [];
         $_data = "";
         $err[0] = "";
@@ -75,7 +75,7 @@ $app->group('/api/v1/customers', function () use($app) {
      * 
      * To get single record based on the customer code
      */
-    $app->get('/{cust_code}', function(Request $request, Response $response, array $args){
+    $this->get('/{cust_code}', function(Request $request, Response $response, array $args){
         $_cust_code = $args['cust_code'];
         $err1 = [];
         $_data = "";
@@ -135,7 +135,7 @@ $app->group('/api/v1/customers', function () use($app) {
         }
     });
 
-    $app->get('/count/',function(Request $request, Response $response, array $args){
+    $this->get('/count/',function(Request $request, Response $response, array $args){
         $err1 = [];
         $err[0] = "";
         $err[1] = "";
@@ -176,7 +176,7 @@ $app->group('/api/v1/customers', function () use($app) {
      * 
      * To create new record on customer table 
      */
-    $app->post("/", function(Request $request, Response $response, array $args){
+    $this->post("/", function(Request $request, Response $response, array $args){
         $err1 = [];
         $err2 = [];
         $err3 = [];
@@ -298,7 +298,7 @@ $app->group('/api/v1/customers', function () use($app) {
 	 * 
 	 * To update current record on DB
 	 */
-	$app->patch('/{cust_code}', function(Request $request, Response $response, array $args){
+	$this->patch('/{cust_code}', function(Request $request, Response $response, array $args){
         $err1 = [];
         $err2 = [];
         $err[0] = "";
@@ -390,7 +390,7 @@ $app->group('/api/v1/customers', function () use($app) {
 	 * 
      * To delete customer record by customer code
      */
-    $app->delete('/{cust_code}', function(Request $request, Response $response, array $args){
+    $this->delete('/{cust_code}', function(Request $request, Response $response, array $args){
         $err1 = [];
         $err2 = [];
         $err[0] = "";

@@ -248,22 +248,29 @@ $app->group('/api/v1/stocks/dn', function () {
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        // POST Data here
+
+        $refer_num = "";
         $quotation = "";
-        $invoicenum = "";
         $body = json_decode($request->getBody(), true);
         extract($body);
+
+        // Set Invoice to reference number
+        if(!empty($trans_code))
+        {
+            $refer_num = $trans_code;
+        }
+
         // Start transaction 
         $db->beginTransaction();
-
-        // insert record to transaction_h
+        // Insert record to transaction_h
+       
         $q = $db->prepare("
-            INSERT INTO t_transaction_h (trans_code, cust_code ,quotation_code, refer_code, prefix, employee_code, shop_code, remark, create_date) 
+            INSERT INTO t_transaction_h (trans_code, cust_code, quotation_code, refer_code, prefix, employee_code, shop_code, remark, create_date) 
             VALUES (
                 '".$dn_num."',
                 '".$cust_code."',
                 '".$quotation."',
-                '".$invoicenum."',
+                '".$refer_num."',
                 '".$dn_prefix."',
                 '".$employee_code."',
                 '".$shopcode."',
@@ -273,54 +280,51 @@ $app->group('/api/v1/stocks/dn', function () {
         ");
         $q->execute();
         $_err[] = $q->errorinfo();
+
         // insert record to transaction_d
-        if(!empty($db->lastInsertId()))
+        foreach($items as $k => $v)
         {
-            foreach($items as $k => $v)
-            {
-                // deduct stock base on qty
-                $q = $db->prepare("
-                    /* retrieve stockonhand from warehouse table */
-                    SELECT `qty` FROM `t_warehouse` WHERE `item_code` = '".$v['item_code']."' LIMIT 1 INTO @_qty;
-                    /* Insest product to transaction_D */
-                    INSERT INTO t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, pstock, unit, create_date)
-                    VALUES (
-                        '".$dn_num."',
-                        '".$v['item_code']."',
-                        '".$v['eng_name']."' ,
-                        '".$v['chi_name']."' ,
-                        '-".$v['qty']."',
-                        @_qty,
-                        '".$v['unit']."',
-                        '".$date."'
-                    );
-                   
-                    /* update qty */
-                    UPDATE 
-                        `t_warehouse`
-                    SET 
-                        `qty` = @_qty - ".$v['qty'].",
-                        `type` = 'out',
-                        `modify_date` = '".$date."'
-                    WHERE
-                        `item_code` = '".$v['item_code']."';
-                ");
-                $q->execute();
-                $_err[] = $q->errorinfo();
-            }
-            if(!empty($invoicenum))
-            {
-                //update invoice refer_code field as cross referenece
-                $q = $db->prepare("
-                    UPDATE t_transaction_h SET 
-                        refer_code = '".$dn_num."',
-                        modify_date = '".$date."'
-                    WHERE trans_code = '".$invoicenum."';
-                ");
-                $q->execute();
-                $_err[] = $q->errorinfo();
-            }
+            // deduct stock base on qty
+            $q = $db->prepare("
+                SELECT `qty` FROM `t_warehouse` WHERE `item_code` = '".$v['item_code']."' LIMIT 1 INTO @_qty;
+
+                INSERT INTO t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, pstock, unit, create_date)
+                VALUES (
+                    '".$dn_num."',
+                    '".$v['item_code']."',
+                    '".$v['eng_name']."' ,
+                    '".$v['chi_name']."' ,
+                    '-".$v['qty']."',
+                    @_qty,
+                    '".$v['unit']."',
+                    '".$date."'
+                );
+                
+                UPDATE 
+                    `t_warehouse`
+                SET 
+                    `qty` = @_qty - ".$v['qty'].",
+                    `type` = 'out',
+                    `modify_date` = '".$date."'
+                WHERE
+                    `item_code` = '".$v['item_code']."';
+            ");
+            $q->execute();
+            $_err[] = $q->errorinfo();
         }
+        if(!empty($trans_code))
+        {
+            //update invoice refer_code field as cross referenece
+            $q = $db->prepare("
+                UPDATE t_transaction_h SET 
+                    refer_code = '".$dn_num."',
+                    modify_date = '".$date."'
+                WHERE trans_code = '".$trans_code."';
+            ");
+            $q->execute();
+            $_err[] = $q->errorinfo();
+        }
+        
         $db->commit();
         //disconnection DB
         $pdo->disconnect_db();
@@ -330,7 +334,7 @@ $app->group('/api/v1/stocks/dn', function () {
             $_callback['query'] = "";
             $_callback["error"] = [
                 "code" => "00000", 
-                "message" => $dn_num." Insert Success !"
+                "message" => $dn_num." Insert Success!"
             ]; 
         }
         else
@@ -1202,7 +1206,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $q = $db->prepare("
             INSERT INTO t_transaction_h (trans_code, prefix, employee_code, shop_code, remark, create_date) 
             VALUES (
-                '".$num."',
+                '".$trans_code."',
                 '".$prefix."',
                 '".$employee_code."',
                 '".$shopcode."',
@@ -1222,7 +1226,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
                 $q = $db->prepare("
                     INSERT INTO t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, create_date)
                     VALUES (
-                        '".$num."',
+                        '".$trans_code."',
                         '".$v['item_code']."',
                         '".$v['eng_name']."' ,
                         '".$v['chi_name']."' ,
@@ -1244,7 +1248,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
             $_callback['query'] = "";
             $_callback["error"] = [
                 "code" => "00000", 
-                "message" => $num." Insert Success !"
+                "message" => $trans_code." Insert Success !"
             ]; 
             return $response->withJson($_callback,200);
         }
