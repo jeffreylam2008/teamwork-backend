@@ -38,11 +38,26 @@ $app->group('/api/v1/inventory/invoices', function () {
         AND '".$_param['i-end-date']."' OR th.trans_code = '".$_param['i-invoice-num']."';
         ");
 
+        // echo "
+        // SELECT 
+        //     th.*,
+        //     tpm.payment_method, 
+        //     tc.name as `customer`, 
+        //     ts.name as `shop_name`,
+        //     ts.shop_code
+        // FROM `t_transaction_h` as th 
+        // LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
+        // LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+        // LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
+        // LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
+        // WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 1) AND date(th.create_date) BETWEEN '".$_param['i-start-date']."'
+        // AND '".$_param['i-end-date']."' OR th.trans_code = '".$_param['i-invoice-num']."';
+        // ";
         $q->execute();
         $_err = $q->errorinfo();
         $_res = $q->fetchAll(PDO::FETCH_ASSOC);
     
-        // export data
+        //export data
 
         foreach ($_res as $key => $val) {
             $_query[] = $val;
@@ -51,6 +66,8 @@ $app->group('/api/v1/inventory/invoices', function () {
             "query" => $_query,
             "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
         ];
+
+        // $_callback = "";
         return $response->withJson($_callback, 200);
        
     });
@@ -361,7 +378,9 @@ $app->group('/api/v1/inventory/invoices', function () {
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
-    
+        // To convert money format to decimal
+        $total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        
         $_trans_code = $args['trans_code'];
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         $q = $db->prepare($sql);

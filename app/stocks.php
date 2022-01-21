@@ -35,7 +35,7 @@ $app->group('/api/v1/stocks/dn', function () {
                 th.prefix as 'prefix',
                 th.quotation_code as 'quotation',
                 th.remark as 'remark',
-                th.shop_code as 'shop_code',
+                th.shop_code as 'shopcode',
                 ts.name as 'shopname',
                 th.cust_code as 'cust_code',
                 tsp.name as 'cust_name', 
@@ -106,56 +106,6 @@ $app->group('/api/v1/stocks/dn', function () {
         }
         $_callback["error"]["code"] = $_err[0];
         $_callback["error"]["message"] = $_err[2];
-        return $response->withJson($_callback, 200);
-    });
-
-    /**
-     * GET Operation By customer code
-     * @param cust_code customer code required
-     */
-    $this->get('/getlast/cust/{cust_code}', function (Request $request, Response $response, array $args) {
-        $_callback = [];
-        $_err = [];
-        $_res = [];
-
-        $cust_code = $args['cust_code'];
-        $pdo = new Database();
-        $db = $pdo->connect_db();
-        
-        $sql = "
-        SELECT 
-            th.*, 
-            tpm.payment_method, 
-            tc.name as `customer`, 
-            ts.name as `shop_name`, 
-            tsp.name as 'supplier',
-            ts.shop_code 
-        FROM `t_transaction_h` as th 
-        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
-        LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
-        LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code
-        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code 
-        LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code 
-        INNER JOIN ( select cust_code, max(`create_date`) as MaxDate from `t_transaction_h` group by cust_code ) tm 
-        ON th.cust_code = tm.cust_code AND th.`create_date` = tm.MaxDate 
-        WHERE th.cust_code = '".$cust_code."';
-        ";
-
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err = $q->errorinfo();
-        if($q->rowCount() != "0")
-        {
-            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
-        }
-        $pdo->disconnect_db();
-
-        $_callback['query'] = $_res;
-        $_callback["error"]["code"] = $_err[0];
-        $_callback["error"]["message"] = $_err[2];
-
-        //disconnection DB
-        
         return $response->withJson($_callback, 200);
     });
 
@@ -366,13 +316,25 @@ $app->group('/api/v1/stocks', function () {
         $_callback = [];
         $_err = [];
         $_query = [];
+        $_where_trans = "";
+        $_where_date = "";
         if(!empty($_param))
         {
             $pdo = new Database();
             $db = $pdo->connect_db();
             // prefix SQL 
             // in DN, GRN, ADJ, ST
-
+            
+            // only if transaction field param exist
+            if(!empty($_param['i-num']))
+            {
+                $_where_trans = "AND (th.trans_code LIKE ('%".$_param['i-num']."%') OR th.refer_code LIKE ('%".$_param['i-num']."%')) ";
+            }
+            // otherwise follow date range as default
+            else
+            {
+                $_where_date = "AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
+            }
 
             // t_transaction_h SQL
             $q = $db->prepare("
@@ -388,9 +350,9 @@ $app->group('/api/v1/stocks', function () {
             LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code 
             LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
             LEFT JOIN `t_prefix` as tp ON th.prefix = tp.prefix
-            WHERE tp.uid in ('4','5','6','7') AND date(th.create_date) BETWEEN '".$_param['i-start-date']."'
-            AND '".$_param['i-end-date']."' OR th.trans_code = '".$_param['i-dn']."';
+            WHERE tp.uid in ('4','5','6','7') ". $_where_date . $_where_trans.";
             ");
+
     
             $q->execute();
             $_err = $q->errorinfo();
@@ -421,6 +383,101 @@ $app->group('/api/v1/stocks', function () {
             return $response->withJson($_callback, 404);
         }
     });
+    
+    /**
+     * GET Operation By customer code
+     * @param cust_code customer code required
+     */
+    $this->get('/getlast/cust/{cust_code}', function (Request $request, Response $response, array $args) {
+        $_callback = [];
+        $_err = [];
+        $_res = [];
+
+        $cust_code = $args['cust_code'];
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        
+        $sql = "
+        SELECT 
+            th.*, 
+            tpm.payment_method, 
+            tc.name as `customer`, 
+            ts.name as `shop_name`, 
+            tsp.name as 'supplier',
+            ts.shop_code 
+        FROM `t_transaction_h` as th 
+        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
+        LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+        LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code
+        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code 
+        LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code 
+        INNER JOIN ( select cust_code, max(`create_date`) as MaxDate from `t_transaction_h` group by cust_code ) tm 
+        ON th.cust_code = tm.cust_code AND th.`create_date` = tm.MaxDate 
+        WHERE th.cust_code = '".$cust_code."';
+        ";
+
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        if($q->rowCount() != 0)
+        {
+            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
+        }
+        $pdo->disconnect_db();
+
+        $_callback['query'] = $_res;
+        $_callback["error"]["code"] = $_err[0];
+        $_callback["error"]["message"] = $_err[2];
+
+        //disconnection DB
+        return $response->withJson($_callback, 200);
+    });
+
+    /**
+     * GET Operation By supplier code
+     * @param supp_code supplier code required
+     */
+    $this->get('/getlast/supp/{supp_code}', function (Request $request, Response $response, array $args) {
+        $_callback = [];
+        $_err = [];
+        $_res = [];
+
+        $_supp_code = $args['supp_code'];
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        
+        $sql = "
+        SELECT 
+            th.*, 
+            tc.name as `customer`, 
+            ts.name as `shop_name`, 
+            tsp.name as 'supplier',
+            ts.shop_code 
+        FROM `t_transaction_h` as th 
+        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
+        LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+        LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code
+        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code 
+        WHERE th.supp_code = '".$_supp_code."';
+        ";
+        
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err = $q->errorinfo();
+        if($q->rowCount() != 0)
+        {
+            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
+        }
+        $pdo->disconnect_db();
+
+        $_callback['query'] = $_res;
+        $_callback["error"]["code"] = $_err[0];
+        $_callback["error"]["message"] = $_err[2];
+
+        //disconnection DB
+        return $response->withJson($_callback, 200);
+    });
+    
     /**
      * GET Operation to get stockonhand data
      * @param item_code item code required
@@ -663,11 +720,13 @@ $app->group('/api/v1/stocks/po/grn', function () {
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
+        // To convert money format to decimal
+        $total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         // Start transaction 
         $db->beginTransaction();
 
         // insert record to transaction_h
-        $q = $db->prepare("
+        $sql = "
             INSERT INTO t_transaction_h (trans_code, prefix, employee_code, refer_code, supp_code, shop_code, total, remark, create_date) 
             VALUES (
                 '".$grn_num."',
@@ -680,7 +739,9 @@ $app->group('/api/v1/stocks/po/grn', function () {
                 '".$remark."',
                 '".$date."'
             );
-        ");
+        ";
+
+        $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
         // insert record to transaction_d
@@ -689,38 +750,40 @@ $app->group('/api/v1/stocks/po/grn', function () {
             foreach($items as $k => $v)
             {
                 // add stock
-                $q = $db->prepare("
-                    /* retrieve stockonhand from warehouse table */
-                    SELECT `qty` FROM `t_warehouse` WHERE `item_code` = '".$v['item_code']."' LIMIT 1 INTO @_qty;
-                    /* insert items to transaction_d */
-                    INSERT INTO t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, pstock, unit, price, create_date)
-                    VALUES (
-                        '".$grn_num."',
-                        '".$v['item_code']."',
-                        '".$v['eng_name']."' ,
-                        '".$v['chi_name']."' ,
-                        '+".$v['qty']."',
-                        '".$v['stockonhand']."',
-                        '".$v['unit']."',
-                        '".$v['price']."',
-                        '".$date."'
-                    );
 
-                    /* update warehouse stockonhand */
-                    UPDATE 
-                        `t_warehouse`
-                    SET 
-                        `qty` = @_qty + ".$v['qty'].",
-                        `type` = 'in',
-                        `modify_date` = '".$date."'
-                    WHERE
-                        `item_code` = '".$v['item_code']."';
-                ");
+                $sql = "/* retrieve stockonhand from warehouse table */
+                SELECT `qty` FROM `t_warehouse` WHERE `item_code` = '".$v['item_code']."' LIMIT 1 INTO @_qty;
+                /* insert items to transaction_d */
+                INSERT INTO t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, pstock, unit, price, create_date)
+                VALUES (
+                    '".$grn_num."',
+                    '".$v['item_code']."',
+                    '".$v['eng_name']."' ,
+                    '".$v['chi_name']."' ,
+                    '+".$v['qty']."',
+                    '".$v['stockonhand']."',
+                    '".$v['unit']."',
+                    '".$v['price']."',
+                    '".$date."'
+                );
+
+                /* update warehouse stockonhand */
+                UPDATE 
+                    `t_warehouse`
+                SET 
+                    `qty` = @_qty + ".$v['qty'].",
+                    `type` = 'in',
+                    `modify_date` = '".$date."'
+                WHERE
+                    `item_code` = '".$v['item_code']."';";
+
+                $q = $db->prepare($sql);
                 $q->execute();
                 $_err[] = $q->errorinfo();
+                
             }
             // insert record to transaction tender
-            $q = $db->prepare("
+            $sql = "
                 INSERT INTO t_transaction_t (trans_code, pm_code, total, create_date) 
                 VALUES (
                     '".$grn_num."',
@@ -728,7 +791,9 @@ $app->group('/api/v1/stocks/po/grn', function () {
                     '".$total."',
                     '".$date."'
                 );
-            ");
+            ";
+
+            $q = $db->prepare($sql);
             $q->execute();
         }
         $db->commit();

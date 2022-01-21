@@ -11,63 +11,77 @@ $app->group('/api/v1/purchases/order', function () {
     $this->get('/', function (Request $request, Response $response, array $args) {
         $_param = array();
         $_param = $request->getQueryParams();
-
-        if(empty($_param['page']) && empty( $_param['show']))
-        {
-            $_param['page'] = "1";
-            $_param['show'] = "50";
-        }
-        if(empty($_param['i-start-date']) && empty($_param['i-end-date']))
-        {
-            $_param['i-start-date'] = "";
-            $_param['i-end-date'] = "";
-        }
-        if(empty($_param['i-num']))
-        {
-            $_param['i-num'] = "";
-        }
+        //$_prefix['prefix'] = "";
         $_callback = [];
         $_err = [];
         $_query = [];
-        $pdo = new Database();
-	    $db = $pdo->connect_db();
-
-        // t_transaction_h SQL
-        $q = $db->prepare("
-        SELECT 
-            th.*,
-            tpm.payment_method, 
-            tsp.name as `supplier`, 
-            ts.name as `shop_name`,
-            ts.shop_code
-        FROM `t_transaction_h` as th 
-        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
-        LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code 
-        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-        LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
-        WHERE th.is_void = 0 
-        AND th.prefix = 'PO' 
-        AND date(th.create_date) BETWEEN '".$_param['i-start-date']."' 
-        AND '".$_param['i-end-date']."'
-        OR th.trans_code = '".$_param['i-num']."'
-        ORDER BY th.`create_date` DESC;
-        ");
- 
-        $q->execute();
-        $_err = $q->errorinfo();
-        $_res = $q->fetchAll(PDO::FETCH_ASSOC);
-    
-        // export data
-        if(!empty($_res))
+        $_where_trans = "";
+        $_where_date = "";
+        if(!empty($_param))
         {
-            foreach ($_res as $key => $val) {
-                $_query[] = $val;
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            // prefix SQL 
+            // in DN, GRN, ADJ, ST
+            
+            // only if transaction field param exist
+            if(!empty($_param['i-num']))
+            {
+                $_where_trans = "AND (th.trans_code LIKE ('%".$_param['i-num']."%') OR th.refer_code LIKE ('%".$_param['i-num']."%')) ";
             }
+            // otherwise follow date range as default
+            else
+            {
+                $_where_date = "AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
+            }
+
+            // t_transaction_h SQL
+            $q = $db->prepare("
+                SELECT 
+                    th.*,
+                    tc.name as `customer`, 
+                    ts.name as `shop_name`,
+                    tsp.name as 'supplier',
+                    tpm.payment_method as 'payment_method',
+                    ts.shop_code
+                FROM `t_transaction_h` as th 
+                LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
+                LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+                LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code
+                LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
+                LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
+                LEFT JOIN `t_prefix` as tp ON th.prefix = tp.prefix
+                WHERE tp.uid = '2' ". $_where_date . $_where_trans.";
+            ");
+
+    
+            $q->execute();
+            $_err = $q->errorinfo();
+            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            //disconnection DB
+            $pdo->disconnect_db();
+
+            // export data
+            if(!empty($_res))
+            {
+                foreach ($_res as $key => $val) {
+                    $_query[] = $val;
+                }
+                $_callback = [
+                    "query" => $_query,
+                    "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
+                ];
+                return $response->withJson($_callback, 200);
+            }
+        }
+        else
+        {
             $_callback = [
                 "query" => $_query,
-                "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
+                "error" => ["code" => "99999", "message" => "Query String Not Found!"]
             ];
-            return $response->withJson($_callback, 200);
+            return $response->withJson($_callback, 404);
         }
     });
 
@@ -310,17 +324,19 @@ $app->group('/api/v1/purchases/order', function () {
         $db = $pdo->connect_db();
         
         $sql = "
-        SELECT th.*, 
-        tpm.payment_method, 
-        tsp.name as `supplier`, 
-        ts.name as `shop_name`, 
-        ts.shop_code 
+        SELECT 
+            th.*, 
+            tpm.payment_method as `payment_method`, 
+            tsp.name as `supplier`, 
+            ts.name as `shop_name`, 
+            ts.shop_code
         FROM `t_transaction_h` as th 
         LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
         LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code 
         LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code 
         LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code 
-        WHERE th.supp_code = '".$supp_code."' AND th.prefix = 'PO' ORDER BY `create_date` DESC;
+        LEFT JOIN `t_prefix` as tp ON th.prefix = tp.prefix
+        WHERE th.supp_code = '".$supp_code."' AND tp.uid = '2';
         ";
 
         $q = $db->prepare($sql);
@@ -627,6 +643,7 @@ $app->group('/api/v1/purchases/order', function () {
 
     /**
      * Edit PO record
+     * to finish settlement
      * @param trans_code po number
      */
     $this->patch('/settlement/po/{trans_code}', function (Request $request, Response $response, array $args){
@@ -634,14 +651,23 @@ $app->group('/api/v1/purchases/order', function () {
 		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_now = date('Y-m-d H:i:s');
         $_trans_code = $args['trans_code'];
-
+        $_remark = "";
+        $_body = json_decode($request->getBody(), true);
+        foreach($_body as $k => $v)
+        {
+            $_remark .= $v['trans_code'];
+            if($k < (count($_body)-1)){
+                $_remark .= ",";
+            }
+        }
+        
         $pdo = new Database();
 		$db = $pdo->connect_db();
 
         // transaction header
         $q = $db->prepare("UPDATE `t_transaction_h` SET 
             is_convert = 1,
-            remark = 'Settled', 
+            remark = 'Settled\nGRN: ".$_remark."', 
             modify_date =  '".$_now."'
             WHERE trans_code = '".$_trans_code."';"
         );
@@ -651,9 +677,7 @@ $app->group('/api/v1/purchases/order', function () {
         //disconnection DB
         $pdo->disconnect_db();
 
-
         // finish up the flow
-
         if($_err[0][0] == "00000")
         {
             $_callback['query'] = "";
@@ -691,6 +715,8 @@ $app->group('/api/v1/purchases/order', function () {
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
+        // To convert money format to decimal
+        $total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
     
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         $q = $db->prepare($sql);
@@ -710,84 +736,80 @@ $app->group('/api/v1/purchases/order', function () {
         if(!empty($_new_res))
         {
             $db->beginTransaction();
-            // transaction header
-            
-            $q = $db->prepare("UPDATE `t_transaction_h` SET 
-                supp_code = '".$suppcode."',
-                total = '".$total."',  
-                shop_code = '".$shopcode."', 
-                remark = '".$remark."', 
-                modify_date =  '".$_now."'
-                WHERE trans_code = '".$_trans_code."';"
-            );
+            // transaction header   
+            $sql = "UPDATE `t_transaction_h` SET 
+            `supp_code` = '".$supp_code."',
+            `total` = '".$total."',  
+            `shop_code` = '".$shopcode."', 
+            `remark` = '".$remark."', 
+            `modify_date` =  '".$_now."'
+            WHERE `trans_code` = '".$_trans_code."';";
+            $q = $db->prepare($sql);
             $q->execute();
             $_err[] = $q->errorinfo();
             
-            if($q->rowCount() != "0")
+            foreach($_new_res as $k_itcode => $v)
             {
-                foreach($_new_res as $k_itcode => $v)
+                // delete items from this transaction
+                if(!array_key_exists($k_itcode,$items))
                 {
-                    // delete items from this transaction
-                    if(!array_key_exists($k_itcode,$items))
-                    {
 
-                        $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
-                        $q = $db->prepare($sql_d);
-                        $q->execute();
-                        $_err[2] = $q->errorinfo();
-                        //echo $sql_d."\n";
-                    }
+                    $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
+                    $q = $db->prepare($sql_d);
+                    $q->execute();
+                    $_err[] = $q->errorinfo();
                 }
-                foreach($items as $k_itcode => $v)
-                {
-                    // update item already in transaction
-                    if(array_key_exists($k_itcode,$_new_res))
-                    {
-
-                        $sql_d = "UPDATE `t_transaction_d` SET
-                            qty = '".$v['qty']."',
-                            unit = '".$v['unit']."',
-                            price = '".$v['price']."',
-                            modify_date = '".$_now."'
-                            WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
-                        //echo $sql_d."\n";
-                        $q = $db->prepare($sql_d);
-                        $q->execute();
-                        $_err[] = $q->errorinfo();
-                    }
-                    // New add items
-                    else
-                    {
-                        $sql_d = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, create_date)
-                            values (
-                                '".$_trans_code."',
-                                '".$v['item_code']."',
-                                '".$v['eng_name']."' ,
-                                '".$v['chi_name']."' ,
-                                '".$v['qty']."',
-                                '".$v['unit']."',
-                                '".$v['price']."',
-                                '".$date."'
-                            );";
-                        //echo $sql_d."\n";
-                        $q = $db->prepare($sql_d);
-                        $q->execute();
-                        $_err[] = $q->errorinfo();
-                    }   
-                }
-                
-                // tender information input here
-                $sql ="UPDATE `t_transaction_t` SET 
-                    pm_code = '".$paymentmethod."',
-                    total = '".$total."',
-                    modify_date = '".$_now."'
-                    WHERE trans_code = '".$_trans_code."';";
-                $q = $db->prepare($sql);
-                $q->execute();
-                $_err[] = $q->errorinfo();
             }
-            $_done = true;
+            foreach($items as $k_itcode => $v)
+            {
+                // update item already in transaction
+                if(array_key_exists($k_itcode,$_new_res))
+                {
+
+                    $sql = "UPDATE `t_transaction_d` SET
+                        qty = '".$v['qty']."',
+                        unit = '".$v['unit']."',
+                        price = '".$v['price']."',
+                        modify_date = '".$_now."'
+                        WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
+                    //echo $sql."\n";
+                    $q = $db->prepare($sql);
+                    $q->execute();
+                    $_err[] = $q->errorinfo();
+                }
+                // New add items
+                else
+                {
+                    $sql = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, create_date)
+                        values (
+                            '".$_trans_code."',
+                            '".$v['item_code']."',
+                            '".$v['eng_name']."' ,
+                            '".$v['chi_name']."' ,
+                            '".$v['qty']."',
+                            '".$v['unit']."',
+                            '".$v['price']."',
+                            '".$date."'
+                        );";
+                    //echo $sql."\n";
+                    $q = $db->prepare($sql);
+                    $q->execute();
+                    $_err[] = $q->errorinfo();
+                }   
+            }
+
+            // tender information input here
+            $sql = "UPDATE `t_transaction_t` SET 
+                `pm_code` = '".$paymentmethod."',
+                `total` = '".$total."',
+                `modify_date` = '".$_now."'
+                WHERE `trans_code` = '".$_trans_code."';";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+
             $db->commit();
+            $_done = true;
             //disconnection DB
             $pdo->disconnect_db();
         }
@@ -829,6 +851,8 @@ $app->group('/api/v1/purchases/order', function () {
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
+        // To convert money format to decimal
+        $total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         // Start transaction 
         $db->beginTransaction();
         // insert record to transaction_h
@@ -836,7 +860,7 @@ $app->group('/api/v1/purchases/order', function () {
             values (
                 '".$purchasesnum."',
                 '".$refernum."',
-                '".$suppcode."',
+                '".$supp_code."',
                 '".$prefix."',
                 '".$total."',
                 '".$employee_code."',

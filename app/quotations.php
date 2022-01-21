@@ -352,6 +352,9 @@ $app->group('/api/v1/inventory/quotations', function () {
         $body = json_decode($request->getBody(), true);
         extract($body);
         
+        // To convert money format to decimal
+        $total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+
         $_trans_code = $args['trans_code'];
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         $q = $db->prepare($sql);
@@ -398,7 +401,6 @@ $app->group('/api/v1/inventory/quotations', function () {
                 // update item already in transaction
                 if(array_key_exists($k_itcode,$_new_res))
                 {
-
                     $sql_d = "UPDATE `t_transaction_d` SET
                         qty = '".$v['qty']."',
                         unit = '".$v['unit']."',
@@ -488,9 +490,10 @@ $app->group('/api/v1/inventory/quotations', function () {
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
-        
+        // To convert money format to decimal
+        $total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+
         $db->beginTransaction();
-    
         $sql = "insert into t_transaction_h (trans_code, cust_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) 
             values (
                 '".$quotation."',
