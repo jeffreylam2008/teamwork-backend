@@ -15,17 +15,22 @@ $app->group('/api/v1/products/categories', function() use($app) {
 		$q = $db->prepare("SELECT * FROM `t_items_category` ORDER BY 'cate_code';");
 		$q->execute();
 		$err = $q->errorinfo();
-		foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
+		foreach ($row = $q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
 			$dbData[] = $val;
 		}
 		// disconnect DB
 		$pdo->disconnect_db();
-		
-		$callback = [
-			"query" => $dbData,
-			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-		];
-		return $response->withJson($callback, 200);
+		if(!$row)
+		{
+			return $response->withJson("Not Found!", 404);
+		}
+		else{
+			$callback = [
+				"query" => $dbData,
+				"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+			];
+			return $response->withJson($callback, 200);
+		}
 	});
 	/**
 	 * Categories GET Request

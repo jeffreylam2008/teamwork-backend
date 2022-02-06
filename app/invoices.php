@@ -11,48 +11,45 @@ $app->group('/api/v1/inventory/invoices', function () {
     $this->get('/', function (Request $request, Response $response, array $args) {
 
         $_param = $request->getQueryParams();
-        if(empty($_param["i-start-date"])) $_param["i-start-date"] = "";
-        if(empty($_param["i-end-date"])) $_param["i-end-date"] = "";  
-        if(empty($_param["i-invoice-num"])) $_param["i-invoice-num"] = "";
+
 
         $_callback = [];
         $_err = [];
         $_query = [];
+        $_where_trans = "";
+        $_where_date = "";
         $pdo = new Database();
         $db = $pdo->connect_db();
 
+        // only if transaction field param exist
+        if(!empty($_param['i-invoice-num']))
+        {
+            $_where_trans = "AND ( th.trans_code LIKE ('%".$_param['i-invoice-num']."%') ) ";
+            
+        }
+        // otherwise follow date range as default
+        else
+        {
+            $_where_date = "AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
+        }
+        $sql = "
+            SELECT 
+                th.*,
+                tpm.payment_method, 
+                tc.name as `cust_name`, 
+                ts.name as `shop_name`,
+                ts.shop_code
+            FROM `t_transaction_h` as th 
+            LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
+            LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+            LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
+            LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
+            WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 1) 
+            ".$_where_date.$_where_trans.";
+        ";
         // t_transaction_h SQL
-        $q = $db->prepare("
-        SELECT 
-            th.*,
-            tpm.payment_method, 
-            tc.name as `customer`, 
-            ts.name as `shop_name`,
-            ts.shop_code
-        FROM `t_transaction_h` as th 
-        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
-        LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
-        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-        LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
-        WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 1) AND date(th.create_date) BETWEEN '".$_param['i-start-date']."'
-        AND '".$_param['i-end-date']."' OR th.trans_code = '".$_param['i-invoice-num']."';
-        ");
+        $q = $db->prepare($sql);
 
-        // echo "
-        // SELECT 
-        //     th.*,
-        //     tpm.payment_method, 
-        //     tc.name as `customer`, 
-        //     ts.name as `shop_name`,
-        //     ts.shop_code
-        // FROM `t_transaction_h` as th 
-        // LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
-        // LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
-        // LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-        // LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
-        // WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 1) AND date(th.create_date) BETWEEN '".$_param['i-start-date']."'
-        // AND '".$_param['i-end-date']."' OR th.trans_code = '".$_param['i-invoice-num']."';
-        // ";
         $q->execute();
         $_err = $q->errorinfo();
         $_res = $q->fetchAll(PDO::FETCH_ASSOC);

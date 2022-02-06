@@ -250,3 +250,10 @@ $app->group('/api/v1/systems/restore', function () {
         return $response->withJson($body, 200);
     });
 });
+
+$app->group('/api/v1/network/status', function (){
+    $this->get('/', function (Request $request, Response $response, array $args){
+        $callback = ["Error" => "network health","Code"=> 0 ];
+        return $response->withJson( $callback , 200);
+    });
+});

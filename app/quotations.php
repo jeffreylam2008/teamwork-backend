@@ -12,11 +12,11 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_param = array();
         $_param = $request->getQueryParams();
 
-        if(empty($_param['page']) && empty( $_param['show']))
-        {
-            $_param['page'] = "1";
-            $_param['show'] = "50";
-        }
+        // if(empty($_param['page']) && empty( $_param['show']))
+        // {
+        //     $_param['page'] = "1";
+        //     $_param['show'] = "50";
+        // }
         // if(empty($_param['i-end-date']))
         // {
         //     $_param['i-end-date'] = strval(date("Y-m-d"));
@@ -24,29 +24,40 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_callback = [];
         $_err = [];
         $_query = [];
+        $_where_trans = "";
+        $_where_date = "";
         $pdo = new Database();
 	    $db = $pdo->connect_db();
 
-        // t_transaction_h SQL
-        //$q = $db->prepare("SELECT * FROM `t_transaction_h` as th left join `t_transaction_t` as tt on th.trans_code = tt.trans_code WHERE th.prefix = 'INV' LIMIT 9;");
-        $q = $db->prepare("
-        SELECT 
-            th.*,
-            tpm.payment_method, 
-            tc.name as `customer`, 
-            ts.name as `shop_name`,
-            ts.shop_code
-        FROM `t_transaction_h` as th 
-        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
-        LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
-        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-        LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
-        WHERE th.is_void = 0 
-        AND th.prefix = 'QTA' 
-        AND date(th.create_date) BETWEEN '".$_param['i-start-date']."' 
-        AND '".$_param['i-end-date']."' 
-        OR th.trans_code = '".$_param['i-quotation-num']."';
-        ");
+        // only if transaction field param exist
+        if(!empty($_param['i-quotation-num']))
+        {
+            $_where_trans = "AND ( th.trans_code LIKE ('%".$_param['i-quotation-num']."%') ) ";
+            
+        }
+        // otherwise follow date range as default
+        else
+        {
+            $_where_date = "AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
+        }
+
+        $sql = "
+            SELECT 
+                th.*,
+                tpm.payment_method, 
+                tc.name as `cust_name`, 
+                ts.name as `shop_name`,
+                ts.shop_code
+            FROM `t_transaction_h` as th 
+            LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
+            LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
+            LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
+            LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
+            WHERE th.is_void = 0
+            AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 3) 
+            ".$_where_date.$_where_trans.";
+        ";
+        $q = $db->prepare($sql);
  
         $q->execute();
         $_err = $q->errorinfo();

@@ -3,6 +3,7 @@ use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 require_once './vendor/autoload.php';
 require_once './lib/db.php';
+
 $c = new \Slim\Container(); //Create Your container
 
 //Override the default Not Found Handler
@@ -17,6 +18,18 @@ $c['notFoundHandler'] = function ($c) {
         return $c['response']->withJson($data,404);
     };
 };
+$c = [
+    'settings' => [
+        'displayErrorDetails' => true
+    ],
+];
+$c['logger'] = function($c) {
+    $logger = new \Monolog\Logger('log');
+    $file_handler = new \Monolog\Handler\StreamHandler('logs/app.log');
+    $logger->pushHandler($file_handler);
+    return $logger;
+};
+
 $app = new \Slim\App($c);
 
 /**
@@ -67,7 +80,7 @@ require './app/logout.php';
 /** 
  * Menu 
  */
- require './app/menu.php';
+require './app/menu.php';
 
 /**
  * Shop API

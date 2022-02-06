@@ -1,6 +1,7 @@
 <?php
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
+
 $app->group('/api/v1/purchases/order', function () {
     /**
      * Purchase order GET Request
@@ -28,6 +29,7 @@ $app->group('/api/v1/purchases/order', function () {
             if(!empty($_param['i-num']))
             {
                 $_where_trans = "AND (th.trans_code LIKE ('%".$_param['i-num']."%') OR th.refer_code LIKE ('%".$_param['i-num']."%')) ";
+                
             }
             // otherwise follow date range as default
             else
@@ -35,13 +37,12 @@ $app->group('/api/v1/purchases/order', function () {
                 $_where_date = "AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
             }
 
-            // t_transaction_h SQL
-            $q = $db->prepare("
+            $sql = "
                 SELECT 
                     th.*,
                     tc.name as `customer`, 
                     ts.name as `shop_name`,
-                    tsp.name as 'supplier',
+                    tsp.name as 'supp_name',
                     tpm.payment_method as 'payment_method',
                     ts.shop_code
                 FROM `t_transaction_h` as th 
@@ -51,11 +52,13 @@ $app->group('/api/v1/purchases/order', function () {
                 LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
                 LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
                 LEFT JOIN `t_prefix` as tp ON th.prefix = tp.prefix
-                WHERE tp.uid = '2' ". $_where_date . $_where_trans.";
-            ");
-
-    
+                WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 2)  ". $_where_date . $_where_trans.";
+            ";
+            $this->logger->addInfo("SQL: ".$sql);
+            // t_transaction_h SQL
+            $q = $db->prepare($sql);
             $q->execute();
+            $this->logger->addInfo("SQL execute");
             $_err = $q->errorinfo();
             $_res = $q->fetchAll(PDO::FETCH_ASSOC);
 
@@ -72,6 +75,7 @@ $app->group('/api/v1/purchases/order', function () {
                     "query" => $_query,
                     "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
                 ];
+                $this->logger->addInfo("DB message: ".$_err[1]." - ".$_err[2]);
                 return $response->withJson($_callback, 200);
             }
         }
@@ -157,23 +161,34 @@ $app->group('/api/v1/purchases/order', function () {
             LEFT JOIN `t_transaction_d` as td ON th.trans_code = td.trans_code
             WHERE th.refer_code = '".$_trans_code."';
         ";
-    
+        $this->logger->addInfo("SQL: ".$sql);
+        
         // execute SQL Statement 1
         $q = $db->prepare($sql);
         $q->execute();
+        $this->logger->addInfo("SQL execute");
         $_err[] = $q->errorinfo();
         $head = $q->fetchAll(PDO::FETCH_ASSOC);
+        $this->logger->addInfo("SQL: ".$sql2);
+
         // execute SQL statement 2
         $q = $db->prepare($sql2);
         $q->execute();
+        $this->logger->addInfo("SQL execute");
         $_err[] = $q->errorinfo();
         $po_items = $q->fetchAll(PDO::FETCH_ASSOC);
+
+        $this->logger->addInfo("SQL: ".$sql3);
         $q = $db->prepare($sql3);
         $q->execute();
+        $this->logger->addInfo("SQL execute");
         $_err[] = $q->errorinfo();
         $res3 = $q->fetch();
+
+        $this->logger->addInfo("SQL: ".$sql4);
         $q = $db->prepare($sql4);
         $q->execute();
+        $this->logger->addInfo("SQL execute");
         $_err[] = $q->errorinfo();
         $res4 = $q->fetch();
 
@@ -210,6 +225,7 @@ $app->group('/api/v1/purchases/order', function () {
             $_callback['has'] = true;
             $_callback["error"]["code"] = $_err;
             $_callback["error"]["message"] = $_err;
+            $this->logger->addInfo("DB message: ".$_err[1][0]." - ".$_err[2][0]);
             return $response->withJson($_callback, 200);
         }
         else
@@ -218,6 +234,7 @@ $app->group('/api/v1/purchases/order', function () {
             $_callback['has'] = false;
             $_callback["error"]["code"] = "99999";
             $_callback["error"]["message"] = "Item not found";
+            $this->logger->addInfo("Item not found");
             return $response->withJson($_callback, 404);
         }
     });
@@ -653,27 +670,34 @@ $app->group('/api/v1/purchases/order', function () {
         $_trans_code = $args['trans_code'];
         $_remark = "";
         $_body = json_decode($request->getBody(), true);
+
         foreach($_body as $k => $v)
         {
             $_remark .= $v['trans_code'];
             if($k < (count($_body)-1)){
                 $_remark .= ",";
             }
+            $this->logger->addInfo("remark => ".$_remark);
         }
-        
         $pdo = new Database();
 		$db = $pdo->connect_db();
+        $sql = "
+            SELECT `remark` FROM `t_transaction_h` WHERE `trans_code` = '".$_trans_code."' LIMIT 1 INTO @_remark;
+            UPDATE `t_transaction_h` SET 
+            `is_convert` = 1,
+            `remark` = concat(@_remark,'\n\n','Settled!\nGRN: ".$_remark."'),
+            `modify_date` =  '".$_now."'
+            WHERE `trans_code` = '".$_trans_code."';
+        ";
 
+        $this->logger->addInfo("SQL: ".trim($sql));
+
+        // echo $sql;
         // transaction header
-        $q = $db->prepare("UPDATE `t_transaction_h` SET 
-            is_convert = 1,
-            remark = 'Settled\nGRN: ".$_remark."', 
-            modify_date =  '".$_now."'
-            WHERE trans_code = '".$_trans_code."';"
-        );
+        $q = $db->prepare($sql);
         $q->execute();
         $_err = $q->errorinfo();
-    
+        $this->logger->addInfo("SQL execute");
         //disconnection DB
         $pdo->disconnect_db();
 
@@ -684,7 +708,8 @@ $app->group('/api/v1/purchases/order', function () {
             $_callback["error"] = [
                 "code" => "00000", 
                 "message" => $_trans_code ." Update Success!"
-            ]; 
+            ];
+            $this->logger->addInfo("Update Success!");
         }
         else
         { 
@@ -693,6 +718,7 @@ $app->group('/api/v1/purchases/order', function () {
                 "code" => "99999", 
                 "message" => $_err
             ]; 
+            $this->logger->addInfo("Update Fail");
         }
         return $response->withJson($_callback,200);
     });
@@ -957,12 +983,13 @@ $app->group('/api/v1/purchases/order', function () {
         $sql = "
             UPDATE `t_transaction_h` SET is_void = '1' WHERE trans_code = '".$_trans_code."';
         ";
+        $this->logger->addInfo("SQL: ".$sql);
         // prepare sql statement
         $q = $db->prepare($sql);
         // execute statement
         $q->execute();
         $_err[0] = $q->errorinfo();
-
+        $this->logger->addInfo("SQL execute!");
         // transaction end
         $db->commit();
         // disconnect DB
@@ -976,6 +1003,7 @@ $app->group('/api/v1/purchases/order', function () {
                 "code" => "00000", 
                 "message" => $_trans_code . " Deleted!"
             ]; 
+            $this->logger->addInfo("Deleted!");
         }
         else
         { 
@@ -984,6 +1012,7 @@ $app->group('/api/v1/purchases/order', function () {
                 "code" => "99999", 
                 "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]
             ]; 
+            $this->logger->addInfo("Delet Failed!");
         }
         return $response->withJson($_callback,200);
     });
