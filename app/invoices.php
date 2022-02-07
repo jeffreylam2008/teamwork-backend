@@ -327,7 +327,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $sql = "
             SELECT th.*, 
             tpm.payment_method, 
-            tc.name as `customer`, 
+            tc.name as `cust_name`, 
             ts.name as `shop_name`, 
             ts.shop_code 
             FROM `t_transaction_h` as th 
