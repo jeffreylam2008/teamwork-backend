@@ -276,7 +276,7 @@ $app->group('/api/v1/inventory/quotations', function () {
 
         //disconnection DB
         
-        return $response->withJson($_callback, 200);
+        return $response->withHeader('Access-Control-Allow-Origin', '*')->withJson($_callback, 200);
     });
 
     /**
