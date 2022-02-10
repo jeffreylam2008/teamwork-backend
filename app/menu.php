@@ -21,6 +21,9 @@ $app->group('/api/v1/systems/menu', function () {
             case "zh-hk":
                 $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
                 break;
+            default:
+                $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                break;
         }
         $_callback = [];
         $_err = [];

@@ -882,4 +882,132 @@ $app->group('/api/v1/inventory/invoices', function () {
        
         });
     });
+
+    /**
+     * View of invoice
+     */
+    $this->group('/view',function()
+    {
+        $this->get('/header/username/{username}/', function (Request $request, Response $response, array $args) 
+        {
+            $_err= [];
+            $_data['employee'] = [];
+            $_data['menu'] = [];
+            $_data['prefix'] = [];
+            $_data['dn'] = ["dn_num"=>"", "dn_prefix"=>""];
+            $_max = "00";
+            $_username = "";
+            $_param = $request->getQueryParams();
+            $_username = $args['username'];
+            $_result = true;
+            $_msg = "";
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+
+            $sql1 = "
+                SELECT 
+                te.employee_code as employee_code,
+                te.username as username,
+                ts.name as shop_name, 
+                ts.shop_code as shop_code
+                FROM `t_employee` as te
+                LEFT JOIN `t_shop` as ts
+                ON te.default_shopcode = ts.shop_code where te.username = '".$_username."';
+            ";
+            // echo $sql1."\n";
+            $q = $db->prepare($sql1);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['employee'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            // SQL2
+            switch($_param['lang'])
+            {
+                case "en-us":
+                    $sql2 = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                case "zh-hk":
+                    $sql2 = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                default:
+                    $sql2 = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+            }
+            //echo $sql2."\n";
+            $q = $db->prepare($sql2);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['menu'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            //SQL 3
+            $sql3 = "
+                SELECT prefix FROM `t_prefix` WHERE `uid` = '1' LIMIT 1;
+            ";
+            //echo $sql3."\n";
+            $q = $db->prepare($sql3);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['prefix'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            //SQL 4
+            $sql4 = "
+                SELECT prefix FROM `t_prefix` WHERE `uid` = '4' LIMIT 1;
+            ";
+            $q = $db->prepare($sql4);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            if($q->rowCount() != "0")
+            {
+                $_prefix = $q->fetch();
+                $_data['dn']['dn_prefix'] = $_prefix['prefix'];
+
+                $sql5 = "
+                    SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;
+                ";
+                $sql5 = $db->prepare($sql5);
+                $q->execute();
+                $_err[] = $q->errorinfo();
+
+                if(!empty($_data['max']))
+                {
+                    $_max = substr($_data['max'],-2);
+                    $_max++;
+                    if($_max >= 100)
+                    {
+                        $_max = 00;
+                    }
+                }
+                $_data['dn']['dn_num'] = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
+            }
+
+            //disconnection DB
+            $pdo->disconnect_db();
+
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000"){
+                    $_result = false;
+                    $_msg .= $v[1];
+                }
+            }
+            $callback = [
+                "query" => $_data,
+                "error" => [
+                    "code" => "00000", 
+                    "message" => $_msg 
+                ]
+            ];
+        
+            if($_result)
+            {
+                return $response->withJson($callback, 200);
+            }
+            else
+            {
+                $callback = ["query" => ""];    
+                return $response->withJson($callback, 404);
+            }
+           
+        });
+    });
 });

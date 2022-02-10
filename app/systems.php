@@ -250,6 +250,114 @@ $app->group('/api/v1/systems/restore', function () {
         return $response->withJson($body, 200);
     });
 });
+$app->group('/api/v1/systems/master', function () {
+    $this->get('/', function (Request $request, Response $response, array $args) {
+        $_err = [];
+        $_data['items'] = [];
+        $_data['shops'] = [];
+        $_data['customers'] = [];
+        $_data['paymentmethod'] = [];
+        $_result = true;
+        $_msg = "";
+
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        
+        /**
+         * Items
+         */
+        $sql1 = "
+            SELECT 
+                ti.uid,
+                ti.item_code, 
+                ti.eng_name,
+                ti.chi_name,
+                ti.desc,
+                ti.price,
+                ti.price_special,
+                ti.cate_code,
+                ti.unit,
+                tw.qty as 'stockonhand', 
+                tw.type 
+            FROM `t_items` as  ti
+            LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code
+            ORDER BY ti.item_code";
+        // echo $sql1."\n";
+        $q = $db->prepare($sql1);
+        $q->execute();
+        $err = $q->errorinfo();
+        $_data['items'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+        // foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
+        //     $_data['items'][] = $val;
+        // }
+
+        /**
+         * Shops
+         */
+        $sql2 = "select * from `t_shop`;";
+        // echo $sql1."\n";
+        $q = $db->prepare($sql2);
+        $q->execute();
+        $err = $q->errorinfo();
+        $_data['shops'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+        /**
+         * Customers
+         */ 
+        $sql3 = "
+            SELECT 
+                tc.cust_code, 
+                tc.name,
+                tc.pm_code
+            FROM `t_customers` as tc
+        ";
+        // echo $sql1."\n";
+        $q = $db->prepare($sql3);
+        $q->execute();
+        $err = $q->errorinfo();
+        $_data['customers'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+        /**
+         * Payment Method
+         */
+        $sql4 = "SELECT * FROM `t_payment_method`;";
+        // echo $sql1."\n";
+        $q = $db->prepare($sql4);
+        $q->execute();
+        $err = $q->errorinfo();
+        $_data['paymentmethod'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+        //disconnection DB
+        $pdo->disconnect_db();
+
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000"){
+                $_result = false;
+                $_msg .= $v[1];
+            }
+        }
+        $callback = [
+            "query" => $_data,
+            "error" => [
+                "code" => "00000", 
+                "message" => $_msg 
+            ]
+        ];
+    
+        if($_result)
+        {
+            return $response->withJson($callback, 200);
+        }
+        else
+        {
+            $callback = ["query" => ""];    
+            return $response->withJson($callback, 404);
+        }
+    });
+});
+
 
 $app->group('/api/v1/network/status', function (){
     $this->get('/', function (Request $request, Response $response, array $args){
@@ -257,3 +365,4 @@ $app->group('/api/v1/network/status', function (){
         return $response->withJson( $callback , 200);
     });
 });
+
