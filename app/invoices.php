@@ -212,7 +212,6 @@ $app->group('/api/v1/inventory/invoices', function () {
             }
         }
 
-        
         $pdo->disconnect_db();
         $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
 
@@ -224,7 +223,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             ]
         ];
 
-        return $response->withJson($callback, 200);
+        return $response->withHeader('Connection', 'close')->withJson($callback, 200);
     });
 
     /**
