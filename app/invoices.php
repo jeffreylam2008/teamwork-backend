@@ -65,7 +65,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         ];
 
         // $_callback = "";
-        return $response->withJson($_callback, 200);
+        return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
        
     });
     
@@ -168,7 +168,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         }
         $_callback["error"]["code"] = $_err[0];
         $_callback["error"]["message"] = $_err[2];
-        return $response->withJson($_callback, 200);
+        return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
     });
 
     /**
@@ -257,7 +257,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             ]
         ];
     
-        return $response->withJson($callback, 200);
+        return $response->withHeader('Connection', 'close')->withJson($callback, 200);
     });
 
     /**
@@ -307,6 +307,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         
         return $response->withHeader('Access-Control-Allow-Origin', '*')
         ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+        ->withHeader('Connection', 'close')
         ->withJson($_callback, 200);
     });
 
@@ -353,7 +354,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_callback['query'] = $_res;
         $_callback["error"]["code"] = $_err[0];
         $_callback["error"]["message"] = $_err[2];
-        return $response->withJson($_callback, 200);
+        return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
     });
 
     /** 
@@ -504,7 +505,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 ]; 
             }
         }
-        return $response->withJson($_callback,200);
+        return $response->withHeader('Connection', 'close')->withJson($_callback,200);
     });
 
     /**
@@ -615,7 +616,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 .$_err[3][2]
             ]; 
         }
-        return $response->withJson($_callback,200);
+        return $response->withHeader('Connection', 'close')->withJson($_callback,200);
     });
 
     /**
@@ -677,7 +678,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]
             ]; 
         }
-        return $response->withJson($_callback,200);
+        return $response->withHeader('Connection', 'close')->withJson($_callback,200);
     });
         
     /**
@@ -709,7 +710,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
         
-            return $response->withJson($callback, 200);
+            return $response->withHeader('Connection', 'close')->withJson($callback, 200);
         });
 
         /**
@@ -737,7 +738,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
             ];
         
-            return $response->withJson($callback, 200);
+            return $response->withHeader('Connection', 'close')->withJson($callback, 200);
         });
     });
 
@@ -787,7 +788,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 ]
             ];
         
-            return $response->withJson($callback, 200);
+            return $response->withHeader('Connection', 'close')->withJson($callback, 200);
         });
         
         /**
@@ -833,7 +834,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 ]
             ];
         
-            return $response->withJson($callback, 200);
+            return $response->withHeader('Connection', 'close')->withJson($callback, 200);
         });
 
         /**
@@ -877,7 +878,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 "query" => $_res,
                 "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
             ];
-            return $response->withJson($_callback, 200);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
        
         });
     });
@@ -999,12 +1000,12 @@ $app->group('/api/v1/inventory/invoices', function () {
         
             if($_result)
             {
-                return $response->withJson($callback, 200);
+                return $response->withHeader('Connection', 'close')->withJson($callback, 200);
             }
             else
             {
                 $callback = ["query" => ""];    
-                return $response->withJson($callback, 404);
+                return $response->withHeader('Connection', 'close')->withJson($callback, 404);
             }
            
         });
