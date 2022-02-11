@@ -20,7 +20,8 @@ $c['notFoundHandler'] = function ($c) {
 };
 $c = [
     'settings' => [
-        'displayErrorDetails' => true
+        'displayErrorDetails' => true,
+        'addContentLengthHeader' => false
     ],
 ];
 $c['logger'] = function($c) {
