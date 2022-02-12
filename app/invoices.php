@@ -375,15 +375,18 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_new_res = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
         //$sql_d = "";
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
+        $this->logger->addInfo("PATCH: invoices");
         // To convert money format to decimal
         $total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         
         $_trans_code = $args['trans_code'];
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
+        //$this->logger->addInfo("SQL: ".$sql);
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
@@ -402,16 +405,17 @@ $app->group('/api/v1/inventory/invoices', function () {
             $db->beginTransaction();
             // transaction header
             
-            $q = $db->prepare("UPDATE `t_transaction_h` SET 
-                cust_code = '".$cust_code."',
-                quotation_code = '".$quotation."', 
-                total = '".$total."', 
-                employee_code = '".$employee_code."', 
-                shop_code = '".$shopcode."', 
-                remark = '".$remark."', 
-                modify_date =  '".$_now."'
-                WHERE trans_code = '".$_trans_code."';"
-            );
+            $sql = "UPDATE `t_transaction_h` SET ";
+            $sql .= " cust_code = '".$cust_code."',";
+            $sql .= " quotation_code = '".$quotation."',";
+            $sql .= " total = '".$total."',";
+            $sql .= " employee_code = '".$employee_code."',";
+            $sql .= " shop_code = '".$shopcode."',";
+            $sql .= " remark = '".$remark."',";
+            $sql .= " modify_date =  '".$_now."'";
+            $sql .= " WHERE trans_code = '".$_trans_code."';";
+            //$this->logger->addInfo("SQL: ".$sql);
+            $q = $db->prepare($sql);
             $q->execute();
             $_err[] = $q->errorinfo();
             
@@ -423,11 +427,11 @@ $app->group('/api/v1/inventory/invoices', function () {
                     if(!array_key_exists($k_itcode,$items))
                     {
 
-                        $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
-                        $q = $db->prepare($sql_d);
+                        $sql = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
+                        //$this->logger->addInfo("SQL: ".$sql);
+                        $q = $db->prepare($sql);
                         $q->execute();
                         $_err[] = $q->errorinfo();
-                        //echo $sql_d."\n";
                     }
                 }
                 foreach($items as $k_itcode => $v)
@@ -435,56 +439,56 @@ $app->group('/api/v1/inventory/invoices', function () {
                     // update item already in transaction
                     if(array_key_exists($k_itcode,$_new_res))
                     {
-
-                        $sql_d = "UPDATE `t_transaction_d` SET
-                            qty = '".$v['qty']."',
-                            unit = '".$v['unit']."',
-                            price = '".$v['price']."',
-                            modify_date = '".$_now."'
-                            WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
-                        //echo $sql_d."\n";
-                        $q = $db->prepare($sql_d);
+                        $sql = "UPDATE `t_transaction_d` SET";
+                        $sql .= " qty = '".$v['qty']."',";
+                        $sql .= " unit = '".$v['unit']."',";
+                        $sql .= " price = '".$v['price']."',";
+                        $sql .= " modify_date = '".$_now."'";
+                        $sql .= " WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
+                        //$this->logger->addInfo("SQL: ".$sql);
+                        $q = $db->prepare($sql);
                         $q->execute();
                         $_err[] = $q->errorinfo();
                     }
                     // New add items
                     else
                     {
-                        $sql_d = "
-                            insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
-                            values (
-                                '".$_trans_code."',
-                                '".$v['item_code']."',
-                                '".$v['eng_name']."' ,
-                                '".$v['chi_name']."' ,
-                                '".$v['qty']."',
-                                '".$v['unit']."',
-                                '".$v['price']."',
-                                '".$v['price_special']."',
-                                '".$date."'
-                            );
-                        ";
-                        //echo $sql_d."\n";
-                        $q = $db->prepare($sql_d);
+                        $sql = "INSERT INTO t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)";
+                        $sql .= " VALUES (";
+                        $sql .= " '".$_trans_code."',";
+                        $sql .= " '".$v['item_code']."',";
+                        $sql .= " '".$v['eng_name']."' ,";
+                        $sql .= " '".$v['chi_name']."' ,";
+                        $sql .= " '".$v['qty']."',";
+                        $sql .= " '".$v['unit']."',";
+                        $sql .= " '".$v['price']."',";
+                        $sql .= " '".$v['price_special']."',";
+                        $sql .= " '".$date."'";
+                        $sql .= " );";
+                        //$this->logger->addInfo("SQL: ".$sql);
+                        $q = $db->prepare($sql);
                         $q->execute();
                         $_err[] = $q->errorinfo();
                     }   
                 }
                 
                 // tender information input here
-                $sql ="UPDATE `t_transaction_t` SET 
-                    pm_code = '".$paymentmethod."',
-                    total = '".$total."',
-                    modify_date = '".$_now."'
-                    WHERE trans_code = '".$_trans_code."';";
+                $sql ="UPDATE `t_transaction_t` SET";
+                $sql .= " pm_code = '".$paymentmethod."',";
+                $sql .= " total = '".$total."',";
+                $sql .= " modify_date = '".$_now."'";
+                $sql .= " WHERE trans_code = '".$_trans_code."';";
+                //$this->logger->addInfo("SQL: ".$sql);
                 $q = $db->prepare($sql);
                 $q->execute();
                 $_err[] = $q->errorinfo();
             }
             // $_done = true;
             $db->commit();
+            $this->logger->addInfo("Msg: DB commit");
             //disconnection DB
             $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
         }
 
         // var_dump($_err);
@@ -495,40 +499,21 @@ $app->group('/api/v1/inventory/invoices', function () {
                 $_msg .= $v[1]."-".$v[2]."|";
             }
         }
-        $this->logger->addInfo("SQL execute ".$_msg);
+        
         if($_result)
         {
             $_callback['error']['code'] = "00000";
             $_callback['error']['message'] = "Transaction: ".$trans_code." - Insert OK!";
+            $this->logger->addInfo("SQL execute ".$_callback['error']['message']);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
         {  
             $_callback['error']['code'] = "99999";
             $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_callback['error']['message']);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
-        // finish up the flow
-		// if($_done)
-        // {
-        //     if($_err[0][0] == "00000")
-        //     {
-        //         $_callback['query'] = "";
-        //         $_callback["error"] = [
-        //             "code" => "00000", 
-        //             "message" => $_trans_code ." Update Success!"
-        //         ]; 
-        //     }
-        //     else
-        //     { 
-        //         $_callback['query'] = "";
-        //         $_callback["error"] = [
-        //             "code" => "99999", 
-        //             "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]." - ".$_err[3][2]." - ".$_err[4][2]
-        //         ]; 
-        //     }
-        // }
-        // return $response->withHeader('Connection', 'close')->withJson($_callback,200);
     });
 
     /**
@@ -546,27 +531,29 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_msg = "";
         $pdo = new Database();
 		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
+        //$this->logger->addInfo("POST: invoices");
         // Start transaction 
         $db->beginTransaction();
         // insert record to transaction_h
-        $sql = "insert into t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) 
-            values (
-                '".$trans_code."',
-                '".$cust_code."',
-                '".$quotation."',
-                '".$prefix."',
-                '".$total."',
-                '".$employee_code."',
-                '".$shopcode."',
-                '".$remark."',
-                '0',
-                '0',
-                '".$date."'
-            );
-        ";
+        $sql = "INSERT INTO t_transaction_h (trans_code, cust_code ,quotation_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) ";
+        $sql .= " VALUES (";
+        $sql .= " '".$trans_code."',";
+        $sql .= " '".$cust_code."',";
+        $sql .= " '".$quotation."',";
+        $sql .= " '".$prefix."',";
+        $sql .= " '".$total."',";
+        $sql .= " '".$employee_code."',";
+        $sql .= " '".$shopcode."',";
+        $sql .= " '".$remark."',";
+        $sql .= " '0',";
+        $sql .= " '0',";
+        $sql .= " '".$date."'";
+        $sql .= ");";
+        //$this->logger->addInfo("SQL: ".$sql);
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
@@ -575,58 +562,56 @@ $app->group('/api/v1/inventory/invoices', function () {
         {
             foreach($items as $k => $v)
             {
-                
-                $sql = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
-                    values (
-                        '".$trans_code."',
-                        '".$v['item_code']."',
-                        '".$v['eng_name']."' ,
-                        '".$v['chi_name']."' ,
-                        '".$v['qty']."',
-                        '".$v['unit']."',
-                        '".$v['price']."',
-                        '".$v['price_special']."',
-                        '".$date."'
-                    );
-                ";
-                $this->logger->addInfo("SQL: ".$sql);
+                $sql = "INSERT INTO t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)";
+                $sql .= " VALUES (";
+                $sql .= " '".$trans_code."',";
+                $sql .= " '".$v['item_code']."',";
+                $sql .= " '".$v['eng_name']."' ,";
+                $sql .= " '".$v['chi_name']."' ,";
+                $sql .= " '".$v['qty']."',";
+                $sql .= " '".$v['unit']."',";
+                $sql .= " '".$v['price']."',";
+                $sql .= " '".$v['price_special']."',";
+                $sql .= " '".$date."'";
+                $sql .= " );";
+                //$this->logger->addInfo("SQL: ".$sql);
                 $q = $db->prepare($sql);
                 $q->execute();
             }
             $_err[] = $q->errorinfo();
 
             // tender information input here
-            $sql = "insert into t_transaction_t (trans_code, pm_code, total, create_date) 
-                values (
-                    '".$trans_code."',
-                    '".$paymentmethod."',
-                    '".$total."',
-                    '".$date."'
-                );
-            ";
-            $this->logger->addInfo("SQL: ".$sql);
-            $tr = $db->prepare($sql);
-            $tr->execute();
-            $_err[] = $tr->errorinfo();
+            $sql = "INSERT INTO t_transaction_t (trans_code, pm_code, total, create_date) ";
+            $sql .= " VALUES (";
+            $sql .= " '".$trans_code."',";
+            $sql .= " '".$paymentmethod."',";
+            $sql .= " '".$total."',";
+            $sql .= " '".$date."'";
+            $sql .= " );";
+            //$this->logger->addInfo("SQL: ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
         }
 
         // if has quotation
         if(!empty($quotation))
         {
-            $sql = $db->prepare(
-                "UPDATE t_transaction_h SET
-                is_convert = 1, 
-                modify_date =  '".$date."'
-                WHERE trans_code = '".$quotation."';"
-            );
-            $sql->execute();
-            $_err[] = $sql->errorinfo();
+            $sql = "UPDATE t_transaction_h SET";
+            $sql .= " is_convert = 1, ";
+            $sql .= " modify_date =  '".$date."'";
+            $sql .= " WHERE trans_code = '".$quotation."';";
+            // $this->logger->addInfo("SQL: ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
         }
-
         $db->commit();
-
+        $this->logger->addInfo("Msg: DB commit");
         //disconnection DB
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+
         // var_dump($_err);
         foreach($_err as $k => $v)
         {
@@ -635,42 +620,20 @@ $app->group('/api/v1/inventory/invoices', function () {
                 $_msg .= $v[1]."-".$v[2]."|";
             }
         }
-        $this->logger->addInfo("SQL execute ".$_msg);
-
         if($_result)
         {
             $_callback['error']['code'] = "00000";
             $_callback['error']['message'] = "Transaction: ".$trans_code." - Insert OK!";
+            $this->logger->addInfo("SQL execute ".$_callback['error']['message']);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
         {  
             $_callback['error']['code'] = "99999";
             $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_callback['error']['message']);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
-        
-        // if($_err[0][0] = "00000")
-        // {
-        //     $_callback['query'] = "";
-        //     $_callback["error"] = [
-        //         "code" => "00000", 
-        //         "message" => $trans_code." Insert Success!"
-        //     ]; 
-        // }
-        // else
-        // { 
-        //     $_callback['query'] = "";
-        //     $_callback["error"] = [
-        //         "code" => "99999", 
-        //         "message" => "DB Error: "
-        //         .$_err[0][2]." - "
-        //         .$_err[1][2]." - "
-        //         .$_err[2][2]." - "
-        //         .$_err[3][2]
-        //     ]; 
-        // }
-        // return $response->withHeader('Connection', 'close')->withJson($_callback,200);
     });
 
     /**
@@ -682,57 +645,58 @@ $app->group('/api/v1/inventory/invoices', function () {
     $this->delete('/{trans_code}', function(Request $request, Response $response, array $args){
         $_trans_code = $args['trans_code'];
         $_err = [];
-        $_callback = [
-            'query' => "",
-            'error' => [
-                "code" => "",
-                "message" => ""
-            ]
-        ];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $pdo = new Database();
         $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+        $this->logger->addInfo("DELETE: invoices");
         // transaction start
         $db->beginTransaction();
         // sql statement
-        $sql = "
-            UPDATE `t_transaction_h` SET is_void = '1' WHERE trans_code = '".$_trans_code."';
-        ";
+        $sql = "UPDATE `t_transaction_h` SET is_void = '1' WHERE trans_code = '".$_trans_code."';";
+        // $this->logger->addInfo("SQL: ".$sql);
         // prepare sql statement
         $q = $db->prepare($sql);
         // execute statement
         $q->execute();
-        $_err[0] = $q->errorinfo();
-        $sql = "
-            UPDATE `t_transaction_h` SET is_void = '1' WHERE refer_code = '".$_trans_code."';
-        ";
-        // prepare sql statement
-        $q = $db->prepare($sql);
-        // execute statement
-        $q->execute();
-        $_err[1] = $q->errorinfo();
-        // transaction end
-        $db->commit();
-        // disconnect DB
-        $pdo->disconnect_db();
+        $_err[] = $q->errorinfo();
 
-        // SQL error return
-        if($_err[0][0] = "00000" && $_err[1][0] = "00000")
+        $sql = "UPDATE `t_transaction_h` SET is_void = '1' WHERE refer_code = '".$_trans_code."';";
+        // $this->logger->addInfo("SQL: ".$sql);
+        // prepare sql statement
+        $q = $db->prepare($sql);
+        // execute statement
+        $q->execute();
+        $_err[] = $q->errorinfo();
+
+        $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+
+
+        foreach($_err as $k => $v)
         {
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "00000", 
-                "message" => $_trans_code . " Deleted!"
-            ]; 
+            if($v[0] != "00000"){
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = $_trans_code." - Deleted!";
+            $this->logger->addInfo("SQL execute ".$_callback['error']['message']);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
-        { 
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "99999", 
-                "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]
-            ]; 
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Delete Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_callback['error']['message']);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
-        return $response->withHeader('Connection', 'close')->withJson($_callback,200);
     });
         
     /**
