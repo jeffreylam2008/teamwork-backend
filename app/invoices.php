@@ -367,7 +367,9 @@ $app->group('/api/v1/inventory/invoices', function () {
     
     $this->patch('/{trans_code}', function(Request $request, Response $response, array $args){
         $_err = [];
-		$_done = false;
+		//$_done = false;
+        $_result = true;
+        $_msg = "";
 		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_now = date('Y-m-d H:i:s');
         $_new_res = [];
@@ -384,7 +386,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         $q = $db->prepare($sql);
         $q->execute();
-        $_err[0] = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
         
         if($_err[0][0] == "00000")
@@ -411,7 +413,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 WHERE trans_code = '".$_trans_code."';"
             );
             $q->execute();
-            $_err[0] = $q->errorinfo();
+            $_err[] = $q->errorinfo();
             
             if($q->rowCount() != "0")
             {
@@ -424,7 +426,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                         $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
                         $q = $db->prepare($sql_d);
                         $q->execute();
-                        $_err[2] = $q->errorinfo();
+                        $_err[] = $q->errorinfo();
                         //echo $sql_d."\n";
                     }
                 }
@@ -443,7 +445,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                         //echo $sql_d."\n";
                         $q = $db->prepare($sql_d);
                         $q->execute();
-                        $_err[1] = $q->errorinfo();
+                        $_err[] = $q->errorinfo();
                     }
                     // New add items
                     else
@@ -465,7 +467,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                         //echo $sql_d."\n";
                         $q = $db->prepare($sql_d);
                         $q->execute();
-                        $_err[3] = $q->errorinfo();
+                        $_err[] = $q->errorinfo();
                     }   
                 }
                 
@@ -477,35 +479,56 @@ $app->group('/api/v1/inventory/invoices', function () {
                     WHERE trans_code = '".$_trans_code."';";
                 $q = $db->prepare($sql);
                 $q->execute();
-                $_err[4] = $q->errorinfo();
+                $_err[] = $q->errorinfo();
             }
-            $_done = true;
+            // $_done = true;
             $db->commit();
             //disconnection DB
             $pdo->disconnect_db();
         }
 
-        // finish up the flow
-		if($_done)
+        // var_dump($_err);
+        foreach($_err as $k => $v)
         {
-            if($_err[0][0] == "00000")
-            {
-                $_callback['query'] = "";
-                $_callback["error"] = [
-                    "code" => "00000", 
-                    "message" => $_trans_code ." Update Success!"
-                ]; 
-            }
-            else
-            { 
-                $_callback['query'] = "";
-                $_callback["error"] = [
-                    "code" => "99999", 
-                    "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]." - ".$_err[3][2]." - ".$_err[4][2]
-                ]; 
+            if($v[0] != "00000"){
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
             }
         }
-        return $response->withHeader('Connection', 'close')->withJson($_callback,200);
+        $this->logger->addInfo("SQL execute ".$_msg);
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['massage'] = "Transaction: ".$trans_code." - Insert OK!";
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['massage'] = "Insert Fail - Please try again!";
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+        // finish up the flow
+		// if($_done)
+        // {
+        //     if($_err[0][0] == "00000")
+        //     {
+        //         $_callback['query'] = "";
+        //         $_callback["error"] = [
+        //             "code" => "00000", 
+        //             "message" => $_trans_code ." Update Success!"
+        //         ]; 
+        //     }
+        //     else
+        //     { 
+        //         $_callback['query'] = "";
+        //         $_callback["error"] = [
+        //             "code" => "99999", 
+        //             "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]." - ".$_err[3][2]." - ".$_err[4][2]
+        //         ]; 
+        //     }
+        // }
+        // return $response->withHeader('Connection', 'close')->withJson($_callback,200);
     });
 
     /**
@@ -517,7 +540,7 @@ $app->group('/api/v1/inventory/invoices', function () {
      */
     $this->post('/', function (Request $request, Response $response, array $args) {
         $_err = [];
-        $_done = false;
+        // $_done = false;
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
@@ -552,7 +575,8 @@ $app->group('/api/v1/inventory/invoices', function () {
         {
             foreach($items as $k => $v)
             {
-                $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
+                
+                $sql = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, discount, create_date)
                     values (
                         '".$trans_code."',
                         '".$v['item_code']."',
@@ -564,19 +588,24 @@ $app->group('/api/v1/inventory/invoices', function () {
                         '".$v['price_special']."',
                         '".$date."'
                     );
-                ");
+                ";
+                $this->logger->addInfo("SQL: ".$sql);
+                $q = $db->prepare($sql);
                 $q->execute();
             }
             $_err[] = $q->errorinfo();
+
             // tender information input here
-            $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
+            $sql = "insert into t_transaction_t (trans_code, pm_code, total, create_date) 
                 values (
                     '".$trans_code."',
                     '".$paymentmethod."',
                     '".$total."',
                     '".$date."'
                 );
-            ");
+            ";
+            $this->logger->addInfo("SQL: ".$sql);
+            $tr = $db->prepare($sql);
             $tr->execute();
             $_err[] = $tr->errorinfo();
         }
@@ -595,32 +624,30 @@ $app->group('/api/v1/inventory/invoices', function () {
         }
 
         $db->commit();
+
         //disconnection DB
         $pdo->disconnect_db();
-
+        // var_dump($_err);
         foreach($_err as $k => $v)
         {
             if($v[0] != "00000"){
                 $_result = false;
-                $_msg .= $v[1];
+                $_msg .= $v[1]."-".$v[2]."|";
             }
         }
-        $callback = [
-            "query" => "",
-            "error" => [
-                "code" => "00000", 
-                "message" => $_msg 
-            ]
-        ];
-    
+        $this->logger->addInfo("SQL execute ".$_msg);
+
         if($_result)
         {
-            return $response->withHeader('Connection', 'close')->withJson($callback, 200);
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['massage'] = "Transaction: ".$trans_code." - Insert OK!";
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
-        {
-            $callback = ["query" => ""];    
-            return $response->withHeader('Connection', 'close')->withJson($callback, 404);
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['massage'] = "Insert Fail - Please try again!";
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
         
         // if($_err[0][0] = "00000")
