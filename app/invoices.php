@@ -519,6 +519,8 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_err = [];
         $_done = false;
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
         $pdo = new Database();
 		$db = $pdo->connect_db();
         // POST Data here
@@ -544,7 +546,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         ";
         $q = $db->prepare($sql);
         $q->execute();
-        $_err[0] = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         // insert record to transaction_d
         if(!empty($db->lastInsertId()))
         {
@@ -565,7 +567,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 ");
                 $q->execute();
             }
-            $_err[1] = $q->errorinfo();
+            $_err[] = $q->errorinfo();
             // tender information input here
             $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
                 values (
@@ -576,7 +578,7 @@ $app->group('/api/v1/inventory/invoices', function () {
                 );
             ");
             $tr->execute();
-            $_err[2] = $tr->errorinfo();
+            $_err[] = $tr->errorinfo();
         }
 
         // if has quotation
@@ -589,34 +591,59 @@ $app->group('/api/v1/inventory/invoices', function () {
                 WHERE trans_code = '".$quotation."';"
             );
             $sql->execute();
-            $err[3] = $sql->errorinfo();
+            $_err[] = $sql->errorinfo();
         }
 
         $db->commit();
         //disconnection DB
         $pdo->disconnect_db();
-        
-        if($_err[0][0] = "00000")
+
+        foreach($_err as $k => $v)
         {
-            $_callback['query'] = "";
-            $_callback["error"] = [
+            if($v[0] != "00000"){
+                $_result = false;
+                $_msg .= $v[1];
+            }
+        }
+        $callback = [
+            "query" => "",
+            "error" => [
                 "code" => "00000", 
-                "message" => $trans_code." Insert Success!"
-            ]; 
+                "message" => $_msg 
+            ]
+        ];
+    
+        if($_result)
+        {
+            return $response->withHeader('Connection', 'close')->withJson($callback, 200);
         }
         else
-        { 
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "99999", 
-                "message" => "DB Error: "
-                .$_err[0][2]." - "
-                .$_err[1][2]." - "
-                .$_err[2][2]." - "
-                .$_err[3][2]
-            ]; 
+        {
+            $callback = ["query" => ""];    
+            return $response->withHeader('Connection', 'close')->withJson($callback, 404);
         }
-        return $response->withHeader('Connection', 'close')->withJson($_callback,200);
+        
+        // if($_err[0][0] = "00000")
+        // {
+        //     $_callback['query'] = "";
+        //     $_callback["error"] = [
+        //         "code" => "00000", 
+        //         "message" => $trans_code." Insert Success!"
+        //     ]; 
+        // }
+        // else
+        // { 
+        //     $_callback['query'] = "";
+        //     $_callback["error"] = [
+        //         "code" => "99999", 
+        //         "message" => "DB Error: "
+        //         .$_err[0][2]." - "
+        //         .$_err[1][2]." - "
+        //         .$_err[2][2]." - "
+        //         .$_err[3][2]
+        //     ]; 
+        // }
+        // return $response->withHeader('Connection', 'close')->withJson($_callback,200);
     });
 
     /**
