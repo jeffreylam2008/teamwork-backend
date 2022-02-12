@@ -499,13 +499,13 @@ $app->group('/api/v1/inventory/invoices', function () {
         if($_result)
         {
             $_callback['error']['code'] = "00000";
-            $_callback['error']['massage'] = "Transaction: ".$trans_code." - Insert OK!";
+            $_callback['error']['message'] = "Transaction: ".$trans_code." - Insert OK!";
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
         {  
             $_callback['error']['code'] = "99999";
-            $_callback['error']['massage'] = "Insert Fail - Please try again!";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
         // finish up the flow
@@ -640,13 +640,13 @@ $app->group('/api/v1/inventory/invoices', function () {
         if($_result)
         {
             $_callback['error']['code'] = "00000";
-            $_callback['error']['massage'] = "Transaction: ".$trans_code." - Insert OK!";
+            $_callback['error']['message'] = "Transaction: ".$trans_code." - Insert OK!";
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
         {  
             $_callback['error']['code'] = "99999";
-            $_callback['error']['massage'] = "Insert Fail - Please try again!";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
         
