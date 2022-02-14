@@ -18,7 +18,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_where_trans = "";
         $_where_date = "";
 
-        $this->logger->addInfo("Msg: Get All invoices");
+        $this->logger->addInfo("Entry: Get All invoices");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -102,7 +102,7 @@ $app->group('/api/v1/inventory/invoices', function () {
 
         $_trans_code= $args['trans_code'];
     
-        $this->logger->addInfo("Msg: invoices: Get invoices by trans_code");
+        $this->logger->addInfo("Entry: invoices: Get invoices by trans_code");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -130,7 +130,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code";
         $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code";
         $sql .= " WHERE th.trans_code = '".$_trans_code."';";
-        $this->logger->addInfo("SQL: ".$sql);
+        //$this->logger->addInfo("SQL: ".$sql);
         // execute SQL Statement 1
         $q = $db->prepare($sql);
         $q->execute();
@@ -228,7 +228,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_data = [];
         $_max = "00";
 
-        $this->logger->addInfo("Msg: invoices: getnextnum");
+        $this->logger->addInfo("Entry: invoices: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -303,7 +303,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_msg = "";
         $_data = [];
 
-        $this->logger->addInfo("Msg: invoices: getprefix");
+        $this->logger->addInfo("Entry: invoices: getprefix");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -363,7 +363,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $cust_code = $args['cust_code'];
         $item_code = $args['item_code'];
 
-        $this->logger->addInfo("Msg: invoices: get customer information for search");
+        $this->logger->addInfo("Entry: invoices: get customer information for search");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -443,7 +443,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_data = [];
 
         $cust_code = $args['cust_code'];
-        $this->logger->addInfo("Msg: invoices: get customer information for search");
+        $this->logger->addInfo("Entry: invoices: get customer information for search");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -523,7 +523,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_new_res = [];
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $this->logger->addInfo("Msg: DB connected");
+        $this->logger->addInfo("Entry: DB connected");
         //$sql_d = "";
         // POST Data here
         $body = json_decode($request->getBody(), true);
@@ -681,7 +681,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_result = true;
         $_msg = "";
 
-        $this->logger->addInfo("Msg: POST: invoices");
+        $this->logger->addInfo("Entry: POST: invoices");
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -805,7 +805,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
-        $this->logger->addInfo("Msg: DELETE: invoices");
+        $this->logger->addInfo("Entry: DELETE: invoices");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -882,7 +882,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_msg = "";
             $_data = [];
 
-            $this->logger->addInfo("Msg: invoices: check transaction_d");
+            $this->logger->addInfo("Entry: invoices: check transaction_d");
             $pdo = new Database();
 		    $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
@@ -941,7 +941,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_msg = "";
             $_data = [];
 
-            $this->logger->addInfo("Msg: invoices: check transaction_d by tran_code");
+            $this->logger->addInfo("Entry: invoices: check transaction_d by tran_code");
             $pdo = new Database();
             $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
@@ -1007,7 +1007,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $cust_code = $args['cust_code'];
             $prefix = $args['prefix'];
 
-            $this->logger->addInfo("Msg: invoices: check custommer by cust_code has transaction_h exist");
+            $this->logger->addInfo("Entry: invoices: check custommer by cust_code has transaction_h exist");
             $pdo = new Database();
             $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
@@ -1082,7 +1082,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_data = [];
             $_query = [];
 
-            $this->logger->addInfo("Msg: invoices: Get count");
+            $this->logger->addInfo("Entry: invoices: Get count");
             $pdo = new Database();
             $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
@@ -1160,7 +1160,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_result = true;
             $_msg = "";
 
-            $this->logger->addInfo("Msg: invoices: Get header");
+            $this->logger->addInfo("Entry: invoices: Get header");
             $pdo = new Database();
             $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
