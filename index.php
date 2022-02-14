@@ -21,7 +21,7 @@ $c['notFoundHandler'] = function ($c) {
 $c = [
     'settings' => [
         'displayErrorDetails' => true,
-        'addContentLengthHeader' => false
+        //'addContentLengthHeader' => true
     ],
 ];
 $c['logger'] = function($c) {
@@ -101,11 +101,6 @@ require './app/district.php';
 /**
  * Stocks
  */
- require './app/stocks.php';
- 
-/**
- * Stocks
- */
  require './app/transactions.php';
  
 /**
@@ -117,6 +112,31 @@ require './app/purchases.php';
  * System
  */
 require './app/systems.php';
+
+/**
+ * Stocks
+ */
+require './app/stocks.php';
+ 
+/**
+ * System
+ */
+require './app/stocks.dn.php';
+
+/**
+ * System
+ */
+require './app/stocks.grn.php';
+
+/**
+ * System
+ */
+require './app/stocks.adj.php';
+
+/**
+ * System
+ */
+require './app/stocks.stocktake.php';
 
 /**
  * test

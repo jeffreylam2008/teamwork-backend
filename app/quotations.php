@@ -209,7 +209,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $q = $db->prepare($sql);
         $q->execute();
         $_err = $q->errorinfo();
-        if($q->rowCount() != "0")
+        if($q->rowCount() != 0)
         {
             $_res = $q->fetchAll(PDO::FETCH_ASSOC);
         }
@@ -264,7 +264,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $q = $db->prepare($sql);
         $q->execute();
         $_err = $q->errorinfo();
-        if($q->rowCount() != "0")
+        if($q->rowCount() != 0)
         {
             $_res = $q->fetchAll(PDO::FETCH_ASSOC);
         }
@@ -395,7 +395,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $q->execute();
         $_err[0] = $q->errorinfo();
         
-        if($q->rowCount() != "0")
+        if($q->rowCount() != 0)
         {
             foreach($_new_res as $k_itcode => $v)
             {

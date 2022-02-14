@@ -257,6 +257,7 @@ $app->group('/api/v1/systems/master', function () {
         $_data['shops'] = [];
         $_data['customers'] = [];
         $_data['paymentmethod'] = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
 
@@ -266,26 +267,25 @@ $app->group('/api/v1/systems/master', function () {
         /**
          * Items
          */
-        $sql1 = "
-            SELECT 
-                ti.uid,
-                ti.item_code, 
-                ti.eng_name,
-                ti.chi_name,
-                ti.desc,
-                ti.price,
-                ti.price_special,
-                ti.cate_code,
-                ti.unit,
-                tw.qty as 'stockonhand', 
-                tw.type 
-            FROM `t_items` as  ti
-            LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code
-            ORDER BY ti.item_code";
+        $sql = "SELECT";
+        $sql .= " ti.uid,";
+        $sql .= " ti.item_code,";
+        $sql .= " ti.eng_name,";
+        $sql .= " ti.chi_name,";
+        $sql .= " ti.desc,";
+        $sql .= " ti.price,";
+        $sql .= " ti.price_special,";
+        $sql .= " ti.cate_code,";
+        $sql .= " ti.unit,";
+        $sql .= " tw.qty as 'stockonhand',";
+        $sql .= " tw.type";
+        $sql .= " FROM `t_items` as  ti";
+        $sql .= " LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code";
+        $sql .= " ORDER BY ti.item_code";
         // echo $sql1."\n";
-        $q = $db->prepare($sql1);
+        $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $_data['items'] = $q->fetchAll(PDO::FETCH_ASSOC);
 
         // foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
@@ -295,65 +295,68 @@ $app->group('/api/v1/systems/master', function () {
         /**
          * Shops
          */
-        $sql2 = "select * from `t_shop`;";
+        $sql = "select * from `t_shop`;";
         // echo $sql1."\n";
-        $q = $db->prepare($sql2);
+        $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $_data['shops'] = $q->fetchAll(PDO::FETCH_ASSOC);
 
         /**
          * Customers
          */ 
-        $sql3 = "
-            SELECT 
-                tc.cust_code, 
-                tc.name,
-                tc.pm_code
-            FROM `t_customers` as tc
-        ";
+        $sql = "SELECT ";
+        $sql .= " tc.cust_code,";
+        $sql .= " tc.name,";
+        $sql .= " tc.pm_code";
+        $sql .= " FROM `t_customers` as tc";
         // echo $sql1."\n";
-        $q = $db->prepare($sql3);
+        $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $_data['customers'] = $q->fetchAll(PDO::FETCH_ASSOC);
 
         /**
          * Payment Method
          */
-        $sql4 = "SELECT * FROM `t_payment_method`;";
+        $sql = "SELECT * FROM `t_payment_method`;";
         // echo $sql1."\n";
-        $q = $db->prepare($sql4);
+        $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $_data['paymentmethod'] = $q->fetchAll(PDO::FETCH_ASSOC);
 
         //disconnection DB
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
 
         foreach($_err as $k => $v)
         {
             if($v[0] != "00000"){
                 $_result = false;
-                $_msg .= $v[1];
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
             }
         }
-        $callback = [
-            "query" => $_data,
-            "error" => [
-                "code" => "00000", 
-                "message" => $_msg 
-            ]
-        ];
     
         if($_result)
         {
-            return $response->withJson($callback, 200);
+            $_callback["query"] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Master data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withJson($_callback, 200);
         }
         else
         {
-            $callback = ["query" => ""];    
-            return $response->withJson($callback, 404);
+            $_callback = ["query" => ""];
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Master data fetch fail!";
+            $this->logger->addInfo("SQL execute ".$_msg);  
+            return $response->withJson($_callback, 404);
         }
     });
 });
@@ -361,8 +364,8 @@ $app->group('/api/v1/systems/master', function () {
 
 $app->group('/api/v1/network/status', function (){
     $this->get('/', function (Request $request, Response $response, array $args){
-        $callback = ["Error" => "network health","Code"=> 0 ];
-        return $response->withJson( $callback , 200);
+        $_callback = ["Error" => "network health","Code"=> 0 ];
+        return $response->withJson( $_callback , 200);
     });
 });
 

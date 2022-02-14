@@ -359,7 +359,7 @@ $app->group('/api/v1/purchases/order', function () {
         $q = $db->prepare($sql);
         $q->execute();
         $_err = $q->errorinfo();
-        if($q->rowCount() != "0")
+        if($q->rowCount() != 0)
         {
             $_res = $q->fetchAll(PDO::FETCH_ASSOC);
         }
@@ -656,6 +656,84 @@ $app->group('/api/v1/purchases/order', function () {
             return $response->withJson($_callback, 200);
        
         });
+    
+        /**
+         * Transaction H GET Request
+         * Supplier Check 
+         * To check Supplier code on transaction h table (use it on delete customer)
+         * 
+         * @param prefix existing prefix 
+         * @param supp_code supplier code to look up record
+         */
+        $this->get('/{prefix}/suppliers/{supp_code}', function (Request $request, Response $response, array $args) {
+            $_err = [];
+            $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+            $_result = true;
+            $_msg = "";
+            $_data = [];
+            $supp_code = $args['supp_code'];
+            $prefix = $args['prefix'];
+
+            $this->logger->addInfo("Msg: invoices: check supplier by supp_code has transaction_h exist");
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            $this->logger->addInfo("Msg: DB connected");
+
+            $sql = "SELECT * FROM `t_transaction_h` where supp_code = '". $supp_code ."' AND prefix = '".$prefix."';";
+            $this->logger->addInfo("SQL: ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
+            $_err[] = $q->errorinfo();
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+            if(!$_data)
+            {
+                $_data = ["has" => false, "data"=> ""];
+            }
+            else
+            {
+                $_data = ["has" => true, "data"=> $_data];
+            }
+
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000")
+                {
+                    $_result = false;
+                    $_msg .= $v[1]."-".$v[2]."|";
+                }
+                else
+                {
+                    $_msg .= "SQL #".$k.": SQL execute OK! | ";
+                }
+            }
+            $_callback = [
+                "query" => $_data,
+                "error" => [
+                    "code" => "00000", 
+                    "message" => $_msg 
+                ]
+            ];
+            if($_result)
+            {
+                $_callback['error']['code'] = "00000";
+                $_callback['error']['message'] = "Data fetch OK!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+            }
+            else
+            {  
+                $_callback['error']['code'] = "99999";
+                $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+            }
+        });
+    
+    
     });
 
     /**
