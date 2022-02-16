@@ -15,77 +15,103 @@ $app->group('/api/v1/stocks/adj', function () {
      */
     $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
         // inital variable
-        $_callback = [];
-        $_query = [];
-        $_callback['has'] = false;
-        $_trans_code= $args['trans_code'];
         $_err = [];
-        $_err2 = [];
-        $_err3 = [];
-        $_customers = [];
-    
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_data = [];
+
+        $_trans_code= $args['trans_code'];
+        $this->logger->addInfo("Entry: stocks adjustment: get transaction by code");
         $pdo = new Database();
-		$db = $pdo->connect_db();
-        $sql = "
-            SELECT 
-                th.trans_code as 'adj_num',
-                th.create_date as 'date',
-                th.employee_code as 'employee_code',
-                th.modify_date as 'modifydate',
-                th.refer_code as 'refer_num', 
-                th.prefix as 'prefix',
-                th.quotation_code as 'quotation',
-                th.remark as 'remark',
-                th.shop_code as 'shop_code',
-                ts.name as 'shopname'
-            FROM `t_transaction_h` as th
-            LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-            WHERE th.trans_code = '".$_trans_code."';
-        ";
-        $sql2 = "
-            SELECT 
-                td.item_code,
-                td.eng_name,
-                td.chi_name,
-                td.qty,
-                td.unit,
-                td.pstock as 'stockonhand'
-            FROM `t_transaction_d` as td
-            WHERE td.trans_code = '".$_trans_code."';
-        ";
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
+        $sql = "SELECT";
+        $sql .= " th.trans_code as 'adj_num',";
+        $sql .= " th.create_date as 'date',";
+        $sql .= " th.employee_code as 'employee_code',";
+        $sql .= " th.modify_date as 'modifydate',";
+        $sql .= " th.refer_code as 'refer_num',";
+        $sql .= " th.prefix as 'prefix',";
+        $sql .= " th.quotation_code as 'quotation',";
+        $sql .= " th.remark as 'remark',";
+        $sql .= " th.shop_code as 'shop_code',";
+        $sql .= " ts.name as 'shopname'";
+        $sql .= " FROM `t_transaction_h` as th";
+        $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code";
+        $sql .= " WHERE th.trans_code = '".$_trans_code."';";
+       
         // execute SQL Statement 1
         $q = $db->prepare($sql);
         $q->execute();
-        $_err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
-        // execute SQL statement 2
-        $q = $db->prepare($sql2);
-        $q->execute();
-        $_err2 = $q->errorinfo();
-        $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
         
-        //disconnection DB
-        $pdo->disconnect_db();
-    
-        // export data
-        if(!empty($res))
+        if($q->rowCount() != 0)
         {
-            $_query = $res[0];        
+            $sql = "SELECT";
+            $sql .= " td.item_code,";
+            $sql .= " td.eng_name,";
+            $sql .= " td.chi_name,";
+            $sql .= " td.qty,";
+            $sql .= " td.unit,";
+            $sql .= " td.pstock as 'stockonhand'";
+            $sql .= " FROM `t_transaction_d` as td";
+            $sql .= " WHERE td.trans_code = '".$_trans_code."';";
+        // execute SQL statement 2
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+            
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+        // export data
+
+            $_data = $res[0];        
             foreach ($res2 as $key => $val) {
-                 $_query["items"] = $res2;
+                 $_data["items"] = $res2;
             }
-            //var_dump($_query);
-            $_callback['query'] = $_query;
-            $_callback['has'] = true;
+            
         }
         else
         {
-            $_callback['query'] = $_query;
-            $_callback['has'] = false;
+            $_result = false;
         }
-        $_callback["error"]["code"] = $_err[0];
-        $_callback["error"]["message"] = $_err[2];
-        return $response->withJson($_callback, 200);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['has'] = true;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['query'] = "";
+            $_callback['has'] = false;
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /*
@@ -101,7 +127,7 @@ $app->group('/api/v1/stocks/adj', function () {
         $_max = "00";
 
 
-        $this->logger->addInfo("Msg: stocks adjustment: getnextnum");
+        $this->logger->addInfo("Entry: stocks adjustment: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -178,7 +204,7 @@ $app->group('/api/v1/stocks/adj', function () {
         $_data = [];
         $_prefix['prefix'] = "";
 
-        $this->logger->addInfo("Msg: stocks adjustment: getprefix");
+        $this->logger->addInfo("Entry: stocks adjustment: getprefix");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -238,7 +264,7 @@ $app->group('/api/v1/stocks/adj', function () {
         $_result = true;
         $_msg = "";
 
-        $this->logger->addInfo("Msg: POST: Stocks Adjustment");
+        $this->logger->addInfo("Entry: POST: Stocks Adjustment");
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -300,7 +326,6 @@ $app->group('/api/v1/stocks/adj', function () {
                 $sql .= " `qty` = @qty,";
                 $sql .= " `modify_date` = '".$date."'"; 
                 $sql .= " WHERE `item_code` = '".$v['item_code']."';";
-
                 $q = $db->prepare($sql);
                 $q->execute();
                 $_err[] = $q->errorinfo();
