@@ -21,7 +21,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $_data = [];
         $_st_num = $args['st_num'];
 
-        $this->logger->addInfo("Entry: stocktake: Get stocktake by trans_code");
+        $this->logger->addInfo("Entry: stocktake: get stocktake by trans_code");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -122,7 +122,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $_data = [];
         $_max = "00";
 
-        $this->logger->addInfo("Entry: invoices: getnextnum");
+        $this->logger->addInfo("Entry: stocktake: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -202,7 +202,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $_msg = "";
         $_data = [];
 
-        $this->logger->addInfo("Entry: invoices: getprefix");
+        $this->logger->addInfo("Entry: stocktake: getprefix");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -262,7 +262,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $_result = true;
         $_msg = "";
         
-        $this->logger->addInfo("Entry: POST: Stocktake");
+        $this->logger->addInfo("Entry: POST: stocktake");
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -420,10 +420,10 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $_now = date('Y-m-d H:i:s');
         $_trans_code = $args['st_num'];
 
-        $this->logger->addInfo("Msg: PATCH: invoices");
+        $this->logger->addInfo("Entry: PATCH: stocktake");
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $this->logger->addInfo("Entry: DB connected");
+        $this->logger->addInfo("Msg: DB connected");
 
         // Start transaction 
         $db->beginTransaction();
