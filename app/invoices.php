@@ -501,7 +501,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         {
             $_callback['query'] = $_data;
             $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "OK!";
+            $_callback['error']['message'] = "Data fetch OK!";
             $this->logger->addInfo("SQL execute ".$_msg);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
@@ -1083,14 +1083,10 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
             $_result = true;
             $_msg = "";
+            $_data = [];
             $_param = $request->getQueryParams();
             if(empty($_param["month"])) $_param["month"] = date('m');
             if(empty($_param["year"])) $_param["year"] = date('Y');
-            $this->logger->addInfo("");
-            $_callback = [];
-            $_err=[];
-            $_data = [];
-            $_query = [];
 
             $this->logger->addInfo("Entry: invoices: get count");
             $pdo = new Database();
@@ -1124,15 +1120,9 @@ $app->group('/api/v1/inventory/invoices', function () {
                     $_msg .= "SQL #".$k.": SQL execute OK! | ";
                 }
             }
-            $_callback = [
-                "query" => $_data,
-                "error" => [
-                    "code" => "00000", 
-                    "message" => $_msg 
-                ]
-            ];
             if($_result)
             {
+                $_callback['query'] = $_data;
                 $_callback['error']['code'] = "00000";
                 $_callback['error']['message'] = "Data fetch OK!";
                 $this->logger->addInfo("SQL execute ".$_msg);
@@ -1140,6 +1130,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             }
             else
             {  
+                $_callback['query'] = "";
                 $_callback['error']['code'] = "99999";
                 $_callback['error']['message'] = "Data fetch Fail - Please try again!";
                 $this->logger->addInfo("SQL execute ".$_msg);

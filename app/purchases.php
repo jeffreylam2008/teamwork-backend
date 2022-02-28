@@ -10,82 +10,90 @@ $app->group('/api/v1/purchases/order', function () {
      * To get all Purchase Order record
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
-        $_param = array();
         $_param = $request->getQueryParams();
-        //$_prefix['prefix'] = "";
-        $_callback = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_err = [];
-        $_query = [];
+        $_data = [];
+        $_msg = "";
+        $_result = true;
         $_where_trans = "";
         $_where_date = "";
-        if(!empty($_param))
+
+        $this->logger->addInfo("Entry: purchases: get all purchases");
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+        // prefix SQL 
+        // in DN, GRN, ADJ, ST
+        
+        // only if transaction field param exist
+        if(!empty($_param['i-num']))
         {
-            $pdo = new Database();
-            $db = $pdo->connect_db();
-            // prefix SQL 
-            // in DN, GRN, ADJ, ST
+            $_where_trans = "AND (th.trans_code LIKE ('%".$_param['i-num']."%') OR th.refer_code LIKE ('%".$_param['i-num']."%')) ";
             
-            // only if transaction field param exist
-            if(!empty($_param['i-num']))
+        }
+        // otherwise follow date range as default
+        else
+        {
+            $_where_date = "AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
+        }
+
+        $sql = "SELECT ";
+        $sql .= " th.*,";
+        $sql .= " tc.name as `customer`,";
+        $sql .= " ts.name as `shop_name`,";
+        $sql .= " tsp.name as 'supp_name',";
+        $sql .= " tpm.payment_method as 'payment_method',";
+        $sql .= " ts.shop_code";
+        $sql .= " FROM `t_transaction_h` as th";
+        $sql .= " LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code";
+        $sql .= " LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code";
+        $sql .= " LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code";
+        $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code";
+        $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code";
+        $sql .= " LEFT JOIN `t_prefix` as tp ON th.prefix = tp.prefix";
+        $sql .= " WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 2) ";
+        $sql .= $_where_date . $_where_trans.";";
+        // $this->logger->addInfo("SQL: ".$sql);
+        // t_transaction_h SQL
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        $_data = $q->fetchAll(PDO::FETCH_ASSOC);
+
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        // export data
+
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
             {
-                $_where_trans = "AND (th.trans_code LIKE ('%".$_param['i-num']."%') OR th.refer_code LIKE ('%".$_param['i-num']."%')) ";
-                
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
             }
-            // otherwise follow date range as default
             else
             {
-                $_where_date = "AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
             }
+        }
 
-            $sql = "
-                SELECT 
-                    th.*,
-                    tc.name as `customer`, 
-                    ts.name as `shop_name`,
-                    tsp.name as 'supp_name',
-                    tpm.payment_method as 'payment_method',
-                    ts.shop_code
-                FROM `t_transaction_h` as th 
-                LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
-                LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code 
-                LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code
-                LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
-                LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-                LEFT JOIN `t_prefix` as tp ON th.prefix = tp.prefix
-                WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 2)  ". $_where_date . $_where_trans.";
-            ";
-            $this->logger->addInfo("SQL: ".$sql);
-            // t_transaction_h SQL
-            $q = $db->prepare($sql);
-            $q->execute();
-            $this->logger->addInfo("SQL execute");
-            $_err = $q->errorinfo();
-            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
-
-            //disconnection DB
-            $pdo->disconnect_db();
-
-            // export data
-            if(!empty($_res))
-            {
-                foreach ($_res as $key => $val) {
-                    $_query[] = $val;
-                }
-                $_callback = [
-                    "query" => $_query,
-                    "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
-                ];
-                $this->logger->addInfo("DB message: ".$_err[1]." - ".$_err[2]);
-                return $response->withJson($_callback, 200);
-            }
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
         {
-            $_callback = [
-                "query" => $_query,
-                "error" => ["code" => "99999", "message" => "Query String Not Found!"]
-            ];
-            return $response->withJson($_callback, 404);
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
 
@@ -97,145 +105,159 @@ $app->group('/api/v1/purchases/order', function () {
     $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
         // inital variable
         $_callback = [];
-        $_query = [];
+        $_data = [];
         $_callback['has'] = false;
+        $_result = true;
+        $_msg = "";
         $_trans_code= $args['trans_code'];
         $_err = [];
         $_customers = [];
         $_settlement = 0;
     
+        $this->logger->addInfo("Entry: purchases: get purchases by trans_code");
         $pdo = new Database();
-		$db = $pdo->connect_db();
-        $sql = "
-            SELECT
-                (SELECT COUNT(*) FROM `t_transaction_h` WHERE refer_code = '".$_trans_code."') as `has_grn`,
-                th.trans_code,
-                th.create_date as 'date',
-                th.employee_code as 'employee_code',
-                th.refer_code as 'refernum',
-                th.modify_date as 'modifydate',
-                tt.pm_code as 'paymentmethod',
-                tpm.payment_method as 'paymentmethodname',
-                th.prefix as 'prefix',
-                th.quotation_code as 'quotation',
-                th.remark as 'remark',
-                th.shop_code as 'shopcode',
-                ts.name as 'shopname',
-                th.cust_code as 'cust_code',
-                th.supp_code as 'supp_code',
-                tsp.name as 'supp_name', 
-                th.total as 'total',
-                th.is_convert as 'is_settle'
-            FROM `t_transaction_h` as th
-            LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code
-            LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code
-            LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
-            LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-            WHERE th.trans_code = '".$_trans_code."';
-        ";
-        $sql2 = "
-            SELECT 
-                td.item_code,
-                td.eng_name,
-                td.chi_name,
-                td.qty,
-                td.unit,
-                td.price,
-                td.discount as 'price_special',
-                tw.qty as 'stockonhand'
-            FROM `t_transaction_d` as td 
-            LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code
-            WHERE trans_code = '".$_trans_code."';
-        ";
-        $sql3 = "
-            SELECT 
-                sum(td.qty) as 'po_items'
-            FROM `t_transaction_d` as td 
-            LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code
-            WHERE trans_code = '".$_trans_code."';
-        ";
-        $sql4 = "
-            SELECT
-                sum(td.qty) as 'grn_items'
-            FROM `t_transaction_h` as th 
-            LEFT JOIN `t_transaction_d` as td ON th.trans_code = td.trans_code
-            WHERE th.refer_code = '".$_trans_code."';
-        ";
-        $this->logger->addInfo("SQL: ".$sql);
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
+        $sql = "SELECT";
+        $sql .= " (SELECT COUNT(*) FROM `t_transaction_h` WHERE refer_code = '".$_trans_code."') as `has_grn`,";
+        $sql .= " th.trans_code,";
+        $sql .= " th.create_date as 'date',";
+        $sql .= " th.employee_code as 'employee_code',";
+        $sql .= " th.refer_code as 'refernum',";
+        $sql .= " th.modify_date as 'modifydate',";
+        $sql .= " tt.pm_code as 'paymentmethod',";
+        $sql .= " tpm.payment_method as 'paymentmethodname',";
+        $sql .= " th.prefix as 'prefix',";
+        $sql .= " th.quotation_code as 'quotation',";
+        $sql .= " th.remark as 'remark',";
+        $sql .= " th.shop_code as 'shopcode',";
+        $sql .= " ts.name as 'shopname',";
+        $sql .= " th.cust_code as 'cust_code',";
+        $sql .= " th.supp_code as 'supp_code',";
+        $sql .= " tsp.name as 'supp_name',";
+        $sql .= " th.total as 'total',";
+        $sql .= " th.is_convert as 'is_settle'";
+        $sql .= " FROM `t_transaction_h` as th";
+        $sql .= " LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code";
+        $sql .= " LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code";
+        $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code";
+        $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code";
+        $sql .= " WHERE th.trans_code = '".$_trans_code."';";
         
+        // $this->logger->addInfo("SQL: ".$sql);
+
         // execute SQL Statement 1
         $q = $db->prepare($sql);
         $q->execute();
-        $this->logger->addInfo("SQL execute");
         $_err[] = $q->errorinfo();
-        $head = $q->fetchAll(PDO::FETCH_ASSOC);
-        $this->logger->addInfo("SQL: ".$sql2);
-
-        // execute SQL statement 2
-        $q = $db->prepare($sql2);
-        $q->execute();
-        $this->logger->addInfo("SQL execute");
-        $_err[] = $q->errorinfo();
-        $po_items = $q->fetchAll(PDO::FETCH_ASSOC);
-
-        $this->logger->addInfo("SQL: ".$sql3);
-        $q = $db->prepare($sql3);
-        $q->execute();
-        $this->logger->addInfo("SQL execute");
-        $_err[] = $q->errorinfo();
-        $res3 = $q->fetch();
-
-        $this->logger->addInfo("SQL: ".$sql4);
-        $q = $db->prepare($sql4);
-        $q->execute();
-        $this->logger->addInfo("SQL execute");
-        $_err[] = $q->errorinfo();
-        $res4 = $q->fetch();
-
-        //disconnection DB
-        $pdo->disconnect_db();        
-
-        // export data
-        if(!empty($head))
+        if($q->rowCount() != 0)
         {
-            $_query = $head[0];
+            $head = $q->fetch(PDO::FETCH_ASSOC);
+            // $this->logger->addInfo("SQL: ".$sql);
+
+            $sql = "SELECT";
+            $sql .= " td.item_code,";
+            $sql .= " td.eng_name,";
+            $sql .= " td.chi_name,";
+            $sql .= " td.qty,";
+            $sql .= " td.unit,";
+            $sql .= " td.price,";
+            $sql .= " td.discount as 'price_special',";
+            $sql .= " tw.qty as 'stockonhand'";
+            $sql .= " FROM `t_transaction_d` as td ";
+            $sql .= " LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code";
+            $sql .= " WHERE trans_code = '".$_trans_code."';";
+            // execute SQL statement 2
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $po_items = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            $sql = "SELECT ";
+            $sql .= " sum(td.qty) as 'po_items'";
+            $sql .= " FROM `t_transaction_d` as td ";
+            $sql .= " LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code";
+            $sql .= " WHERE trans_code = '".$_trans_code."';";
+
+            // $this->logger->addInfo("SQL: ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $res3 = $q->fetch();
+
+            $sql = "SELECT";
+            $sql .= " sum(td.qty) as 'grn_items'";
+            $sql .= " FROM `t_transaction_h` as th ";
+            $sql .= " LEFT JOIN `t_transaction_d` as td ON th.trans_code = td.trans_code";
+            $sql .= " WHERE th.refer_code = '".$_trans_code."';";
+            // $this->logger->addInfo("SQL: ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $res4 = $q->fetch();
+
+            $_data = $head;
             $_settlement = ($res3['po_items'] - $res4['grn_items']);
             foreach ($po_items as $key => $val) {
-                 $_query["items"] = $po_items;
+                 $_data["items"] = $po_items;
             }
             if($_settlement === 0)
             {
-                $_query["settlement"] = true; 
+                $_data["settlement"] = true; 
             }
             else
             {
-                $_query["settlement"] = false; 
+                $_data["settlement"] = false; 
             }
             // calcuate subtotal
-            if(!empty($_query["items"]))
+            if(!empty($_data["items"]))
             {
-                foreach($_query["items"] as $k => $v)
+                foreach($_data["items"] as $k => $v)
                 {
                     extract($v);
-                    $_query["items"][$k]["subtotal"] = ($qty * $price);
+                    $_data["items"][$k]["subtotal"] = ($qty * $price);
                 }
             }
-            //var_dump($_query);
-            $_callback['query'] = $_query;
-            $_callback['has'] = true;
-            $_callback["error"]["code"] = $_err;
-            $_callback["error"]["message"] = $_err;
-            $this->logger->addInfo("DB message: ".$_err[1][0]." - ".$_err[2][0]);
-            return $response->withJson($_callback, 200);
         }
         else
         {
+            $_result = false;
+        }
+        //disconnection DB
+        $pdo->disconnect_db();        
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['has'] = true;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
             $_callback['query'] = "";
             $_callback['has'] = false;
-            $_callback["error"]["code"] = "99999";
-            $_callback["error"]["message"] = "Item not found";
-            $this->logger->addInfo("Item not found");
-            return $response->withJson($_callback, 404);
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
 
@@ -245,30 +267,36 @@ $app->group('/api/v1/purchases/order', function () {
      */
     $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
         $_err = [];
-        $_data = "";
-        $_prefix['prefix'] = "";
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_data = [];
         $_max = "00";
+
+        $this->logger->addInfo("Entry: purchases: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
         // prefix SQL
-        $q1 = $db->prepare("
-            SELECT prefix FROM `t_prefix` WHERE `uid` = '2' LIMIT 1;
-        ");
-        $q1->execute();
-        $_err[] = $q1->errorinfo();
-        if($q1->rowCount() != "0")
+        $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '2' LIMIT 1;";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        if($q->rowCount() != 0)
         {
-            $_prefix = $q1->fetch();
+            $_prefix = $q->fetch();
         }
-        $q = $db->prepare("
-            SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;
-        ");
+
+        $sql = "SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;";
+        $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
         $_data = $q->fetch();
 
         // disconnect DB session
-        $pdo->disconnect_db();
+        $pdo->disconnect_db();        
+        $this->logger->addInfo("Msg: DB connection closed");
 
         if(!empty($_data['max']))
         {
@@ -278,18 +306,42 @@ $app->group('/api/v1/purchases/order', function () {
             {
                 $_max = 00;
             }
+            $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
         }
-        $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
+        else
+        {
+            $_result = false;
+        }
 
-        $callback = [
-            "query" => $_data,
-            "error" => [
-                "code" => $_err, 
-                "message" => $_err
-            ]
-        ];
-    
-        return $response->withJson($callback, 200);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**
@@ -298,13 +350,19 @@ $app->group('/api/v1/purchases/order', function () {
      */
     $this->get('/getprefix/', function (Request $request, Response $response, array $args) {
         $_err = [];
-        $_prefix['prefix'] = "";
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_data = [];
+
+        $this->logger->addInfo("Entry: purchases: getprefix");
         $pdo = new Database();
         $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
         // prefix SQL
-        $q1 = $db->prepare("
-            SELECT prefix FROM `t_prefix` WHERE `uid` = '2' LIMIT 1;
-        ");
+        $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '2' LIMIT 1;";
+        $q1 = $db->prepare($sql);
         $q1->execute();
         $_err[] = $q1->errorinfo();
         if($q1->rowCount() != "0")
@@ -314,16 +372,37 @@ $app->group('/api/v1/purchases/order', function () {
 
         // disconnect DB session
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
         
-        $callback = [
-            "query" => $_prefix['prefix'],
-            "error" => [
-                "code" => $_err, 
-                "message" => $_err
-            ]
-        ];
-    
-        return $response->withJson($callback, 200);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data['prefix'];
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**
@@ -332,46 +411,69 @@ $app->group('/api/v1/purchases/order', function () {
      * @param supp_code supplier code
      */
     $this->get('/getlast/supp/{supp_code}', function (Request $request, Response $response, array $args) {
-        $_callback = [];
+        $_result = true;
+        $_msg = "";
+		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_err = [];
-        $_res = [];
-
+        $_data = [];
         $supp_code = $args['supp_code'];
+        
+        $this->logger->addInfo("Entry: purchases: get last supplier info for search");
         $pdo = new Database();
         $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
         
-        $sql = "
-        SELECT 
-            th.*, 
-            tpm.payment_method as `payment_method`, 
-            tsp.name as `supplier`, 
-            ts.name as `shop_name`, 
-            ts.shop_code
-        FROM `t_transaction_h` as th 
-        LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code 
-        LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code 
-        LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code 
-        LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code 
-        LEFT JOIN `t_prefix` as tp ON th.prefix = tp.prefix
-        WHERE th.supp_code = '".$supp_code."' AND tp.uid = '2';
-        ";
+        $sql = "SELECT";
+        $sql .= " th.*, ";
+        $sql .= " tpm.payment_method as `payment_method`, ";
+        $sql .= " tsp.name as `supp_name`, ";
+        $sql .= " ts.name as `shop_name`, ";
+        $sql .= " ts.shop_code";
+        $sql .= " FROM `t_transaction_h` as th ";
+        $sql .= " LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code ";
+        $sql .= " LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code ";
+        $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code ";
+        $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code"; 
+        $sql .= " LEFT JOIN `t_prefix` as tp ON th.prefix = tp.prefix";
+        $sql .= " WHERE th.supp_code = '".$supp_code."' AND tp.uid = '2'; ";
 
         $q = $db->prepare($sql);
         $q->execute();
-        $_err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         if($q->rowCount() != 0)
         {
-            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
+            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
         }
         $pdo->disconnect_db();
-
-        $_callback['query'] = $_res;
-        $_callback["error"]["code"] = $_err[0];
-        $_callback["error"]["message"] = $_err[2];
-
-        //disconnection DB
-        
-        return $response->withJson($_callback, 200);
+        $this->logger->addInfo("Msg: DB connection closed");
+        foreach($_err as $k => $v)
+        {
+            // has error
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Retrieve Data Problem!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**
@@ -380,6 +482,8 @@ $app->group('/api/v1/purchases/order', function () {
      */
     $this->get('/getgrn/po/{refer_code}', function (Request $request, Response $response, array $args) {
         // inital variable
+        $_result = true;
+        $_msg = "";
         $_grn_combo = [];
         $_callback = [];
         $_temp = [];
@@ -389,83 +493,85 @@ $app->group('/api/v1/purchases/order', function () {
         $_err = [];
         $_counter = 0;
         $_counter1 = 0;
+
         // retrieve GRN items SQL statement
+        $this->logger->addInfo("Entry: purchases: get grn refer PO by refer_code");
         $pdo = new Database();
-		$db = $pdo->connect_db();
-        $sql = "
-            SELECT
-                (SELECT COUNT(*) FROM `t_transaction_h` WHERE refer_code = '".$_refer_code."') as `has_grn`,
-                th.trans_code,
-                th.create_date as 'date',
-                th.employee_code as 'employee_code',
-                th.refer_code as 'refernum',
-                th.modify_date as 'modifydate',
-                tt.pm_code as 'paymentmethod',
-                tpm.payment_method as 'paymentmethodname',
-                th.prefix as 'prefix',
-                th.quotation_code as 'quotation',
-                th.remark as 'remark',
-                th.shop_code as 'shopcode',
-                ts.name as 'shopname',
-                th.cust_code as 'cust_code',
-                th.supp_code as 'supp_code',
-                tsp.name as 'supp_name', 
-                th.total as 'total'
-            FROM `t_transaction_h` as th
-            LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code
-            LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code
-            LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code
-            LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code
-            WHERE th.trans_code = '".$_refer_code."';
-        ";
-        $sql2 = "
-            SELECT 
-                td.item_code, 
-                td.eng_name,
-                td.chi_name,
-                td.qty, 
-                td.unit,
-                td.price,
-                td.discount as 'price_special',
-                tw.qty as 'stockonhand'
-            FROM `t_transaction_h` as th 
-            LEFT JOIN `t_transaction_d` as td ON th.trans_code = td.trans_code 
-            LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code
-            WHERE th.`trans_code` = '".$_refer_code."' 
-            AND th.`prefix` = (select prefix from t_prefix where uid = 2);
-        ";
-        $sql3 = "
-            SELECT 
-                td.item_code,
-                td.qty      
-            FROM `t_transaction_h` as th 
-            LEFT JOIN `t_transaction_d` as td ON th.trans_code = td.trans_code
-            WHERE th.`refer_code` = '".$_refer_code."' 
-            AND th.`prefix` = (select prefix from t_prefix where uid = 5);
-        ";
-        // retrieve PO items SQL statement
-        $q = $db->prepare($sql3);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $grn_items = $q->fetchAll(PDO::FETCH_ASSOC);
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
+        $sql = " SELECT";
+        $sql .= " (SELECT COUNT(*) FROM `t_transaction_h` WHERE refer_code = '".$_refer_code."') as `has_grn`,";
+        $sql .= " th.trans_code,";
+        $sql .= " th.create_date as 'date',";
+        $sql .= " th.employee_code as 'employee_code',";
+        $sql .= " th.refer_code as 'refernum',";
+        $sql .= " th.modify_date as 'modifydate',";
+        $sql .= " tt.pm_code as 'paymentmethod',";
+        $sql .= " tpm.payment_method as 'paymentmethodname',";
+        $sql .= " th.prefix as 'prefix',";
+        $sql .= " th.quotation_code as 'quotation',";
+        $sql .= " th.remark as 'remark',";
+        $sql .= " th.shop_code as 'shopcode',";
+        $sql .= " ts.name as 'shopname',";
+        $sql .= " th.cust_code as 'cust_code',";
+        $sql .= " th.supp_code as 'supp_code',";
+        $sql .= " tsp.name as 'supp_name', ";
+        $sql .= " th.total as 'total'";
+        $sql .= " FROM `t_transaction_h` as th";
+        $sql .= " LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code";
+        $sql .= " LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code";
+        $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code";
+        $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code";
+        $sql .= " WHERE th.trans_code = '".$_refer_code."'; ";
         // execute SQL Statement 1
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        $head = $q->fetchAll(PDO::FETCH_ASSOC);
-        // execute SQL statement 2
-        $q = $db->prepare($sql2);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $po_items = $q->fetchAll(PDO::FETCH_ASSOC);
+        $head = $q->fetch(PDO::FETCH_ASSOC);
 
-        //disconnection DB
-        $pdo->disconnect_db();
         
         // found po on transaction header and has grn record
         if(!empty($head))
-        {
-            $_query = $head[0];
+        {       
+            $sql = "SELECT ";
+            $sql .= " td.item_code, ";
+            $sql .= " td.eng_name,";
+            $sql .= " td.chi_name,";
+            $sql .= " td.qty, ";
+            $sql .= " td.unit,";
+            $sql .= " td.price,";
+            $sql .= " td.discount as 'price_special',";
+            $sql .= " tw.qty as 'stockonhand'";
+            $sql .= " FROM `t_transaction_h` as th ";
+            $sql .= " LEFT JOIN `t_transaction_d` as td ON th.trans_code = td.trans_code ";
+            $sql .= " LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code";
+            $sql .= " WHERE th.`trans_code` = '".$_refer_code."' ";
+            $sql .= " AND th.`prefix` = (select prefix from t_prefix where uid = 2);";
+            // execute SQL statement 2
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $po_items = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            $sql = "SELECT ";
+            $sql .= " td.item_code,";
+            $sql .= " td.qty";
+            $sql .= " FROM `t_transaction_h` as th ";
+            $sql .= " LEFT JOIN `t_transaction_d` as td ON th.trans_code = td.trans_code";
+            $sql .= " WHERE th.`refer_code` = '".$_refer_code."' ";
+            $sql .= " AND th.`prefix` = (select prefix from t_prefix where uid = 5);";
+            // retrieve PO items SQL statement
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $grn_items = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+            $_query = $head;
             $_query["settlement"] = false;
             
             // create item template
@@ -499,7 +605,6 @@ $app->group('/api/v1/purchases/order', function () {
                 }
             }
             
-            
             // check remain item on list
             $_counter = $_counter - $_counter1;
             //var_dump($_counter);
@@ -531,12 +636,34 @@ $app->group('/api/v1/purchases/order', function () {
                     $_query["items"][$k]["subtotal"] = ($qty * $price);
                 }
             }
-            //var_dump($_query);
+
+        }
+        else
+        {
+            $_result = false;
+        }
+
+        foreach($_err as $k => $v)
+        {
+            // has error
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
             $_callback['query'] = $_query;
             $_callback['has'] = true;
-            $_callback["error"]["code"] = $_err;
-            $_callback["error"]["message"] = $_err;
-            return $response->withJson($_callback, 200);
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
         {
@@ -544,7 +671,7 @@ $app->group('/api/v1/purchases/order', function () {
             $_callback['has'] = false;
             $_callback["error"]["code"] = "99999";
             $_callback["error"]["message"] = "Item not found";
-            return $response->withJson($_callback, 404);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
 
@@ -554,58 +681,75 @@ $app->group('/api/v1/purchases/order', function () {
     $this->get('/settlement/po/{refer_code}',function(Request $request, Response $response, array $args){
         $_refer_code = $args['refer_code'];
         $_err = [];
-        $_callback = [];
-        $_query = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_data = [];
+        $_result = true;
+        $_msg = "";
 
+        $this->logger->addInfo("Entry: purchases: get settlement by refer_code");
         $pdo = new Database();
-		$db = $pdo->connect_db();
-        $sql = "
-            SELECT 
-                tt.trans_code,
-                tt.pm_code,
-                tt.total
-            FROM `t_transaction_h` as th 
-            LEFT JOIN t_transaction_t as tt 
-            ON th.trans_code = tt.trans_code 
-            WHERE th.refer_code = '".$_refer_code."';
-        ";
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
+        $sql = " SELECT";
+        $sql .= " tt.trans_code, ";
+        $sql .= " tt.pm_code, ";
+        $sql .= " tt.total ";
+        $sql .= " FROM `t_transaction_h` as th  ";
+        $sql .= " LEFT JOIN t_transaction_t as tt "; 
+        $sql .= " ON th.trans_code = tt.trans_code ";
+        $sql .= " WHERE th.refer_code = '".$_refer_code."';";
         $q = $db->prepare($sql);
         $q->execute();
-        $_err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
 
-        $sql1 = "
-            SELECT 
-                sum(tt.total) as total
-            FROM `t_transaction_h` as th 
-            LEFT JOIN t_transaction_t as tt 
-            ON th.trans_code = tt.trans_code 
-            WHERE th.refer_code = '".$_refer_code."';
-        ";
-        $q = $db->prepare($sql1);
+        $sql = "SELECT";
+        $sql .= " sum(tt.total) as total";
+        $sql .= " FROM `t_transaction_h` as th ";
+        $sql .= " LEFT JOIN t_transaction_t as tt ";
+        $sql .= " ON th.trans_code = tt.trans_code ";
+        $sql .= " WHERE th.refer_code = '".$_refer_code."';";
+        $q = $db->prepare($sql);
         $q->execute();
-        $_err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $total = $q->fetch();
 
         //disconnection DB
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
 
-        if(!empty($res))
+        foreach($_err as $k => $v)
         {
-            $_callback['query']['all_grn'] = $res;
+            // has error
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['query']['all_grn'] = $_data;
             $_callback['query']['total'] = $total['total'];
-            $_callback["error"]["code"] = $_err[0];
-            $_callback["error"]["message"] = $_err[1];
-            return $response->withJson($_callback, 200);
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
-        {
-            $_callback['query'] = "";
-            $_callback["error"]["code"] = "99999";
-            $_callback["error"]["message"] = "Record not found!";
-            return $response->withJson($_callback, 404);
-        }
-       
+        {  
+            $_callback['query']['all_grn'] = "";
+            $_callback['query']['total'] = 0;
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Retrieve Data Problem!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }       
     });
 
     /**
@@ -620,40 +764,65 @@ $app->group('/api/v1/purchases/order', function () {
          */
         $this->get('/count/', function (Request $request, Response $response, array $args) {
             //$_prefix = $args['prefix'];
-            $_param = $request->getQueryParams();
-            if(empty($_param["month"])) $_param["month"] = "";
-            if(empty($_param["year"])) $_param["year"] = "";
-
-            $_callback = [];
             $_err = [];
-            $_query = [];
+            $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+            $_result = true;
+            $_msg = "";
+            $_data = [];
+            $_param = $request->getQueryParams();
+            if(empty($_param["month"])) $_param["month"] = date('m');
+            if(empty($_param["year"])) $_param["year"] = date('Y');
+
+            $this->logger->addInfo("Entry: purchases: get count");
             $pdo = new Database();
             $db = $pdo->connect_db();
-            
-            $q = $db->prepare("
-            SELECT 
-                count(*) as count,
-                sum(total) as expand
-            FROM 
-                `t_transaction_h` as th
-            WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM `t_prefix` WHERE `uid` = '2') AND month(th.create_date) = '".$_param['month']."'
-            AND year(th.create_date) = '".$_param['year']."';
-            ");
-
+            $this->logger->addInfo("Msg: DB connected");
+            $sql = "SELECT ";
+            $sql .= " count(*) as count,";
+            $sql .= " sum(total) as expand";
+            $sql .= " FROM ";
+            $sql .= " `t_transaction_h` as th";
+            $sql .= " WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM `t_prefix` WHERE `uid` = '2') AND month(th.create_date) = '".$_param['month']."'";
+            $sql .= " AND year(th.create_date) = '".$_param['year']."';";
+            $q = $db->prepare($sql);
             $q->execute();
-            $_err = $q->errorinfo();
-            $_res = $q->fetch(PDO::FETCH_ASSOC);
+            $_err[] = $q->errorinfo();
+            $_data = $q->fetch(PDO::FETCH_ASSOC);
         
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+            
             // export data
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000")
+                {
+                    $_result = false;
+                    $_msg .= $v[1]."-".$v[2]."|";
+                }
+                else
+                {
+                    $_msg .= "SQL #".$k.": SQL execute OK! | ";
+                }
+            }
 
-            // foreach ($_res as $key => $val) {
-            //     $_query[] = $val;
-            // }
-            $_callback = [
-                "query" => $_res,
-                "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
-            ];
-            return $response->withJson($_callback, 200);
+            if($_result)
+            {
+                $_callback['query'] = $_data;
+                $_callback['error']['code'] = "00000";
+                $_callback['error']['message'] = "Data fetch OK!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+            }
+            else
+            {  
+                $_callback['query'] = "";
+                $_callback['error']['code'] = "99999";
+                $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+            }
        
         });
     
@@ -674,7 +843,7 @@ $app->group('/api/v1/purchases/order', function () {
             $supp_code = $args['supp_code'];
             $prefix = $args['prefix'];
 
-            $this->logger->addInfo("Msg: invoices: check supplier by supp_code has transaction_h exist");
+            $this->logger->addInfo("Entry: purchases: check supplier by supp_code has transaction_h exist");
             $pdo = new Database();
             $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
@@ -710,15 +879,10 @@ $app->group('/api/v1/purchases/order', function () {
                     $_msg .= "SQL #".$k.": SQL execute OK! | ";
                 }
             }
-            $_callback = [
-                "query" => $_data,
-                "error" => [
-                    "code" => "00000", 
-                    "message" => $_msg 
-                ]
-            ];
+
             if($_result)
             {
+                $_callback['query'] = $_data;
                 $_callback['error']['code'] = "00000";
                 $_callback['error']['message'] = "Data fetch OK!";
                 $this->logger->addInfo("SQL execute ".$_msg);
@@ -726,6 +890,7 @@ $app->group('/api/v1/purchases/order', function () {
             }
             else
             {  
+                $_callback['query'] = "";
                 $_callback['error']['code'] = "99999";
                 $_callback['error']['message'] = "Data fetch Fail - Please try again!";
                 $this->logger->addInfo("SQL execute ".$_msg);
@@ -744,6 +909,8 @@ $app->group('/api/v1/purchases/order', function () {
     $this->patch('/settlement/po/{trans_code}', function (Request $request, Response $response, array $args){
         $_err = [];
 		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
         $_now = date('Y-m-d H:i:s');
         $_trans_code = $args['trans_code'];
         $_remark = "";
@@ -755,50 +922,59 @@ $app->group('/api/v1/purchases/order', function () {
             if($k < (count($_body)-1)){
                 $_remark .= ",";
             }
-            $this->logger->addInfo("remark => ".$_remark);
+            // $this->logger->addInfo("remark => ".$_remark);
         }
+        
+        $this->logger->addInfo("Entry: PATCH: purchases settlement");
         $pdo = new Database();
-		$db = $pdo->connect_db();
-        $sql = "
-            SELECT `remark` FROM `t_transaction_h` WHERE `trans_code` = '".$_trans_code."' LIMIT 1 INTO @_remark;
-            UPDATE `t_transaction_h` SET 
-            `is_convert` = 1,
-            `remark` = concat(@_remark,'\n\n','Settled!\nGRN: ".$_remark."'),
-            `modify_date` =  '".$_now."'
-            WHERE `trans_code` = '".$_trans_code."';
-        ";
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
 
-        $this->logger->addInfo("SQL: ".trim($sql));
+        $sql = "SELECT `remark` FROM `t_transaction_h` WHERE `trans_code` = '".$_trans_code."' LIMIT 1 INTO @_remark;";
+        $sql .= " UPDATE `t_transaction_h` SET ";
+        $sql .= " `is_convert` = 1,";
+        $sql .= " `remark` = concat(@_remark,'\n\n','Settled!\nGRN: ".$_remark."'),";
+        $sql .= " `modify_date` =  '".$_now."'";
+        $sql .= " WHERE `trans_code` = '".$_trans_code."';";
+
+        $this->logger->addInfo("SQL: ".$sql);
 
         // echo $sql;
         // transaction header
         $q = $db->prepare($sql);
         $q->execute();
-        $_err = $q->errorinfo();
-        $this->logger->addInfo("SQL execute");
+        $_err[] = $q->errorinfo();
         //disconnection DB
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
 
         // finish up the flow
-        if($_err[0][0] == "00000")
+        foreach($_err as $k => $v)
         {
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "00000", 
-                "message" => $_trans_code ." Update Success!"
-            ];
-            $this->logger->addInfo("Update Success!");
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Transaction: ".$_trans_code." - Update OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
-        { 
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "99999", 
-                "message" => $_err
-            ]; 
-            $this->logger->addInfo("Update Fail");
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
-        return $response->withJson($_callback,200);
     });
 
     /**
@@ -807,14 +983,18 @@ $app->group('/api/v1/purchases/order', function () {
      */
     $this->patch('/{trans_code}', function (Request $request, Response $response, array $args){
         $_err = [];
-		$_done = false;
 		$_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
         $_now = date('Y-m-d H:i:s');
         $_new_res = [];
         $_trans_code = $args['trans_code'];
 
+        $this->logger->addInfo("Entry: PATCH: purchases");
         $pdo = new Database();
-		$db = $pdo->connect_db();
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
         //$sql_d = "";
         // POST Data here
         $body = json_decode($request->getBody(), true);
@@ -825,10 +1005,10 @@ $app->group('/api/v1/purchases/order', function () {
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         $q = $db->prepare($sql);
         $q->execute();
-        $_err[0] = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
         
-        if($_err[0][0] == "00000")
+        if($q->rowCount() != 0)
         {
             foreach($res as $k => $v)
             {
@@ -841,104 +1021,110 @@ $app->group('/api/v1/purchases/order', function () {
         {
             $db->beginTransaction();
             // transaction header   
-            $sql = "UPDATE `t_transaction_h` SET 
-            `supp_code` = '".$supp_code."',
-            `total` = '".$total."',  
-            `shop_code` = '".$shopcode."', 
-            `remark` = '".$remark."', 
-            `modify_date` =  '".$_now."'
-            WHERE `trans_code` = '".$_trans_code."';";
+            $sql = "UPDATE `t_transaction_h` SET ";
+            $sql .= " `supp_code` = '".$supp_code."',";
+            $sql .= " `total` = '".$total."',";
+            $sql .= " `shop_code` = '".$shopcode."',";
+            $sql .= " `remark` = '".$remark."',";
+            $sql .= " `modify_date` =  '".$_now."'";
+            $sql .= " WHERE `trans_code` = '".$_trans_code."';";
             $q = $db->prepare($sql);
             $q->execute();
             $_err[] = $q->errorinfo();
             
-            foreach($_new_res as $k_itcode => $v)
+            if($q->rowCount() != 0)
             {
-                // delete items from this transaction
-                if(!array_key_exists($k_itcode,$items))
+                foreach($_new_res as $k_itcode => $v)
                 {
-
-                    $sql_d = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
-                    $q = $db->prepare($sql_d);
-                    $q->execute();
-                    $_err[] = $q->errorinfo();
+                    // delete items from this transaction
+                    if(!array_key_exists($k_itcode,$items))
+                    {
+                        $sql = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
+                        $q = $db->prepare($sql);
+                        $q->execute();
+                        $_err[] = $q->errorinfo();
+                    }
                 }
-            }
-            foreach($items as $k_itcode => $v)
-            {
-                // update item already in transaction
-                if(array_key_exists($k_itcode,$_new_res))
+                foreach($items as $k_itcode => $v)
                 {
-
-                    $sql = "UPDATE `t_transaction_d` SET
-                        qty = '".$v['qty']."',
-                        unit = '".$v['unit']."',
-                        price = '".$v['price']."',
-                        modify_date = '".$_now."'
-                        WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
-                    //echo $sql."\n";
-                    $q = $db->prepare($sql);
-                    $q->execute();
-                    $_err[] = $q->errorinfo();
+                    // update item already in transaction
+                    if(array_key_exists($k_itcode,$_new_res))
+                    {
+                        $sql = "UPDATE `t_transaction_d` SET";
+                        $sql .= " qty = '".$v['qty']."',";
+                        $sql .= " unit = '".$v['unit']."',";
+                        $sql .= " price = '".$v['price']."',";
+                        $sql .= " modify_date = '".$_now."'";
+                        $sql .= " WHERE trans_code = '".$_trans_code."' AND item_code = '".$k_itcode."';";
+                        //echo $sql."\n";
+                        $q = $db->prepare($sql);
+                        $q->execute();
+                        $_err[] = $q->errorinfo();
+                    }
+                    // New add items
+                    else
+                    {
+                        $sql = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, create_date)";
+                        $sql .= " values (";
+                        $sql .= " '".$_trans_code."',";
+                        $sql .= " '".$v['item_code']."',";
+                        $sql .= " '".$v['eng_name']."' ,";
+                        $sql .= " '".$v['chi_name']."' ,";
+                        $sql .= " '".$v['qty']."',";
+                        $sql .= " '".$v['unit']."',";
+                        $sql .= " '".$v['price']."',";
+                        $sql .= " '".$date."');";
+                        //echo $sql."\n";
+                        $q = $db->prepare($sql);
+                        $q->execute();
+                        $_err[] = $q->errorinfo();
+                    }   
                 }
-                // New add items
-                else
-                {
-                    $sql = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, create_date)
-                        values (
-                            '".$_trans_code."',
-                            '".$v['item_code']."',
-                            '".$v['eng_name']."' ,
-                            '".$v['chi_name']."' ,
-                            '".$v['qty']."',
-                            '".$v['unit']."',
-                            '".$v['price']."',
-                            '".$date."'
-                        );";
-                    //echo $sql."\n";
-                    $q = $db->prepare($sql);
-                    $q->execute();
-                    $_err[] = $q->errorinfo();
-                }   
+
+                // tender information input here
+                $sql = "UPDATE `t_transaction_t` SET ";
+                $sql .= "`pm_code` = '".$paymentmethod."',";
+                $sql .= "`total` = '".$total."',";
+                $sql .= "`modify_date` = '".$_now."'";
+                $sql .= "WHERE `trans_code` = '".$_trans_code."';";
+                $q = $db->prepare($sql);
+                $q->execute();
+                $_err[] = $q->errorinfo();
             }
-
-            // tender information input here
-            $sql = "UPDATE `t_transaction_t` SET 
-                `pm_code` = '".$paymentmethod."',
-                `total` = '".$total."',
-                `modify_date` = '".$_now."'
-                WHERE `trans_code` = '".$_trans_code."';";
-            $q = $db->prepare($sql);
-            $q->execute();
-            $_err[] = $q->errorinfo();
-
             $db->commit();
-            $_done = true;
+            $this->logger->addInfo("Msg: DB commit");
             //disconnection DB
             $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
         }
 
         // finish up the flow
-		if($_done)
+		foreach($_err as $k => $v)
         {
-            if($_err[0][0] == "00000")
+            if($v[0] != "00000")
             {
-                $_callback['query'] = "";
-                $_callback["error"] = [
-                    "code" => "00000", 
-                    "message" => $_trans_code ." Update Success!"
-                ]; 
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
             }
             else
-            { 
-                $_callback['query'] = "";
-                $_callback["error"] = [
-                    "code" => "99999", 
-                    "message" => $_err
-                ]; 
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
             }
         }
-        return $response->withJson($_callback,200);
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Transaction: ".$_trans_code." - Update OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**
@@ -948,10 +1134,15 @@ $app->group('/api/v1/purchases/order', function () {
      */
      $this->post('/', function (Request $request, Response $response, array $args) {
         $_err = [];
-        $_done = false;
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+
+        $this->logger->addInfo("Entry: POST: purchases");
         $pdo = new Database();
-		$db = $pdo->connect_db();
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+        
         // POST Data here
         $body = json_decode($request->getBody(), true);
         extract($body);
@@ -960,82 +1151,89 @@ $app->group('/api/v1/purchases/order', function () {
         // Start transaction 
         $db->beginTransaction();
         // insert record to transaction_h
-        $sql = "insert into t_transaction_h (trans_code, refer_code, supp_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) 
-            values (
-                '".$purchasesnum."',
-                '".$refernum."',
-                '".$supp_code."',
-                '".$prefix."',
-                '".$total."',
-                '".$employee_code."',
-                '".$shopcode."',
-                '".$remark."',
-                '0',
-                '0',
-                '".$date."'
-            );
-        ";
+        $sql = "insert into t_transaction_h (trans_code, refer_code, supp_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) ";
+        $sql .= " values (";
+        $sql .= " '".$purchasesnum."',";
+        $sql .= " '".$refernum."',";
+        $sql .= " '".$supp_code."',";
+        $sql .= " '".$prefix."',";
+        $sql .= " '".$total."',";
+        $sql .= " '".$employee_code."',";
+        $sql .= " '".$shopcode."',";
+        $sql .= " '".$remark."',";
+        $sql .= " '0',";
+        $sql .= " '0',";
+        $sql .= " '".$date."'";
+        $sql .= " );";
         $q = $db->prepare($sql);
         $q->execute();
-        $_err[0] = $q->errorinfo();
+        $_err[] = $q->errorinfo();
         // insert record to transaction_d
         if(!empty($db->lastInsertId()))
         {
             foreach($items as $k => $v)
             {
-                $q = $db->prepare("insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, create_date)
-                    values (
-                        '".$purchasesnum."',
-                        '".$v['item_code']."',
-                        '".$v['eng_name']."' ,
-                        '".$v['chi_name']."' ,
-                        '".$v['qty']."',
-                        '".$v['unit']."',
-                        '".$v['price']."',
-                        '".$date."'
-                    );
-                ");
+                $sql = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, create_date)";
+                $sql .= " values (";
+                $sql .= " '".$purchasesnum."',";
+                $sql .= " '".$v['item_code']."',";
+                $sql .= " '".$v['eng_name']."' ,";
+                $sql .= " '".$v['chi_name']."' ,";
+                $sql .= " '".$v['qty']."',";
+                $sql .= " '".$v['unit']."',";
+                $sql .= " '".$v['price']."',";
+                $sql .= " '".$date."'";
+                $sql .= " );";
+                $q = $db->prepare($sql);
                 $q->execute();
             }
-            $_err[1] = $q->errorinfo();
+            $_err[] = $q->errorinfo();
             // tender information input here
-            $tr = $db->prepare("insert into t_transaction_t (trans_code, pm_code, total, create_date) 
-                values (
-                    '".$purchasesnum."',
-                    '".$paymentmethod."',
-                    '".$total."',
-                    '".$date."'
-                );
-            ");
+            $sql = "insert into t_transaction_t (trans_code, pm_code, total, create_date)";
+            $sql .= " values (";
+            $sql .= " '".$purchasesnum."',";
+            $sql .= " '".$paymentmethod."',";
+            $sql .= " '".$total."',";
+            $sql .= " '".$date."'";
+            $sql .= " );";
+            $tr = $db->prepare($sql);
             $tr->execute();
-            $_err[2] = $tr->errorinfo();
+            $_err[] = $tr->errorinfo();
         }
 
         $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
         //disconnection DB
         $pdo->disconnect_db();
-        
-        if($_err[0][0] = "00000")
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        // var_dump($_err);
+        foreach($_err as $k => $v)
         {
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "00000", 
-                "message" => $purchasesnum." Insert Success!"
-            ]; 
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Transaction: ".$purchasesnum." - Insert OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
-        { 
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "99999", 
-                "message" => "DB Error: "
-                .$_err[0][2]." - "
-                .$_err[1][2]." - "
-                .$_err[2][2]." - "
-                .$_err[3][2]
-            ]; 
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
-        return $response->withJson($_callback,200);
     });
     
     /**
@@ -1046,52 +1244,162 @@ $app->group('/api/v1/purchases/order', function () {
     $this->delete('/{trans_code}', function (Request $request, Response $response, array $args) {
         $_trans_code = $args['trans_code'];
         $_err = [];
-        $_callback = [
-            'query' => "",
-            'error' => [
-                "code" => "",
-                "message" => ""
-            ]
-        ];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+
+        $this->logger->addInfo("Entry: Delete: purchases");
         $pdo = new Database();
         $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
         // transaction start
         $db->beginTransaction();
         // sql statement
-        $sql = "
-            UPDATE `t_transaction_h` SET is_void = '1' WHERE trans_code = '".$_trans_code."';
-        ";
-        $this->logger->addInfo("SQL: ".$sql);
+        $sql = "UPDATE `t_transaction_h` SET is_void = '1' WHERE trans_code = '".$_trans_code."';";
+        // $this->logger->addInfo("SQL: ".$sql);
+
         // prepare sql statement
         $q = $db->prepare($sql);
         // execute statement
         $q->execute();
-        $_err[0] = $q->errorinfo();
-        $this->logger->addInfo("SQL execute!");
+        $_err[] = $q->errorinfo();
+
         // transaction end
         $db->commit();
-        // disconnect DB
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
 
-        // SQL error return
-        if($_err[0][0] = "00000" && $_err[1][0] = "00000")
+        foreach($_err as $k => $v)
         {
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "00000", 
-                "message" => $_trans_code . " Deleted!"
-            ]; 
-            $this->logger->addInfo("Deleted!");
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Transaction: ".$_trans_code." - Deleted!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
-        { 
-            $_callback['query'] = "";
-            $_callback["error"] = [
-                "code" => "99999", 
-                "message" => "DB Error: ".$_err[0][2]." - ".$_err[1][2]." - ".$_err[2][2]
-            ]; 
-            $this->logger->addInfo("Delet Failed!");
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Delete Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
-        return $response->withJson($_callback,200);
+    });
+
+     /**
+     * View of invoice
+     */
+    $this->group('/view',function()
+    {
+        $this->get('/header/username/{username}/', function (Request $request, Response $response, array $args) 
+        {
+            $_err = [];
+            $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+            $_result = true;
+            $_msg = "";
+            $_data['employee'] = [];
+            $_data['menu'] = [];
+            $_data['prefix'] = [];
+            $_data['dn'] = ["dn_num"=>"", "dn_prefix"=>""];
+            $_max = "00";
+            $_param = $request->getQueryParams();
+            $_username = $args['username'];
+            $_result = true;
+            $_msg = "";
+
+            $this->logger->addInfo("Entry: purchases: get header");
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            $this->logger->addInfo("Msg: DB connected");
+            $sql = "SELECT ";
+            $sql .= " te.employee_code as employee_code,";
+            $sql .= " te.username as username,";
+            $sql .= " ts.name as shop_name,";
+            $sql .= " ts.shop_code as shop_code";
+            $sql .= " FROM `t_employee` as te";
+            $sql .= " LEFT JOIN `t_shop` as ts";
+            $sql .= " ON te.default_shopcode = ts.shop_code where te.username = '".$_username."';";
+            // echo $sql."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['employee'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            // SQL2
+            switch($_param['lang'])
+            {
+                case "en-us":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                case "zh-hk":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                default:
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+            }
+            //echo $sql2."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['menu'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            //SQL 3
+            $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '2' LIMIT 1;";
+            //echo $sql3."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['prefix'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000")
+                {
+                    $_result = false;
+                    $_msg .= $v[1]."-".$v[2]."|";
+                }
+                else
+                {
+                    $_msg .= "SQL #".$k.": SQL execute OK! | ";
+                }
+            }
+
+            if($_result)
+            {
+                $_callback['query'] = $_data;
+                $_callback['error']['code'] = "00000";
+                $_callback['error']['message'] = "Header data fetch OK!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+            }
+            else
+            {  
+                $_callback['query'] = "";
+                $_callback['error']['code'] = "99999";
+                $_callback['error']['message'] = "Header data fetch Fail - Please try again!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+            }
+            
+        });
     });
 });

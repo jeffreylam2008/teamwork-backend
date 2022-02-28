@@ -406,6 +406,9 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_err[] = $q->errorinfo();
         $_data = $q->fetch();
         
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+
         if(!empty($_data['max']))
         {
             $_max = substr($_data['max'],-2);
@@ -788,6 +791,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
+
         $this->logger->addInfo("Entry: DELETE: quotations");
         $pdo = new Database();
         $db = $pdo->connect_db();

@@ -149,9 +149,9 @@ $app->group('/api/v1/stocks/po/grn', function () {
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        if($q1->rowCount() != 0)
+        if($q->rowCount() != 0)
         {
-            $_prefix = $q1->fetch();
+            $_prefix = $q->fetch();
         }
         // get next number SQL
         $sql = "SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;";
@@ -392,4 +392,5 @@ $app->group('/api/v1/stocks/po/grn', function () {
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
+   
 });

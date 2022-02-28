@@ -288,10 +288,6 @@ $app->group('/api/v1/systems/master', function () {
         $_err[] = $q->errorinfo();
         $_data['items'] = $q->fetchAll(PDO::FETCH_ASSOC);
 
-        // foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
-        //     $_data['items'][] = $val;
-        // }
-
         /**
          * Shops
          */
@@ -325,6 +321,16 @@ $app->group('/api/v1/systems/master', function () {
         $q->execute();
         $_err[] = $q->errorinfo();
         $_data['paymentmethod'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+        /**
+         * Suppliers 
+         */
+        $sql = "SELECT * FROM `t_suppliers`;";
+        // echo $sql1."\n";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        $_data['suppliers'] = $q->fetchAll(PDO::FETCH_ASSOC);
 
         //disconnection DB
         $pdo->disconnect_db();
