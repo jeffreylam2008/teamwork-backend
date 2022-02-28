@@ -10,7 +10,7 @@ $app->group('/api/v1/inventory/invoices', function () {
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $_param = $request->getQueryParams();
-        $_callback = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_err = [];
         $_data = [];
         $_msg = "";
@@ -18,7 +18,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_where_trans = "";
         $_where_date = "";
 
-        $this->logger->addInfo("Entry: Get All invoices");
+        $this->logger->addInfo("Entry: invoices: get all invoices");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -102,7 +102,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_data = [];
         $_trans_code= $args['trans_code'];
     
-        $this->logger->addInfo("Entry: invoices: Get invoices by trans_code");
+        $this->logger->addInfo("Entry: invoices: get invoices by trans_code");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -451,7 +451,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_data = [];
         $_cust_code = $args['cust_code'];
 
-        $this->logger->addInfo("Entry: invoices: get customer information for search");
+        $this->logger->addInfo("Entry: invoices: get last customer info for search");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -531,10 +531,10 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_new_res = [];
         $_trans_code = $args['trans_code'];
 
-        $this->logger->addInfo("Msg: PATCH: invoices");
+        $this->logger->addInfo("Entry: PATCH: invoices");
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $this->logger->addInfo("Entry: DB connected");
+        $this->logger->addInfo("Msg: DB connected");
         //$sql_d = "";
         // POST Data here
         $body = json_decode($request->getBody(), true);
@@ -892,7 +892,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_msg = "";
             $_data = [];
 
-            $this->logger->addInfo("Entry: invoices: check transaction_d");
+            $this->logger->addInfo("Entry: invoices: check transaction_d by item_code");
             $pdo = new Database();
 		    $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
@@ -1088,7 +1088,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             if(empty($_param["month"])) $_param["month"] = date('m');
             if(empty($_param["year"])) $_param["year"] = date('Y');
 
-            $this->logger->addInfo("Entry: invoices: Get count");
+            $this->logger->addInfo("Entry: invoices: get count");
             $pdo = new Database();
             $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
@@ -1160,7 +1160,7 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_result = true;
             $_msg = "";
 
-            $this->logger->addInfo("Entry: invoices: Get header");
+            $this->logger->addInfo("Entry: invoices: get header");
             $pdo = new Database();
             $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
@@ -1219,10 +1219,11 @@ $app->group('/api/v1/inventory/invoices', function () {
                 $q = $db->prepare($sql);
                 $q->execute();
                 $_err[] = $q->errorinfo();
+                $res = $q->fetch();
 
-                if(!empty($_data['max']))
+                if(!empty($res['max']))
                 {
-                    $_max = substr($_data['max'],-2);
+                    $_max = substr($res['max'],-2);
                     $_max++;
                     if($_max >= 100)
                     {

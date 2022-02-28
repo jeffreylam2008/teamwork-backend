@@ -264,7 +264,7 @@ $app->group('/api/v1/stocks/adj', function () {
         $_result = true;
         $_msg = "";
 
-        $this->logger->addInfo("Entry: POST: Stocks Adjustment");
+        $this->logger->addInfo("Entry: POST: stocks adjustment");
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");

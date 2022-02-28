@@ -21,7 +21,7 @@ $app->group('/api/v1/stocks/po/grn', function () {
 
         $_trans_code= $args['trans_code'];
     
-        $this->logger->addInfo("Entry: stocks: Get stocks grn by trans_code");
+        $this->logger->addInfo("Entry: grn: get stocks grn by trans_code");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -139,7 +139,7 @@ $app->group('/api/v1/stocks/po/grn', function () {
         $_data = [];
         $_max = "00";
         
-        $this->logger->addInfo("Entry: stocks grn: getnextnum");
+        $this->logger->addInfo("Entry: grn: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -222,7 +222,7 @@ $app->group('/api/v1/stocks/po/grn', function () {
         $_msg = "";
         $_data = [];
 
-        $this->logger->addInfo("Entry: stocks: getprefix");
+        $this->logger->addInfo("Entry: grn: getprefix");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -282,7 +282,7 @@ $app->group('/api/v1/stocks/po/grn', function () {
         $_result = true;
         $_msg = "";
 
-        $this->logger->addInfo("Entry: POST: invoices");
+        $this->logger->addInfo("Entry: POST: grn");
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
