@@ -20,7 +20,7 @@ $app->group('/api/v1/stocks/dn', function () {
         
         $_trans_code= $args['trans_code'];
     
-        $this->logger->addInfo("Entry: dn: get dn by code");
+        $this->logger->addInfo("Entry: stocks Delivery Note: get DN by code");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -145,7 +145,7 @@ $app->group('/api/v1/stocks/dn', function () {
         $_data = [];
         $_max = "00";
         
-        $this->logger->addInfo("Entry: dn: getnextnum");
+        $this->logger->addInfo("Entry: invoices: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -223,7 +223,7 @@ $app->group('/api/v1/stocks/dn', function () {
         $_msg = "";
         $_data = [];
 
-        $this->logger->addInfo("Entry: dn: getprefix");
+        $this->logger->addInfo("Entry: invoices: getprefix");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -281,7 +281,7 @@ $app->group('/api/v1/stocks/dn', function () {
         $_result = true;
         $_msg = "";
 
-        $this->logger->addInfo("Entry: POST: dn");
+        $this->logger->addInfo("Entry: POST: DN");
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -312,7 +312,6 @@ $app->group('/api/v1/stocks/dn', function () {
         $sql .= " '".$remark."',";
         $sql .= " '".$date."'";
         $sql .= " );";
-        $this->logger->addInfo("SQL: ".$sql);
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
@@ -349,9 +348,9 @@ $app->group('/api/v1/stocks/dn', function () {
         {
             //update invoice refer_code field as cross referenece
             $sql = "UPDATE t_transaction_h SET";
-            $sql .= " refer_code = '".$dn_num."',";
-            $sql .= " modify_date = '".$date."'";
-            $sql .= " WHERE trans_code = '".$trans_code."';";  
+            $sql .= "    refer_code = '".$dn_num."',";
+            $sql .= "    modify_date = '".$date."'";
+            $sql .= "WHERE trans_code = '".$trans_code."';";  
             $q = $db->prepare($sql);
             $q->execute();
             $_err[] = $q->errorinfo();

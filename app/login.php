@@ -25,37 +25,31 @@ $app->group('/api/v1/systems/login', function () {
         // var_dump( $body);
         if(!empty($_body["username"]) && !empty($_body['password']) && !empty($_body['shopcode']))
         {
-            $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
             $_err = [];
-            $_data = [];
-            $_msg = "";
-            $_result = true;
             $_salt = "password";
             $_token = "";
-            // current time
-            $_now = date('Y-m-d H:i:s');
-            $_username = htmlspecialchars($_body['username']);
-            $_shopcode = htmlspecialchars($_body['shopcode']);
-            $_password = htmlspecialchars($_body['password']);
-            
-            $this->logger->addInfo("Entry: POST: Login");
+            $_callback = [];
+            $username = htmlspecialchars($_body['username']);
+            $shopcode = htmlspecialchars($_body['shopcode']);
             $pdo = new Database();
-            $db = $pdo->connect_db();
-            $this->logger->addInfo("Msg: DB connected");
-
+		    $db = $pdo->connect_db();
             // SQL statement here
-            $q = $db->prepare("SELECT * FROM `t_employee` WHERE `username` = '".$_username."' AND `default_shopcode` = '".$_shopcode."'; ");
+            $q = $db->prepare("SELECT * FROM `t_employee` WHERE `username` = '".$username."' AND `default_shopcode` = '".$shopcode."'; ");
             $q->execute();
             $_res = $q->fetch();
             $_err['sql'][] = $q->errorinfo();
+            $_dbData = "";
 
-            if($q->rowCount() != 0)
+            
+            if(!empty($_res))
             {
+                
                 // extract data
                 extract($_res);
-                
+                // current time
+                $_now = date('Y-m-d H:i:s');
                 // verify password
-                if(hash_equals($password, crypt($_password, $_salt)))
+                if(hash_equals($password, crypt($_body['password'], $_salt)))
 		        {
                     // check user status valid
                     if($status == 1)
@@ -72,53 +66,74 @@ $app->group('/api/v1/systems/login', function () {
                             $db->beginTransaction();
                             // last token is exist, return last token
                             // get back last token
-                            $sql = "UPDATE `t_login` SET `status` = 'in', `modify_date` = '".$_now."' WHERE `username` = '".$_username."' AND `shop_code` = '".$_shopcode."' AND `token` = '".$last_token."';";
-                            $q = $db->prepare($sql);
+                            $q = $db->prepare("
+                                UPDATE 
+									`t_login` 
+								SET 
+									`status` = 'in', 
+									`modify_date` = '".$_now."' 
+                                WHERE `username` = '".$_body['username']."' AND `shop_code` = '".$_body['shopcode']."' AND `token` = '".$last_token."';
+                            ");
                             $q->execute();
                             $db->commit();
                             $_err['sql'][] = $q->errorinfo();
                             $_err['api']['code'] = "00001";
                             $_err['api']['msg'] = "Login Successful";
-                            $_data = $last_token;
+                            $_dbData = $last_token;
                         }
                         // token expire and use new token
                         else
                         {
                             // create new login token
-                            $_token = md5($_username.$_password.date("Y-m-d H:i:s").$_shopcode);
+                            $_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['shopcode']);
                             $db->beginTransaction();
                             // logout last token
-                            $sql = "UPDATE `t_login` SET `status` = 'OUT', `modify_date` = '".$_now."' WHERE `username` = '".$_username."' AND `shop_code` = '".$_shopcode."' AND `status` = 'in';";
-                            $q = $db->prepare($sql);
+                            $q = $db->prepare("
+                                UPDATE 
+                                    `t_login` 
+                                SET 
+                                    `status` = 'OUT', 
+                                    `modify_date` = '".$_now."' 
+                                WHERE `username` = '".$_body['username']."' AND `shop_code` = '".$_body['shopcode']."' AND `status` = 'in';
+                            ");
                             $q->execute();
+
                             $_err['sql'][] = $q->errorinfo();
 
-                            $sql = "INSERT INTO `t_login` (";
-                            $sql .= " `username`,";
-                            $sql .= " `shop_code`,";
-                            $sql .= " `token`,";
-                            $sql .= " `status`,";
-                            $sql .= " `create_date`";
-                            $sql .= " ) VALUES (";
-                            $sql .= " '".$_username."',";
-                            $sql .= " '".$_shopcode."',";
-                            $sql .= " '".$_token."', ";
-                            $sql .= " 'IN',";
-                            $sql .= " '".$_now."'";
-                            $sql .= " );";
-                            $q = $db->prepare($sql);
+                            $q = $db->prepare("
+                                INSERT INTO `t_login` (
+									`username`,
+									`shop_code`,
+									`token`,
+									`status`,
+									`create_date`
+								) VALUES (
+									'".$_body['username']."', 
+									'".$_body['shopcode']."', 
+									'".$_token."', 
+									'IN',
+									'".$_now."'
+                                );
+                            ");
                             $q->execute();
+                    
                             $_err['sql'][] = $q->errorinfo();
 
-                            $sql = "UPDATE `t_employee` SET `last_login` = '".$_now."' , `last_token` = '".$_token."' WHERE `employee_code` = '".$employee_code."';";
-                            $q = $db->prepare($sql);
+                            $q = $db->prepare("
+                                UPDATE 
+									`t_employee` 
+								SET 
+									`last_login` = '".$_now."' ,
+									`last_token` = '".$_token."' 
+								WHERE `employee_code` = '".$employee_code."';
+                               
+                            ");
                             $q->execute();
-                            $_err['sql'][] = $q->errorinfo();
-
                             $db->commit();
+                            $_err['sql'][] = $q->errorinfo();
                             $_err['api']['code'] = "00001";
                             $_err['api']['msg'] = "Login Successful";
-                            $_data = $_token;
+                            $_dbData = $_token;
 
                         } //end time expire checking
                 
@@ -126,25 +141,20 @@ $app->group('/api/v1/systems/login', function () {
                     } //end check status
                     else
                     {
-                        $_data = "";
+                        $_dbData = "";
                         $_err['api']['code'] = "10002";
                         $_err['api']['msg'] = "User Account Disabled";
-                        $_callback = [
-                            "query" => $_data,
-                            "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
-                        ];
-                        return $response->withJson($_callback, 401);
                     }
                 } // end check password 
                 // password not match
                 else
                 {
                     // if not match
-                    $_dbDat_dataa = "";
+                    $_dbData = "";
                     $_err['api']['code'] = "100011";
                     $_err['api']['msg'] = "Username or Password Incorrect";
                     $_callback = [
-                        "query" => $_data,
+                        "query" => $_dbData,
                         "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
                     ];
                     return $response->withJson($_callback, 401);
@@ -153,62 +163,37 @@ $app->group('/api/v1/systems/login', function () {
             // username and password, DB no record
             else
             {
-                $_data = "";
+                $_dbData = "";
                 $_err['api']['code'] = "100011 ";
                 $_err['api']['msg'] = "Username or Password Incorrect";
                 $_callback = [
-                    "query" => $_data,
+                    "query" => $_dbData,
                     "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
                 ];
                 return $response->withJson($_callback, 401);
             }
-            
+            $pdo->disconnect_db();
         }
         // username or password empty
         else
         {
-            $_data = "";
+            $_dbData = "";
             $_err['api']['code'] = "100012";
             $_err['api']['msg'] = "Username and Password Cannot Be Empty";
             $_callback = [
-                "query" => $_data,
+                "query" => $_dbData,
                 "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
             ];
             return $response->withJson($_callback, 404);
         }
-        $pdo->disconnect_db();
-        $this->logger->addInfo("Msg: DB connection closed");
-
-        foreach($_err['sql'] as $k => $v)
-        {
-            if($v[0] != "00000")
-            {
-                $_result = false;
-                $_msg .= $v[1]."-".$v[2]."|";
-            }
-            else
-            {
-                $_msg .= "SQL #".$k.": SQL execute OK! | ";
-            }
-        }
-
-        if($_result)
-        {
-            // return API
-            $_callback["query"] = $_data;
-            $_callback["error"]["code"] = $_err['api']['code'];
-            $_callback["error"]["message"] = $_err['api']['msg'];
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
-        }
-        else
-        {  
-            $_callback["query"] = "";
-            $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
-        }
+        
+        // return API
+        $_callback = [
+            "query" => $_dbData,
+            "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
+        ];
+        
+        return $response->withJson($_callback, 200);
     }); // end POST
 
     /**
@@ -221,31 +206,23 @@ $app->group('/api/v1/systems/login', function () {
      * Return login token
      */
     $this->get('/[{token}]', function (Request $request, Response $response, array $args) use($_expire){
-        $_err = [];
-        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
-        $_result = true;
-        $_msg = "";
-        // current time
-        $_now = date('Y-m-d H:i:s');
-        $_this_token = $args['token'];
         if(!empty($args))
         {
-            $this->logger->addInfo("Entry: GET: Login");
+            $_this_token = $args['token'];
+            $_err = [];
             $pdo = new Database();
-            $db = $pdo->connect_db();
-            $this->logger->addInfo("Msg: DB connected");
-
+		    $db = $pdo->connect_db();
             // SQL statement here
-            $sql = "SELECT `username`, `status`, `create_date` FROM `t_login` WHERE `token` =  '".$_this_token."'; ";
-            // $this->logger->addInfo("SQL: ".$sql);
-            $q = $db->prepare($sql);
+            $q = $db->prepare("SELECT `username`, `status`, `create_date` FROM `t_login` WHERE `token` =  '".$_this_token."'; ");
             $q->execute();
-            $_err['sql'][] = $q->errorinfo();
+            $_err = $q->errorinfo();
             $_res = $q->fetch();
             if(!empty($_res))
             {
                 // extract data
                 extract($_res);
+                // current time
+                $_now = date('Y-m-d H:i:s');
                 if($status === "in")
                 {
                     // Time Expire Checking
@@ -257,13 +234,14 @@ $app->group('/api/v1/systems/login', function () {
                     if($_diff <= $_expire)
                     {
 						$db->beginTransaction();
-						$sql = "UPDATE"; 
-						$sql .= " `t_login`"; 
-						$sql .= " SET ";
-						$sql .= " `status` = 'in',"; 
-						$sql .= " `modify_date` = '".$_now."'";  
-						$sql .= " WHERE `username` = '".$username."' AND `token` = '".$_this_token."';";
-                        $q = $db->prepare($sql);
+						$q = $db->prepare(
+							"UPDATE 
+								`t_login` 
+							SET 
+								`status` = 'in',
+								`modify_date` = '".$_now."' 
+							WHERE `username` = '".$username."' AND `token` = '".$_this_token."';"
+						);
 						$q->execute();
 						$_err['sql'][] = $q->errorinfo();
 						$db->commit();
@@ -279,9 +257,20 @@ $app->group('/api/v1/systems/login', function () {
                         $db->beginTransaction();
                         //$_token = md5($_body['username'].$_body['password'].date("Y-m-d H:i:s").$_body['default_shopcode']);
                         // logout last token
-                        $sql = "UPDATE `t_login` SET `status` = 'OUT', `modify_date` = '".$_now."' WHERE `token` = '".$_this_token."'; ";
-                        $sql .="UPDATE `t_employee` SET `last_token` = '', `last_login` = '".$_now."' WHERE `username` = '".$username."';";
-                        $q = $db->prepare($sql);
+                        $q = $db->prepare("
+							UPDATE 
+								`t_login` 
+							SET 
+								`status` = 'OUT', 
+								`modify_date` = '".$_now."' 
+							WHERE `token` = '".$_this_token."';
+							UPDATE 
+								`t_employee` 
+							SET 
+								`last_token` = '', 
+								`last_login` = '".$_now."'
+							WHERE `username` = '".$username."';
+						");
                         $q->execute();
                         $_err['sql'][] = $q->errorinfo();
                         
@@ -314,37 +303,12 @@ $app->group('/api/v1/systems/login', function () {
         }
         // disconnect DB
         $pdo->disconnect_db();
-        $this->logger->addInfo("Msg: DB connection closed");
         
-        foreach($_err['sql'] as $k => $v)
-        {
-            if($v[0] != "00000")
-            {
-                $_result = false;
-                $_msg .= $v[1]."-".$v[2]."|";
-            }
-            else
-            {
-                $_msg .= "SQL #".$k.": SQL execute OK! | ";
-            }
-        }
-
-        if($_result)
-        {
-            // return API
-            $_callback["query"] = $_dbData;
-            $_callback["error"]["code"] = $_err['api']['code'];
-            $_callback["error"]["message"] = $_err['api']['msg'];
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
-        }
-        else
-        {  
-            $_callback["query"] = "";
-            $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
-        }
+        // return API
+        $_callback = [
+            "query" => $_dbData,
+            "error" => ["code" => $_err['api']['code'], "message" => $_err['api']['msg']]
+        ];
+        return $response->withJson($_callback, 200);
     }); // end 
 });

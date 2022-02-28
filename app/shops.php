@@ -9,59 +9,24 @@ $app->group('/api/v1/systems/shops', function () {
      * To get shop record 
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
-        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
-        $_err = [];
-        $_data = [];
-        $_msg = "";
-        $_result = true;
-        
-        $this->logger->addInfo("Entry: shops: get all shops information");
+        $err = [];
         $pdo = new Database();
-        $db = $pdo->connect_db();
-        $this->logger->addInfo("Msg: DB connected");
-
-        $sql = "select * from `t_shop`;";
-        $q = $db->prepare($sql);
+		$db = $pdo->connect_db();
+        $q = $db->prepare("select * from `t_shop`;");
         $q->execute();
-        $_err[] = $q->errorinfo();
+        $err = $q->errorinfo();
         // disconnect DB
         $pdo->disconnect_db();
-        $this->logger->addInfo("Msg: DB connection closed");
-
-        if($q->rowCount() != 0)
-        {
-            //$result = $db->query( "select * from `t_shop`;");
-            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+        //$result = $db->query( "select * from `t_shop`;");
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $key => $val) {
+            $dbData[] = $val;
         }
-        foreach($_err as $k => $v)
-        {
-            if($v[0] != "00000")
-            {
-                $_result = false;
-                $_msg .= $v[1]."-".$v[2]."|";
-            }
-            else
-            {
-                $_msg .= "SQL #".$k.": SQL execute OK! | ";
-            }
-        }
-
-        if($_result)
-        {
-            $_callback['query'] = $_data;
-            $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "Data fetch OK!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
-        }
-        else
-        {  
-            $_callback['query'] = "";
-            $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
-        }
+        $callback = [
+            "query" => $dbData,
+            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+        ];
+        return $response->withJson($callback, 200);
     });
 
     /**
@@ -71,70 +36,29 @@ $app->group('/api/v1/systems/shops', function () {
      * To get shop record 
      */
      $this->get('/{shop_code}', function (Request $request, Response $response, array $args) {
-        $_err = [];
-        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
-        $_result = true;
-        $_msg = "";
-        $_data = [];
-        $_shop_code = $args['shop_code'];
-
-        $this->logger->addInfo("Entry: shops: get shop info by shop_code");
+        $err = [];
         $pdo = new Database();
         $db = $pdo->connect_db();
-        $this->logger->addInfo("Msg: DB connected");
-        
-        $sql = "SELECT * ,";
-        $sql .= " (SELECT `shop_code` FROM `t_shop` WHERE `shop_code` < '".$_shop_code."' ORDER BY `shop_code` DESC LIMIT 1) as `previous`,";
-        $sql .= " (SELECT `shop_code` FROM `t_shop` WHERE `shop_code` > '".$_shop_code."' ORDER BY `shop_code` LIMIT 1) as `next`";
-        $sql .= " FROM `t_shop` ";
-        $sql .= " WHERE `shop_code` = '".$_shop_code."';";
-        $q = $db->prepare($sql);
+        $_shop_code = $args['shop_code'];
+        $q = $db->prepare("
+            SELECT * ,
+            (SELECT `shop_code` FROM `t_shop` WHERE `shop_code` < '".$_shop_code."' ORDER BY `shop_code` DESC LIMIT 1) as `previous`,
+            (SELECT `shop_code` FROM `t_shop` WHERE `shop_code` > '".$_shop_code."' ORDER BY `shop_code` LIMIT 1) as `next`
+            FROM `t_shop` 
+            WHERE `shop_code` = '".$_shop_code."';
+        ");
         $q->execute();
-        $_err[] = $q->errorinfo();
-        $_res = $q->fetch(PDO::FETCH_ASSOC);
-
+        $err = $q->errorinfo();
+        $res = $q->fetch(PDO::FETCH_ASSOC);
         // disconnect DB
         $pdo->disconnect_db();
-        $this->logger->addInfo("Msg: DB connection closed");
-        if($q->rowCount() != 0)
+        if(!empty($res))
         {
-            $_data = $_res;
-        }
-        else
-        {
-            $_result = false;
-        }
-        //var_dump($_data);
-        foreach($_err as $k => $v)
-        {
-            if($v[0] != "00000")
-            {
-                $_result = false;
-                $_msg .= $v[1]."-".$v[2]."|";
-            }
-            else
-            {
-                $_msg .= "SQL #".$k.": SQL execute OK! | ";
-            }
-        }
-
-        if($_result)
-        {
-            $_callback['query'] = $_data;
-            $_callback['has'] = true;
-            $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "Data fetch OK!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
-        }
-        else
-        {  
-            $_callback['query'] = "";
-            $_callback['has'] = false;
-            $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+            $callback = [
+                "query" => $res,
+                "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
+            ];
+            return $response->withJson($callback, 200);
         }
     });
 
@@ -146,61 +70,30 @@ $app->group('/api/v1/systems/shops', function () {
      */
     $this->patch('/{shop_code}', function (Request $request, Response $response, array $args) {
         $_err = [];
-        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
-        $_result = true;
-        $_msg = "";
-        $_shop_code = $args['shop_code'];
-        $_now = date('Y-m-d H:i:s');
-        $_body = json_decode($request->getBody(), true);
-
-        $this->logger->addInfo("Entry: PATCH: shops");
         $pdo = new Database();
-        $db = $pdo->connect_db();
-        $this->logger->addInfo("Msg: DB connected");
-        
-        
-        $db->beginTransaction();
-        $sql = "UPDATE `t_shop` SET";
-        $sql .= " `name` = '".$_body['i-name']."',";
-        $sql .= " `phone` = '".$_body['i-phone']."',";
-        $sql .= " `address1` = '".$_body['i-address1']."',";
-        $sql .= " `address2` = '".$_body['i-address2']."',";
-        $sql .= " `modify_date` = '".$_now."'";
-        $sql .= " WHERE `shop_code` = '".$_shop_code."';";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $db->commit();
-        $this->logger->addInfo("Msg: DB commit");
-        //disconnection DB
-        $pdo->disconnect_db();
-        $this->logger->addInfo("Msg: DB connection closed");
+		$db = $pdo->connect_db();
+        $_shop_code = $args['shop_code'];
+        $_body = json_decode($request->getBody(), true);
+        $_now = date('Y-m-d H:i:s');
 
-        foreach($_err as $k => $v)
-        {
-            if($v[0] != "00000")
-            {
-                $_result = false;
-                $_msg .= $v[1]."-".$v[2]."|";
-            }
-            else
-            {
-                $_msg .= "SQL #".$k.": SQL execute OK! | ";
-            }
-        }
-        if($_result)
-        {
-            $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "Transaction: ".$_shop_code." - Update OK!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
-        }
-        else
-        {  
-            $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Insert Fail - Please try again!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
-        }
+        $db->beginTransaction();
+        $q = $db->prepare("UPDATE `t_shop` SET 
+        `name` = '".$_body['i-name']."',
+        `phone` = '".$_body['i-phone']."',
+        `address1` = '".$_body['i-address1']."',
+        `address2` = '".$_body['i-address2']."',
+        `modify_date` = '".$_now."'
+        WHERE `shop_code` = '".$_shop_code."';");
+        $q->execute();
+        $_err = $q->errorinfo();
+        $db->commit();
+        // disconnect DB
+        $pdo->disconnect_db();
+
+        $callback = [
+            "query" => "",
+            "error" => ["code" => $_err[0], "message" => $_err[1]." ".$_err[2]]
+        ];
+        return $response->withJson($callback, 200);
     });
 });

@@ -10,7 +10,7 @@ $app->group('/api/v1/inventory/quotations', function () {
      */
     $this->get('/', function (Request $request, Response $response, array $args) {
         $_param = $request->getQueryParams();
-        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_callback = [];
         $_err = [];
         $_data = [];
         $_msg = "";
@@ -18,7 +18,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_where_trans = "";
         $_where_date = "";
 
-        $this->logger->addInfo("Entry: quotations: get all quotations");
+        $this->logger->addInfo("Entry: Get All quotations");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -102,7 +102,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_data = [];
         $_trans_code= $args['trans_code'];
 
-        $this->logger->addInfo("Entry: quotations: get quotations by trans_code");
+        $this->logger->addInfo("Entry: quotations: Get quotations by trans_code");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -225,7 +225,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_data = [];
         $_cust_code = $args['cust_code'];
 
-        $this->logger->addInfo("Entry: quotations: get quotations information for search");
+        $this->logger->addInfo("Entry: quotations: get quotation information for search");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -387,7 +387,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_data = [];
         $_max = "00";
 
-        $this->logger->addInfo("Entry: quotations: getnextnum");
+        $this->logger->addInfo("Entry: quotation: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -530,10 +530,10 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_new_res = [];
         $_trans_code = $args['trans_code'];
 
-        $this->logger->addInfo("Entry: PATCH: quotations");
+        $this->logger->addInfo("Msg: PATCH: quotations");
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $this->logger->addInfo("Msg: DB connected");
+        $this->logger->addInfo("Entry: DB connected");
 
         // POST Data here
         $body = json_decode($request->getBody(), true);
@@ -863,7 +863,7 @@ $app->group('/api/v1/inventory/quotations', function () {
             $_result = true;
             $_msg = "";
 
-            $this->logger->addInfo("Entry: quotations: get header");
+            $this->logger->addInfo("Entry: quotations: Get header");
             $pdo = new Database();
             $db = $pdo->connect_db();
             $this->logger->addInfo("Msg: DB connected");
