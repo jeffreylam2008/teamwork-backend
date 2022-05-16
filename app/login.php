@@ -7,7 +7,8 @@ $app->group('/api/v1/systems/login', function () {
      * global variable
      * login expire 
      */
-    $_expire = 86400;
+    // $_expire = 86400;
+    $_expire = 9999999999999999999999;
     /**
      * login GET Request
      * login-post

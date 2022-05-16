@@ -1,6 +1,7 @@
 <?php
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
+
 $app->group('/api/v1/inventory/invoices', function () {
     /**
      * Invoices GET request
@@ -17,73 +18,82 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_result = true;
         $_where_trans = "";
         $_where_date = "";
-
-        $this->logger->addInfo("Entry: invoices: get all invoices");
-        $pdo = new Database();
-        $db = $pdo->connect_db();
-        $this->logger->addInfo("Msg: DB connected");
-
-        // only if transaction field param exist
-        if(!empty($_param['i-invoice-num']))
+        if(!empty($_param))
         {
-            $_where_trans = " AND ( th.trans_code LIKE ('%".$_param['i-invoice-num']."%') ) ";
-        }
-        // otherwise follow date range as default
-        else
-        {
-            $_where_date = " AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
-        }
-        $sql = "SELECT";
-        $sql .= " th.*,";
-        $sql .= " tpm.payment_method,"; 
-        $sql .= " tc.name as `cust_name`,"; 
-        $sql .= " ts.name as `shop_name`,";
-        $sql .= " ts.shop_code";
-        $sql .= " FROM `t_transaction_h` as th";
-        $sql .= " LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code";
-        $sql .= " LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code"; 
-        $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code";
-        $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code";
-        $sql .= " WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 1)";
-        $sql .= $_where_date.$_where_trans.";";
-        // t_transaction_h SQL
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $_data = $q->fetchAll(PDO::FETCH_ASSOC);
-    
-        //export data
-        $pdo->disconnect_db();
-        $this->logger->addInfo("Msg: DB connection closed");
+            $this->logger->addInfo("Entry: invoices: get all invoices");
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            $this->logger->addInfo("Msg: DB connected");
 
-        foreach($_err as $k => $v)
-        {
-            if($v[0] != "00000")
+            // only if transaction field param exist
+            if(!empty($_param['i-invoice-num']))
             {
-                $_result = false;
-                $_msg .= $v[1]."-".$v[2]."|";
+                $_where_trans = " AND ( th.trans_code LIKE ('%".$_param['i-invoice-num']."%') ) ";
+            }
+            // otherwise follow date range as default
+            if(!empty($_param['i-start-date']) && !empty($_param['i-end-date']) )
+            {
+                $_where_date = " AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
+            }
+            $sql = "SELECT";
+            $sql .= " th.*,";
+            $sql .= " tpm.payment_method,"; 
+            $sql .= " tc.name as `cust_name`,"; 
+            $sql .= " ts.name as `shop_name`,";
+            $sql .= " ts.shop_code";
+            $sql .= " FROM `t_transaction_h` as th";
+            $sql .= " LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code";
+            $sql .= " LEFT JOIN `t_customers` as tc ON th.cust_code = tc.cust_code"; 
+            $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code";
+            $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code";
+            $sql .= " WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 1)";
+            $sql .= $_where_date.$_where_trans.";";
+            // t_transaction_h SQL
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+            //export data
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000")
+                {
+                    $_result = false;
+                    $_msg .= $v[1]."-".$v[2]."|";
+                }
+                else
+                {
+                    $_msg .= "SQL #".$k.": SQL execute OK! | ";
+                }
+            }
+
+            if($_result)
+            {
+                $_callback['query'] = $_data;
+                $_callback['error']['code'] = "00000";
+                $_callback['error']['message'] = "Data fetch OK!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
             }
             else
-            {
-                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            {  
+                $_callback['query'] = "";
+                $_callback['error']['code'] = "99999";
+                $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
             }
         }
-
-        if($_result)
-        {
-            $_callback['query'] = $_data;
-            $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "Data fetch OK!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
-        }
         else
-        {  
-            $_callback['query'] = "";
-            $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
-            $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        {
+            $_callback = [
+                "error" => ["code" => "99999", "message" => "Query String Not Found!"]
+            ];
+            return $response->withJson($_callback, 404);
         }
     });
     
@@ -108,7 +118,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         $this->logger->addInfo("Msg: DB connected");
 
         $sql = "SELECT";
-        $sql .= " th.trans_code as 'invoicenum',";
+        $sql .= " th.trans_code as 'invoice_num',";
         $sql .= " th.create_date as 'date',";
         $sql .= " th.employee_code as 'employee_code',";
         $sql .= " th.refer_code as 'refer_num',";
@@ -219,51 +229,89 @@ $app->group('/api/v1/inventory/invoices', function () {
      * 
      * To gen next invoices number
      */
-    $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
+    $this->get('/getnextnum/{session_id}', function (Request $request, Response $response, array $args) {
+        $_session_id = $args['session_id'];
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
         $_data = [];
-        $_max = "00";
+        $_prefix = "";
+        
 
         $this->logger->addInfo("Entry: invoices: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
 
-        $sql = "SELECT prefix FROM t_prefix WHERE uid = 1 LIMIT 1;";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        if($q->rowCount() != 0)
+        if(empty($_session_id))
         {
-            $_prefix = $q->fetch();
+            $_session_id = "";
         }
-        $sql = "SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;";
+
+        $sql = "SELECT prefix FROM t_prefix WHERE uid = 1 LIMIT 1";
+        // $this->logger->addInfo("SQL = ".$sql);
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        $_data = $q->fetch();
+        if($q->rowCount() > 0)
+        {
+            $_prefix = $q->fetch(PDO::FETCH_ASSOC);
+        }
+
+        // Get last number from transaction nummber generator
+        $sql = "SELECT `last`, `prefix`, `suffix`, `session_id` FROM `t_trans_num_generator` WHERE `prefix` in (SELECT prefix FROM t_prefix WHERE uid = 1)  ORDER BY `create_date` DESC LIMIT 1";
+        // $this->logger->addInfo("SQL = ".$sql);
+        $q1 = $db->prepare($sql);
+        $q1->execute();
+        $_err[] = $q1->errorinfo();
+        $_data = $q1->fetch(PDO::FETCH_ASSOC);
+        
+        // define variable
+        $prefix = $_prefix['prefix'];
+        $suffix = date("ym");
+
+        if(empty($_data['last']))
+        {
+            $_last = 0;
+            $last = $_last + 1;
+            $insert = true;
+
+        }
+        // session_id is different then give a new one
+        elseif( strcmp($_data['session_id'],$_session_id) != 0 )
+        {
+            // reset counter to zero
+            if($_data['last'] >= 199){
+                $_data['last'] = 0;
+            }
+            $last = $_data['last'] + 1;
+            $insert = true;
+
+        }
+        // remain same id
+        else
+        {
+            $prefix = $_data['prefix'];
+            $suffix = $_data['suffix'];
+            $last = $_data['last'];
+            $insert = false;
+        }
+
+        $last = str_pad($last,3,0,STR_PAD_LEFT);
+        if($insert){
+            $sql = "INSERT INTO `t_trans_num_generator` (`prefix`, `suffix`, `last`, `session_id`, `create_date`, `expiry_date`)  VALUES(  '".$prefix."', '".$suffix."', '".$last."', '".$_session_id."', '".date('Y-m-d H:i:s')."', null);";
+            // $this->logger->addInfo("SQL = ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+        }
+
+        $_data = $prefix.$suffix.$last;
 
         // disconnect DB session
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
-
-        if(!empty($_data['max']))
-        {
-            $_max = substr($_data['max'],-2);
-            $_max++;
-            if($_max >= 100)
-            {
-                $_max = 00;
-            }
-            $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
-        }
-        else
-        {
-            $_result = false;
-        }
         
         foreach($_err as $k => $v)
         {
@@ -442,6 +490,8 @@ $app->group('/api/v1/inventory/invoices', function () {
      * Invoice-find-latest-record
      * 
      * To get single invoice record by customer code while filter search
+     * 
+     * @param cust_code command line argument required from user
      */
     $this->get('/getlast/cust/{cust_code}', function (Request $request, Response $response, array $args) {
         $_result = true;
@@ -475,11 +525,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         {
             $_data = $q->fetchAll(PDO::FETCH_ASSOC);
         }
-        else
-        {
-            $_data = [];
-        }
-        
+
         //disconnection DB
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
@@ -517,7 +563,8 @@ $app->group('/api/v1/inventory/invoices', function () {
     /** 
      * PATCH request
      * invoices-patch-by-code
-     * @param body
+     * @param trans_code to identify which transaction to amand
+     * @param body request body content
      * 
      * to update input to database
      */
@@ -541,7 +588,9 @@ $app->group('/api/v1/inventory/invoices', function () {
         extract($body);
         
         // To convert money format to decimal
-        $total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        //$total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        
+        $this->logger->addInfo("Debug: total".$total);
         
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         //$this->logger->addInfo("SQL: ".$sql);
@@ -679,7 +728,7 @@ $app->group('/api/v1/inventory/invoices', function () {
     /**
      * POST request
      * invoices-post
-     * @param body
+     * @param body request body content
      * 
      * Add new record to DB
      */
@@ -807,7 +856,7 @@ $app->group('/api/v1/inventory/invoices', function () {
     /**
      * Invoices Delete Request
      * Invoices-delete
-     * 
+     * @param trans_code requied transaction number
      * To remove Invoices record based on invoices code
      */
     $this->delete('/{trans_code}', function(Request $request, Response $response, array $args){
@@ -873,7 +922,8 @@ $app->group('/api/v1/inventory/invoices', function () {
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
-        
+    
+
     /**
      * Check transaction_d item exist API
      */
@@ -881,6 +931,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         /**
          * Transaction D GET Request
          * Trans-d-get-by-code
+         * @param item_code required item code for idenifcation
          * 
          * To check items on transaction d table (use it on delete items)
          */
@@ -940,6 +991,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         /**
          * Transaction D GET Request
          * Trans-d-get-by-code
+         * @param trans_code transaction code
          * 
          * To check items on transaction d table (use it on delete items)
          */

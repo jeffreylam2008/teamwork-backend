@@ -47,7 +47,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code";
         $sql .= " WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 3)";
         $sql .= $_where_date.$_where_trans.";";
-        $this->logger->addInfo("SQL: ".$sql);
+        // $this->logger->addInfo("SQL: ".$sql);
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
@@ -379,51 +379,90 @@ $app->group('/api/v1/inventory/quotations', function () {
      * 
      * To gen next Quotations number
      */
-    $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
+    $this->get('/getnextnum/{session_id}', function (Request $request, Response $response, array $args) {
+        $_session_id = $args['session_id'];
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
         $_data = [];
-        $_max = "00";
+        $_prefix = "";
+        
 
-        $this->logger->addInfo("Entry: quotations: getnextnum");
+        $this->logger->addInfo("Entry: invoices: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
 
-        $sql = "SELECT prefix FROM t_prefix WHERE uid = 3 LIMIT 1;";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        if($q->rowCount() != 0)
+        if(empty($_session_id))
         {
-            $_prefix = $q->fetch();
+            $_session_id = "";
         }
-        $sql = "SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $_data = $q->fetch();
-        
-        $pdo->disconnect_db();
-        $this->logger->addInfo("Msg: DB connection closed");
 
-        if(!empty($_data['max']))
+        $sql = "SELECT prefix FROM t_prefix WHERE uid = 3 LIMIT 1";
+        // $this->logger->addInfo("SQL = ".$sql);
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        if($q->rowCount() > 0)
         {
-            $_max = substr($_data['max'],-2);
-            $_max++;
-            if($_max >= 100)
-            {
-                $_max = 00;
-            }
-            $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
+            $_prefix = $q->fetch(PDO::FETCH_ASSOC);
         }
+
+        // Get last number from transaction nummber generator
+        $sql = "SELECT `last`, `prefix`, `suffix`, `session_id` FROM `t_trans_num_generator` WHERE `prefix` in (SELECT prefix FROM t_prefix WHERE uid = 3)  ORDER BY `create_date` DESC LIMIT 1";
+        // $this->logger->addInfo("SQL = ".$sql);
+        $q1 = $db->prepare($sql);
+        $q1->execute();
+        $_err[] = $q1->errorinfo();
+        $_data = $q1->fetch(PDO::FETCH_ASSOC);
+        
+        // define variable
+        $prefix = $_prefix['prefix'];
+        $suffix = date("ym");
+
+        if(empty($_data['last']))
+        {
+            $_last = 0;
+            $last = $_last + 1;
+            $insert = true;
+
+        }
+        // session_id is different then give a new one
+        elseif( strcmp($_data['session_id'],$_session_id) != 0 )
+        {
+            // reset counter to zero
+            if($_data['last'] >= 199){
+                $_data['last'] = 0;
+            }
+            $last = $_data['last'] + 1;
+            $insert = true;
+
+        }
+        // remain same id
         else
         {
-            $_result = false;
+            $prefix = $_data['prefix'];
+            $suffix = $_data['suffix'];
+            $last = $_data['last'];
+            $insert = false;
         }
 
+        $last = str_pad($last,3,0,STR_PAD_LEFT);
+        if($insert){
+            $sql = "INSERT INTO `t_trans_num_generator` (`prefix`, `suffix`, `last`, `session_id`, `create_date`, `expiry_date`)  VALUES(  '".$prefix."', '".$suffix."', '".$last."', '".$_session_id."', '".date('Y-m-d H:i:s')."', null);";
+            // $this->logger->addInfo("SQL = ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+        }
+
+        $_data = $prefix.$suffix.$last;
+
+        // disconnect DB session
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+        
         foreach($_err as $k => $v)
         {
             if($v[0] != "00000")

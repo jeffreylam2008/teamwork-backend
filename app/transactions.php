@@ -43,4 +43,64 @@ $app->group('/api/v1/transactions', function () use($app) {
         //disconnection DB
         return $response->withJson($_callback, 200);
     });
+
+    /**
+     * Transaction discard
+     * Transaction-discard
+     * 
+     * To remove session id from session generator
+     */
+    $this->delete('/discard/{session_id}', function(Request $request, Response $response, array $args){
+        $_session_id = $args['session_id'];
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $this->logger->addInfo("Entry: Delete: Transaction Discard Function");
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
+        // sql statement
+        $sql = "DELETE FROM `t_trans_num_generator` WHERE `session_id` = '".$_session_id."';";
+        // $this->logger->addInfo("SQL: ".$sql);
+        // prepare sql statement
+        $q = $db->prepare($sql);
+        // execute statement
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Transaction: - Deleted!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Delete Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+    });
+    
 });

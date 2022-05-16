@@ -61,7 +61,6 @@ $app->group('/api/v1/stocks/dn', function () {
 
         if($q->rowCount() != 0)
         {
-
             $sql = "SELECT";
             $sql .= " td.item_code,";
             $sql .= " td.eng_name,";
@@ -118,6 +117,7 @@ $app->group('/api/v1/stocks/dn', function () {
         if($_result)
         {
             $_callback['query'] = $_data;
+            $_callback['has'] = true;
             $_callback['error']['code'] = "00000";
             $_callback['error']['message'] = "Data fetch OK!";
             $this->logger->addInfo("SQL execute ".$_msg);
@@ -137,7 +137,8 @@ $app->group('/api/v1/stocks/dn', function () {
     /**
      * GET Operation to get next order number
      */
-    $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
+    $this->get('/getnextnum/{session_id}', function (Request $request, Response $response, array $args) {
+        $_session_id = $args['session_id'];
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
@@ -150,37 +151,73 @@ $app->group('/api/v1/stocks/dn', function () {
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
         
+        if(empty($_session_id))
+        {
+            $_session_id = "";
+        }
+
         $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '4' LIMIT 1;";
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        if($q->rowCount() != 0)
+        if($q->rowCount() > 0)
         {
-            $_prefix = $q->fetch();
+            $_prefix = $q->fetch(PDO::FETCH_ASSOC);
         }
-        $sql ="SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $_data = $q->fetch();
+       
+        // Get last number from transaction nummber generator
+        $sql = "SELECT `last`, `prefix`, `suffix`, `session_id` FROM `t_trans_num_generator` WHERE `prefix` in (SELECT prefix FROM t_prefix WHERE uid = 4)  ORDER BY `create_date` DESC LIMIT 1";
+        // $this->logger->addInfo("SQL = ".$sql);
+        $q1 = $db->prepare($sql);
+        $q1->execute();
+        $_err[] = $q1->errorinfo();
+        $_data = $q1->fetch(PDO::FETCH_ASSOC);
+        
+        // define variable
+        $prefix = $_prefix['prefix'];
+        $suffix = date("ym");
+
+        if(empty($_data['last']))
+        {
+            $_last = 0;
+            $last = $_last + 1;
+            $insert = true;
+
+        }
+        // session_id is different then give a new one
+        elseif( strcmp($_data['session_id'],$_session_id) != 0 )
+        {
+            // reset counter to zero
+            if($_data['last'] >= 199){
+                $_data['last'] = 0;
+            }
+            $last = $_data['last'] + 1;
+            $insert = true;
+
+        }
+        // remain same id
+        else
+        {
+            $prefix = $_data['prefix'];
+            $suffix = $_data['suffix'];
+            $last = $_data['last'];
+            $insert = false;
+        }
+
+        $last = str_pad($last,3,0,STR_PAD_LEFT);
+        if($insert){
+            $sql = "INSERT INTO `t_trans_num_generator` (`prefix`, `suffix`, `last`, `session_id`, `create_date`, `expiry_date`)  VALUES(  '".$prefix."', '".$suffix."', '".$last."', '".$_session_id."', '".date('Y-m-d H:i:s')."', null);";
+            // $this->logger->addInfo("SQL = ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+        }
+
+        $_data = $prefix.$suffix.$last;
+
         // disconnect DB session
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
-
-        if(!empty($_data['max']))
-        {
-            $_max = substr($_data['max'],-2);
-            $_max++;
-            if($_max >= 100)
-            {
-                $_max = 00;
-            }
-            $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
-        }
-        else
-        {
-            $_result = false;
-        }
         
         foreach($_err as $k => $v)
         {
@@ -312,7 +349,7 @@ $app->group('/api/v1/stocks/dn', function () {
         $sql .= " '".$remark."',";
         $sql .= " '".$date."'";
         $sql .= " );";
-        $this->logger->addInfo("SQL: ".$sql);
+        //$this->logger->addInfo("SQL: ".$sql);
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
