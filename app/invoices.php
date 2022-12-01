@@ -367,8 +367,10 @@ $app->group('/api/v1/inventory/invoices', function () {
         $_err[] = $q->errorinfo();
         if($q->rowCount() != 0)
         {
-            $_data = $q->fetch();
+            $_data = $q->fetch(PDO::FETCH_ASSOC);
         }
+        
+        // disconnect DB session
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
 
@@ -804,20 +806,22 @@ $app->group('/api/v1/inventory/invoices', function () {
             $q = $db->prepare($sql);
             $q->execute();
             $_err[] = $q->errorinfo();
+
+            
+            // if has quotation
+            if(!empty($quotation))
+            {
+                $sql = "UPDATE t_transaction_h SET";
+                $sql .= " is_convert = 1, ";
+                $sql .= " modify_date =  '".$date."'";
+                $sql .= " WHERE trans_code = '".$quotation."';";
+                // $this->logger->addInfo("SQL: ".$sql);
+                $q = $db->prepare($sql);
+                $q->execute();
+                $_err[] = $q->errorinfo();
+            }
         }
 
-        // if has quotation
-        if(!empty($quotation))
-        {
-            $sql = "UPDATE t_transaction_h SET";
-            $sql .= " is_convert = 1, ";
-            $sql .= " modify_date =  '".$date."'";
-            $sql .= " WHERE trans_code = '".$quotation."';";
-            // $this->logger->addInfo("SQL: ".$sql);
-            $q = $db->prepare($sql);
-            $q->execute();
-            $_err[] = $q->errorinfo();
-        }
         $db->commit();
         $this->logger->addInfo("Msg: DB commit");
         //disconnection DB
@@ -1211,7 +1215,8 @@ $app->group('/api/v1/inventory/invoices', function () {
             $_username = $args['username'];
             $_result = true;
             $_msg = "";
-
+            
+            //SQL1
             $this->logger->addInfo("Entry: invoices: get header");
             $pdo = new Database();
             $db = $pdo->connect_db();
@@ -1224,13 +1229,12 @@ $app->group('/api/v1/inventory/invoices', function () {
             $sql .= " FROM `t_employee` as te";
             $sql .= " LEFT JOIN `t_shop` as ts";
             $sql .= " ON te.default_shopcode = ts.shop_code where te.username = '".$_username."';";
-            // echo $sql."\n";
             $q = $db->prepare($sql);
             $q->execute();
             $_err[] = $q->errorinfo();
             $_data['employee'] = $q->fetch(PDO::FETCH_ASSOC);
 
-            // SQL2
+            //SQL2
             switch($_param['lang'])
             {
                 case "en-us":
@@ -1318,7 +1322,6 @@ $app->group('/api/v1/inventory/invoices', function () {
                 $this->logger->addInfo("SQL execute ".$_msg);
                 return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
             }
-            
         });
     });
 });

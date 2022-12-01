@@ -131,19 +131,27 @@ $app->group('/api/v1/stocks/po/grn', function () {
     /*
     * Get Next delivery note number 
     */
-    $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
+    $this->get('/getnextnum/{session_id}', function (Request $request, Response $response, array $args) {
+        $_session_id = $args['session_id'];
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
         $_data = [];
+        $_prefix['prefix'] = "";
         $_max = "00";
+        $insert = false;
         
         $this->logger->addInfo("Entry: grn: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
         
+        if(empty($_session_id))
+        {
+            $_session_id = "";
+        }
+
         // prefix SQL
         $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '5' LIMIT 1;";
         $q = $db->prepare($sql);
@@ -151,34 +159,60 @@ $app->group('/api/v1/stocks/po/grn', function () {
         $_err[] = $q->errorinfo();
         if($q->rowCount() != 0)
         {
-            $_prefix = $q->fetch();
+            $_prefix = $q->fetch(PDO::FETCH_ASSOC);
         }
-        // get next number SQL
-        $sql = "SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;";
+        // Get last number from transaction nummber generator
+        $sql = "SELECT `last`, `prefix`, `suffix`, `session_id` FROM `t_trans_num_generator` WHERE `prefix` in (SELECT prefix FROM t_prefix WHERE uid = 5)  ORDER BY `create_date` DESC LIMIT 1";
+        // $this->logger->addInfo("SQL = ".$sql);
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
         $_data = $q->fetch();
 
+        $prefix = $_prefix['prefix'];
+        $suffix = date("ym");
+
+        if(empty($_data['last']))
+        {
+            $_last = 0;
+            $last = $_last + 1;
+            $insert = true;
+
+        }
+        // session_id is different then give a new one
+        elseif( strcmp($_data['session_id'],$_session_id) != 0 )
+        {
+            // reset counter to zero
+            if($_data['last'] >= 199){
+                $_data['last'] = 0;
+            }
+            $last = $_data['last'] + 1;
+            $insert = true;
+        }
+        // remain same id
+        else
+        {
+            $prefix = $_data['prefix'];
+            $suffix = $_data['suffix'];
+            $last = $_data['last'];
+            $insert = false;
+        }
+
+        $last = str_pad($last,3,0,STR_PAD_LEFT);
+        if($insert){
+            $sql = "INSERT INTO `t_trans_num_generator` (`prefix`, `suffix`, `last`, `session_id`, `create_date`, `expiry_date`)  VALUES(  '".$prefix."', '".$suffix."', '".$last."', '".$_session_id."', '".date('Y-m-d H:i:s')."', null);";
+            // $this->logger->addInfo("SQL = ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+        }
+
+        $_data = $prefix.$suffix.$last;
+
         // disconnect DB session
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
-
-        if(!empty($_data['max']))
-        {
-            $_max = substr($_data['max'],-2);
-            $_max++;
-            if($_max >= 100)
-            {
-                $_max = 00;
-            }
-            $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
-        }
-        else
-        {
-            $_result = false;
-        }
-
+        
         foreach($_err as $k => $v)
         {
             if($v[0] != "00000")
@@ -391,6 +425,106 @@ $app->group('/api/v1/stocks/po/grn', function () {
             $this->logger->addInfo("SQL execute ".$_msg);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
+    });
+
+     /**
+     * View of GRN
+     */
+    $this->group('/view',function()
+    {
+        $this->get('/header/username/{username}/', function (Request $request, Response $response, array $args) 
+        {
+            $_err = [];
+            $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+            $_result = true;
+            $_msg = "";
+            $_data['employee'] = [];
+            $_data['menu'] = [];
+            $_data['prefix'] = [];
+            $_param = $request->getQueryParams();
+            $_username = $args['username'];
+            $_result = true;
+            $_msg = "";
+
+            $this->logger->addInfo("Entry: GRN: get header");
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            $this->logger->addInfo("Msg: DB connected");
+            $sql = "SELECT ";
+            $sql .= " te.employee_code as employee_code,";
+            $sql .= " te.username as username,";
+            $sql .= " ts.name as shop_name,";
+            $sql .= " ts.shop_code as shop_code";
+            $sql .= " FROM `t_employee` as te";
+            $sql .= " LEFT JOIN `t_shop` as ts";
+            $sql .= " ON te.default_shopcode = ts.shop_code where te.username = '".$_username."';";
+            // echo $sql."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['employee'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            // SQL2
+            switch($_param['lang'])
+            {
+                case "en-us":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                case "zh-hk":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                default:
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+            }
+            //echo $sql2."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['menu'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            //SQL 3
+            $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '5' LIMIT 1;";
+            //echo $sql3."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['prefix'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000")
+                {
+                    $_result = false;
+                    $_msg .= $v[1]."-".$v[2]."|";
+                }
+                else
+                {
+                    $_msg .= "SQL #".$k.": SQL execute OK! | ";
+                }
+            }
+
+            if($_result)
+            {
+                $_callback['query'] = $_data;
+                $_callback['error']['code'] = "00000";
+                $_callback['error']['message'] = "Header data fetch OK!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+            }
+            else
+            {  
+                $_callback['query'] = "";
+                $_callback['error']['code'] = "99999";
+                $_callback['error']['message'] = "Header data fetch Fail - Please try again!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+            }
+        });
     });
    
 });

@@ -261,8 +261,10 @@ $app->group('/api/v1/systems/master', function () {
         $_result = true;
         $_msg = "";
 
+        $this->logger->addInfo("Entry: master: /api/v1/systems/master/");
         $pdo = new Database();
         $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
         
         /**
          * Items

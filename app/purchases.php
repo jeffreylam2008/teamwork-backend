@@ -100,7 +100,7 @@ $app->group('/api/v1/purchases/order', function () {
     /**
      * GET Request 
      * To PO record 
-     * @param trans_code
+     * @param trans_code trans_code
      */
     $this->get('/{trans_code}', function (Request $request, Response $response, array $args) {
         // inital variable
@@ -124,7 +124,7 @@ $app->group('/api/v1/purchases/order', function () {
         $sql .= " th.trans_code,";
         $sql .= " th.create_date as 'date',";
         $sql .= " th.employee_code as 'employee_code',";
-        $sql .= " th.refer_code as 'refernum',";
+        $sql .= " th.refer_code as 'refer_num',";
         $sql .= " th.modify_date as 'modifydate',";
         $sql .= " tt.pm_code as 'paymentmethod',";
         $sql .= " tpm.payment_method as 'paymentmethodname',";
@@ -137,7 +137,8 @@ $app->group('/api/v1/purchases/order', function () {
         $sql .= " th.supp_code as 'supp_code',";
         $sql .= " tsp.name as 'supp_name',";
         $sql .= " th.total as 'total',";
-        $sql .= " th.is_convert as 'is_settle'";
+        $sql .= " th.is_convert as 'is_convert',";
+        $sql .= " th.is_settle as 'is_settle'";
         $sql .= " FROM `t_transaction_h` as th";
         $sql .= " LEFT JOIN `t_transaction_t` as tt ON th.trans_code = tt.trans_code";
         $sql .= " LEFT JOIN `t_suppliers` as tsp ON th.supp_code = tsp.supp_code";
@@ -145,7 +146,7 @@ $app->group('/api/v1/purchases/order', function () {
         $sql .= " LEFT JOIN `t_shop` as ts ON th.shop_code = ts.shop_code";
         $sql .= " WHERE th.trans_code = '".$_trans_code."';";
         
-        // $this->logger->addInfo("SQL: ".$sql);
+        //$this->logger->addInfo("SQL: ".$sql);
 
         // execute SQL Statement 1
         $q = $db->prepare($sql);
@@ -264,55 +265,90 @@ $app->group('/api/v1/purchases/order', function () {
     /**
      * GET Request
      * To gen next purchase number
+     * @param session_id session ID 
      */
-    $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
+    $this->get('/getnextnum/{session_id}', function (Request $request, Response $response, array $args) {
+        $_session_id = $args['session_id'];
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
         $_data = [];
-        $_max = "00";
+        $_prefix = "";
 
         $this->logger->addInfo("Entry: purchases: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
 
+        if(empty($_session_id))
+        {
+            $_session_id = "";
+        }
+
         // prefix SQL
         $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '2' LIMIT 1;";
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        if($q->rowCount() != 0)
+        if($q->rowCount() > 0)
         {
-            $_prefix = $q->fetch();
+            $_prefix = $q->fetch(PDO::FETCH_ASSOC);
         }
 
-        $sql = "SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;";
+        $sql = "SELECT `last`, `prefix`, `suffix`, `session_id` FROM `t_trans_num_generator` WHERE `prefix` in (SELECT prefix FROM t_prefix WHERE uid = 2)  ORDER BY `create_date` DESC LIMIT 1";
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        $_data = $q->fetch();
+        $_data = $q->fetch(PDO::FETCH_ASSOC);
 
-        // disconnect DB session
-        $pdo->disconnect_db();        
-        $this->logger->addInfo("Msg: DB connection closed");
+        
+        // define variable
+        $prefix = $_prefix['prefix'];
+        $suffix = date("ym");
 
-        if(!empty($_data['max']))
+        if(empty($_data['last']))
         {
-            $_max = substr($_data['max'],-2);
-            $_max++;
-            if($_max >= 100)
-            {
-                $_max = 00;
-            }
-            $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
+            $_last = 0;
+            $last = $_last + 1;
+            $insert = true;
+
         }
+        // session_id is different then give a new one
+        elseif( strcmp($_data['session_id'],$_session_id) != 0 )
+        {
+            // reset counter to zero
+            if($_data['last'] >= 199){
+                $_data['last'] = 0;
+            }
+            $last = $_data['last'] + 1;
+            $insert = true;
+
+        }
+        // remain same id
         else
         {
-            $_result = false;
+            $prefix = $_data['prefix'];
+            $suffix = $_data['suffix'];
+            $last = $_data['last'];
+            $insert = false;
         }
 
+        $last = str_pad($last,3,0,STR_PAD_LEFT);
+        if($insert){
+            $sql = "INSERT INTO `t_trans_num_generator` (`prefix`, `suffix`, `last`, `session_id`, `create_date`, `expiry_date`)  VALUES(  '".$prefix."', '".$suffix."', '".$last."', '".$_session_id."', '".date('Y-m-d H:i:s')."', null);";
+            // $this->logger->addInfo("SQL = ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+        }
+
+        $_data = $prefix.$suffix.$last;
+
+        // disconnect DB session
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+        
         foreach($_err as $k => $v)
         {
             if($v[0] != "00000")
@@ -362,12 +398,12 @@ $app->group('/api/v1/purchases/order', function () {
 
         // prefix SQL
         $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '2' LIMIT 1;";
-        $q1 = $db->prepare($sql);
-        $q1->execute();
-        $_err[] = $q1->errorinfo();
-        if($q1->rowCount() != "0")
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        if($q->rowCount() != 0)
         {
-            $_prefix = $q1->fetch();
+            $_data = $q->fetch(PDO::FETCH_ASSOC);
         }
 
         // disconnect DB session
@@ -681,7 +717,7 @@ $app->group('/api/v1/purchases/order', function () {
     $this->get('/settlement/po/{refer_code}',function(Request $request, Response $response, array $args){
         $_refer_code = $args['refer_code'];
         $_err = [];
-        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_callback = ['query' => ['all_grn'=>"", 'total'=>''] , 'error' => ["code" => "", "message" => ""]];
         $_data = [];
         $_result = true;
         $_msg = "";
@@ -702,8 +738,11 @@ $app->group('/api/v1/purchases/order', function () {
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        $res = $q->fetchAll(PDO::FETCH_ASSOC);
-
+        if($q->rowCount() != 0)
+        {
+            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
+        }
+        //$this->logger->addInfo("SQL: ".$sql);
         $sql = "SELECT";
         $sql .= " sum(tt.total) as total";
         $sql .= " FROM `t_transaction_h` as th ";
@@ -713,7 +752,11 @@ $app->group('/api/v1/purchases/order', function () {
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        $total = $q->fetch();
+        if($q->rowCount() != 0)
+        {
+            $total = $q->fetch();
+        }
+        //$this->logger->addInfo("SQL: ".$sql);
 
         //disconnection DB
         $pdo->disconnect_db();
@@ -734,19 +777,31 @@ $app->group('/api/v1/purchases/order', function () {
         }
         if($_result)
         {
-            $_callback['query']['all_grn'] = $_data;
-            $_callback['query']['total'] = $total['total'];
-            $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "Data fetch OK!";
+            $_callback = [
+                "query" => [
+                    "all_grn" => $_data,
+                    "total" => $total["total"],
+                ],
+                "error" => [ 
+                    "code" => "00000",
+                    "message" => "Data fetch OK!",
+                ]
+            ];
             $this->logger->addInfo("SQL execute ".$_msg);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
         {  
-            $_callback['query']['all_grn'] = "";
-            $_callback['query']['total'] = 0;
-            $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Retrieve Data Problem!";
+            $_callback = [
+                "query" => [
+                    "all_grn" => "",
+                    "total" => 0,
+                ],
+                "error" => [ 
+                    "code" => "99999",
+                    "message" => "Retrieve Data Problem!",
+                ]
+            ];
             $this->logger->addInfo("SQL execute ".$_msg);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }       
@@ -897,8 +952,6 @@ $app->group('/api/v1/purchases/order', function () {
                 return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
             }
         });
-    
-    
     });
 
     /**
@@ -931,13 +984,14 @@ $app->group('/api/v1/purchases/order', function () {
         $this->logger->addInfo("Msg: DB connected");
 
         $sql = "SELECT `remark` FROM `t_transaction_h` WHERE `trans_code` = '".$_trans_code."' LIMIT 1 INTO @_remark;";
-        $sql .= " UPDATE `t_transaction_h` SET ";
+        $sql .= " UPDATE `t_transaction_h` SET";
         $sql .= " `is_convert` = 1,";
+        $sql .= " `is_settle` = 1,";
         $sql .= " `remark` = concat(@_remark,'\n\n','Settled!\nGRN: ".$_remark."'),";
         $sql .= " `modify_date` =  '".$_now."'";
         $sql .= " WHERE `trans_code` = '".$_trans_code."';";
 
-        $this->logger->addInfo("SQL: ".$sql);
+        // $this->logger->addInfo("SQL: ".$sql);
 
         // echo $sql;
         // transaction header
@@ -1151,16 +1205,17 @@ $app->group('/api/v1/purchases/order', function () {
         // Start transaction 
         $db->beginTransaction();
         // insert record to transaction_h
-        $sql = "insert into t_transaction_h (trans_code, refer_code, supp_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, create_date) ";
+        $sql = "insert into t_transaction_h (trans_code, refer_code, supp_code, prefix, total, employee_code, shop_code, remark, is_void, is_convert, is_settle, create_date) ";
         $sql .= " values (";
-        $sql .= " '".$purchasesnum."',";
-        $sql .= " '".$refernum."',";
+        $sql .= " '".$purchases_num."',";
+        $sql .= " '".$refer_num."',";
         $sql .= " '".$supp_code."',";
         $sql .= " '".$prefix."',";
         $sql .= " '".$total."',";
         $sql .= " '".$employee_code."',";
         $sql .= " '".$shopcode."',";
         $sql .= " '".$remark."',";
+        $sql .= " '0',";
         $sql .= " '0',";
         $sql .= " '0',";
         $sql .= " '".$date."'";
@@ -1175,7 +1230,7 @@ $app->group('/api/v1/purchases/order', function () {
             {
                 $sql = "insert into t_transaction_d (trans_code, item_code, eng_name, chi_name, qty, unit, price, create_date)";
                 $sql .= " values (";
-                $sql .= " '".$purchasesnum."',";
+                $sql .= " '".$purchases_num."',";
                 $sql .= " '".$v['item_code']."',";
                 $sql .= " '".$v['eng_name']."' ,";
                 $sql .= " '".$v['chi_name']."' ,";
@@ -1191,7 +1246,7 @@ $app->group('/api/v1/purchases/order', function () {
             // tender information input here
             $sql = "insert into t_transaction_t (trans_code, pm_code, total, create_date)";
             $sql .= " values (";
-            $sql .= " '".$purchasesnum."',";
+            $sql .= " '".$purchases_num."',";
             $sql .= " '".$paymentmethod."',";
             $sql .= " '".$total."',";
             $sql .= " '".$date."'";
@@ -1223,7 +1278,7 @@ $app->group('/api/v1/purchases/order', function () {
         if($_result)
         {
             $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "Transaction: ".$purchasesnum." - Insert OK!";
+            $_callback['error']['message'] = "Transaction: ".$purchases_num." - Insert OK!";
             $this->logger->addInfo("SQL execute ".$_msg);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
@@ -1301,7 +1356,7 @@ $app->group('/api/v1/purchases/order', function () {
     });
 
      /**
-     * View of invoice
+     * View of purchase
      */
     $this->group('/view',function()
     {
@@ -1314,8 +1369,6 @@ $app->group('/api/v1/purchases/order', function () {
             $_data['employee'] = [];
             $_data['menu'] = [];
             $_data['prefix'] = [];
-            $_data['dn'] = ["dn_num"=>"", "dn_prefix"=>""];
-            $_max = "00";
             $_param = $request->getQueryParams();
             $_username = $args['username'];
             $_result = true;

@@ -9,29 +9,55 @@ $app->group('/api/v1/systems/payments',function(){
      * To get all payment record 
      */
     $this->get('/methods/', function (Request $request, Response $response, array $args) {
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_err = [];
+        $_data = [];
+        $_msg = "";
+        $_result = true;
+        
+        $this->logger->addInfo("Entry: paymentmethod: get all paymentmethod");
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $sql = "SELECT * FROM `t_payment_method`; ";
+        
+        $this->logger->addInfo("Msg: DB connected");
+        $sql = "SELECT * FROM `t_payment_method`;";
         $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
-        $result = $q->fetchAll();
+        $_err[] = $q->errorinfo();
+        $_data = $q->fetchAll(PDO::FETCH_ASSOC);
         //var_dump($result);
-        $new = [];
-        foreach($result as $k => $v)
-        {
-            extract($v);
-            $new[] = $v;
-        }
-        $err = $q->errorinfo();
         // disconnect DB
         $pdo->disconnect_db();
-        
-        $callback = [
-            "query" => $new,
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-        ];
-        return $response->withJson($callback,200);
+        $this->logger->addInfo("Msg: DB connection closed");
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**
@@ -42,23 +68,61 @@ $app->group('/api/v1/systems/payments',function(){
      */
     $this->get('/methods/{code}', function (Request $request, Response $response, array $args) {
         $_pmcode = $args['code'];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_err = [];
+        $_data = [];
+        $_msg = "";
+        $_result = true;
+
+        $this->logger->addInfo("Entry: paymentmethod: get paymentmethod by pmcode");        
         $pdo = new Database();
 		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
         $sql = "SELECT * FROM `t_payment_method` WHERE `pm_code` = '".$_pmcode."';";
         $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
-        $result = $q->fetch();
-        //var_dump($result);
-
+        $_err[] = $q->errorinfo();
+        if($q->rowCount() != 0)
+        {
+            $_data = $q->fetch();
+        }
+        else
+        {
+            $_result = false;
+        }
         // disconnect DB
         $pdo->disconnect_db();
-        
-        $callback = [
-            "query" => $result,
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-        ];
-        return $response->withJson($callback,200);
+        $this->logger->addInfo("Msg: DB connection closed");
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**
@@ -130,29 +194,52 @@ $app->group('/api/v1/systems/payments',function(){
      * To get all payment record 
      */
      $this->get('/terms/', function (Request $request, Response $response, array $args) {
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_err = [];
+        $_data = [];
+        $_msg = "";
+        $_result = true;
+        $this->logger->addInfo("Entry: paymentterms: get all paymentterms");
         $pdo = new Database();
 		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
         $sql = "SELECT * FROM `t_payment_term`;";
         $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
-        $result = $q->fetchAll();
+        $_err[] = $q->errorinfo();
+        $_data = $q->fetchAll(PDO::FETCH_ASSOC);
         // disconnect DB
         $pdo->disconnect_db();
-
-        //var_dump($result);
-        $new = [];
-        foreach($result as $k => $v)
+        $this->logger->addInfo("Msg: DB connection closed");
+        foreach($_err as $k => $v)
         {
-            extract($v);
-            $new[] = $v;
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
         }
-        $err = $q->errorinfo();
-        $callback = [
-            "query" => $new,
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-        ];
-        return $response->withJson($callback,200);
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**
@@ -242,6 +329,101 @@ $app->group('/api/v1/systems/payments',function(){
 			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
 		];
 		return $response->withJson($callback,200);
+    });
+
+    /**
+     * View of Items
+     */
+    $this->group('/view',function()
+    {
+        $this->get('/header/username/{username}/', function (Request $request, Response $response, array $args) 
+        {
+            $_err = [];
+            $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+            $_result = true;
+            $_msg = "";
+            $_data['employee'] = [];
+            $_data['menu'] = [];
+            $_data['prefix'] = [];
+            $_data['dn'] = ["dn_num"=>"", "dn_prefix"=>""];
+            $_max = "00";
+            $_param = $request->getQueryParams();
+            $_username = $args['username'];
+            $_result = true;
+            $_msg = "";
+
+            $this->logger->addInfo("Entry: paymentmethod: get header");
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            $this->logger->addInfo("Msg: DB connected");
+            $sql = "SELECT ";
+            $sql .= " te.employee_code as employee_code,";
+            $sql .= " te.username as username,";
+            $sql .= " ts.name as shop_name,";
+            $sql .= " ts.shop_code as shop_code";
+            $sql .= " FROM `t_employee` as te";
+            $sql .= " LEFT JOIN `t_shop` as ts";
+            $sql .= " ON te.default_shopcode = ts.shop_code where te.username = '".$_username."';";
+            // echo $sql."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['employee'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            // SQL2
+            switch($_param['lang'])
+            {
+                case "en-us":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                case "zh-hk":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                default:
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+            }
+            //echo $sql2."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['menu'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000")
+                {
+                    $_result = false;
+                    $_msg .= $v[1]."-".$v[2]."|";
+                }
+                else
+                {
+                    $_msg .= "SQL #".$k.": SQL execute OK! | ";
+                }
+            }
+
+            if($_result)
+            {
+                $_callback['query'] = $_data;
+                $_callback['error']['code'] = "00000";
+                $_callback['error']['message'] = "Header data fetch OK!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+            }
+            else
+            {  
+                $_callback['query'] = "";
+                $_callback['error']['code'] = "99999";
+                $_callback['error']['message'] = "Header data fetch Fail - Please try again!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+            }
+            
+        });
     });
 
 

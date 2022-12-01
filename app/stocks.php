@@ -205,11 +205,12 @@ $app->group('/api/v1/stocks', function () {
         $sql .=" WHERE th.supp_code = '".$_supp_code."';";
         
         $q = $db->prepare($sql);
+        // $this->logger->addInfo("SQL: ".$sql);
         $q->execute();
         $_err[] = $q->errorinfo();
         if($q->rowCount() != 0)
         {
-            $_res = $q->fetchAll(PDO::FETCH_ASSOC);
+            $_data = $q->fetchAll(PDO::FETCH_ASSOC);
         }
 
         //disconnection DB

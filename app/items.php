@@ -107,21 +107,23 @@ $app->group('/api/v1/products/items', function () {
         $_req = $request->getAttribute('attr');
         $_req = str_replace("/","','", $_req);
         
+        $this->logger->addInfo("Entry: items: Search by catgory session");
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        
-        $q = $db->prepare("
-            SELECT ti.*, tw.qty as 'stockonhand'
-            FROM `t_items` as ti
-            LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code
-            WHERE cate_code IN ( '".$_req."');
-        ");
-   
+        $this->logger->addInfo("Msg: DB connected");
+        $sql = "SELECT ti.*, tw.qty as stockonhand ";
+        $sql .= "FROM `t_items` as ti ";
+        $sql .= "LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code ";
+        $sql .= "WHERE cate_code IN ( '".$_req."'); ";
+        $this->logger->addInfo("SQL: ".$sql);
+        $q = $db->prepare($sql);
+
         $q->execute();
         $dbData = $q->fetchAll();
         $err = $q->errorinfo();
         //disconnection DB
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
 
         $callback = [
             "query" => $dbData,
@@ -139,19 +141,26 @@ $app->group('/api/v1/products/items', function () {
     $this->get('/{item_code}', function(Request $request, Response $response, array $args){
         $err=[];
         $_item_code = $args['item_code'];
+        $this->logger->addInfo("Entry: items: edit session");
         $pdo = new Database();
 		$db = $pdo->connect_db();
-        $q = $db->prepare("
-            SELECT *,
-            (SELECT `item_code` FROM `t_items` WHERE `item_code` < '".$_item_code."' ORDER BY `item_code` DESC LIMIT 1) as `previous`,
-            (SELECT `item_code` FROM `t_items` WHERE `item_code` > '".$_item_code."' ORDER BY `item_code` LIMIT 1) as `next`
-            FROM `t_items` WHERE item_code = '".$_item_code."';"
-        );
+        $this->logger->addInfo("Msg: DB connected");
+        $sql = "SELECT *,";
+        $sql .= "tw.qty as stockonhand, ";
+        $sql .= "(SELECT `item_code` FROM `t_items` WHERE `item_code` < '".$_item_code."' ORDER BY `item_code` DESC LIMIT 1) as `previous`, ";
+        $sql .= "(SELECT `item_code` FROM `t_items` WHERE `item_code` > '".$_item_code."' ORDER BY `item_code` LIMIT 1) as `next` ";
+        $sql .= "FROM `t_items` as ti ";
+        $sql .= "LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code ";
+        $sql .= "WHERE ti.item_code = '".$_item_code."';";
+        
+        $q = $db->prepare($sql);
+        
         $q->execute();
-        $dbData = $q->fetch();
+        $dbData = $q->fetchAll();
         $err = $q->errorinfo();
         //disconnection DB
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
 
         $callback = [
             "query" => $dbData,
@@ -343,6 +352,101 @@ $app->group('/api/v1/products/items', function () {
         ];
     
         return $response->withJson($callback, 200);
+    });
+
+    /**
+     * View of Items
+     */
+    $this->group('/view',function()
+    {
+        $this->get('/header/username/{username}/', function (Request $request, Response $response, array $args) 
+        {
+            $_err = [];
+            $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+            $_result = true;
+            $_msg = "";
+            $_data['employee'] = [];
+            $_data['menu'] = [];
+            $_data['prefix'] = [];
+            $_data['dn'] = ["dn_num"=>"", "dn_prefix"=>""];
+            $_max = "00";
+            $_param = $request->getQueryParams();
+            $_username = $args['username'];
+            $_result = true;
+            $_msg = "";
+
+            $this->logger->addInfo("Entry: items: get header");
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            $this->logger->addInfo("Msg: DB connected");
+            $sql = "SELECT ";
+            $sql .= " te.employee_code as employee_code,";
+            $sql .= " te.username as username,";
+            $sql .= " ts.name as shop_name,";
+            $sql .= " ts.shop_code as shop_code";
+            $sql .= " FROM `t_employee` as te";
+            $sql .= " LEFT JOIN `t_shop` as ts";
+            $sql .= " ON te.default_shopcode = ts.shop_code where te.username = '".$_username."';";
+            // echo $sql."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['employee'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            // SQL2
+            switch($_param['lang'])
+            {
+                case "en-us":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                case "zh-hk":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                default:
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+            }
+            //echo $sql2."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['menu'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000")
+                {
+                    $_result = false;
+                    $_msg .= $v[1]."-".$v[2]."|";
+                }
+                else
+                {
+                    $_msg .= "SQL #".$k.": SQL execute OK! | ";
+                }
+            }
+
+            if($_result)
+            {
+                $_callback['query'] = $_data;
+                $_callback['error']['code'] = "00000";
+                $_callback['error']['message'] = "Header data fetch OK!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+            }
+            else
+            {  
+                $_callback['query'] = "";
+                $_callback['error']['code'] = "99999";
+                $_callback['error']['message'] = "Header data fetch Fail - Please try again!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+            }
+            
+        });
     });
 
 });

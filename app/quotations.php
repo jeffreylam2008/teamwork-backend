@@ -389,7 +389,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_prefix = "";
         
 
-        $this->logger->addInfo("Entry: invoices: getnextnum");
+        $this->logger->addInfo("Entry: quotations: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -517,7 +517,7 @@ $app->group('/api/v1/inventory/quotations', function () {
         $_err[] = $q->errorinfo();
         if($q->rowCount() != 0)
         {
-            $_data = $q->fetch();
+            $_data = $q->fetch(PDO::FETCH_ASSOC);
         }
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
