@@ -245,9 +245,15 @@ $app->group('/api/v1/systems/backup/', function () {
 });
 
 $app->group('/api/v1/systems/restore', function () {
-    $this->post('products/', function (Request $request, Response $response, array $args) {
+    $this->post('/products/', function (Request $request, Response $response, array $args) {
         $body = json_decode($request->getBody(), true);
-        return $response->withJson($body, 200);
+        // check code exist, then insert new
+        $callback = [
+            "query" => "",
+            "error" => ["code" => "20022", "message" => "restore completed!"]
+        ];
+
+        return $response->withJson($callback, 200);
     });
 });
 $app->group('/api/v1/systems/master', function () {

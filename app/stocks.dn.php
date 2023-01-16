@@ -170,10 +170,10 @@ $app->group('/api/v1/stocks/dn', function () {
         // Get last number from transaction nummber generator
         $sql = "SELECT `last`, `prefix`, `suffix`, `session_id` FROM `t_trans_num_generator` WHERE `prefix` in (SELECT prefix FROM t_prefix WHERE uid = 4)  ORDER BY `create_date` DESC LIMIT 1";
         // $this->logger->addInfo("SQL = ".$sql);
-        $q1 = $db->prepare($sql);
-        $q1->execute();
-        $_err[] = $q1->errorinfo();
-        $_data = $q1->fetch(PDO::FETCH_ASSOC);
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        $_data = $q->fetch(PDO::FETCH_ASSOC);
         
         // define variable
         $prefix = $_prefix['prefix'];

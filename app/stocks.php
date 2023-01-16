@@ -32,6 +32,8 @@ $app->group('/api/v1/stocks', function () {
             if(!empty($_param['i-num']))
             {
                 $_where_trans = "AND (th.trans_code LIKE ('%".$_param['i-num']."%') OR th.refer_code LIKE ('%".$_param['i-num']."%')) ";
+                $_param['i-start-date'] = "";
+                $_param['i-end-date'] = "";
             }
             // otherwise follow date range as default
             if(!empty($_param['i-start-date']) && !empty($_param['i-end-date']) )

@@ -56,7 +56,8 @@ $app->group('/api/v1/transactions', function () use($app) {
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
-        $this->logger->addInfo("Entry: Delete: Transaction Discard Function");
+        
+        $this->logger->addInfo("Entry: Delete: Transaction Discard Function, session_id: ".$_session_id);
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");

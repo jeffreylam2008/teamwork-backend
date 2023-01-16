@@ -20,9 +20,9 @@ $app->group('/api/v1/stocks/adj', function () {
         $_result = true;
         $_msg = "";
         $_data = [];
-
-        $_trans_code= $args['trans_code'];
-        $this->logger->addInfo("Entry: stocks adjustment: get transaction by code");
+        $_trans_code = $args['trans_code'];
+        
+        $this->logger->addInfo("Entry: stocks adjustment: get transaction by code, trans_code: ".$_trans_code);
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -126,8 +126,7 @@ $app->group('/api/v1/stocks/adj', function () {
         $_prefix['prefix'] = "";
         $_max = "00";
 
-
-        $this->logger->addInfo("Entry: stocks adjustment: getnextnum");
+        $this->logger->addInfo("Entry: stocks adjustment: getnextnum, session_id: ".$_session_id);
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -197,7 +196,7 @@ $app->group('/api/v1/stocks/adj', function () {
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
 
-         foreach($_err as $k => $v)
+        foreach($_err as $k => $v)
         {
             if($v[0] != "00000")
             {
@@ -215,6 +214,7 @@ $app->group('/api/v1/stocks/adj', function () {
             $_callback['query'] = $_data;
             $_callback['error']['code'] = "00000";
             $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("Data: ".$_data);
             $this->logger->addInfo("SQL execute ".$_msg);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
@@ -317,10 +317,11 @@ $app->group('/api/v1/stocks/adj', function () {
         $sql .= " '".$refer_num."',";
         $sql .= " '".$prefix."',";
         $sql .= " '".$employee_code."',";
-        $sql .= " '".$shopcode."',";
+        $sql .= " '".$shop_code."',";
         $sql .= " '".$remark."',";
         $sql .= " '".$date."'";
         $sql .= " );";        
+        
         $q = $db->prepare($sql);
         // $this->logger->addInfo("SQL: ".$sql);
         $q->execute();

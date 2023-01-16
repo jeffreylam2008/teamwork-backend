@@ -115,7 +115,7 @@ $app->group('/api/v1/products/items', function () {
         $sql .= "FROM `t_items` as ti ";
         $sql .= "LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code ";
         $sql .= "WHERE cate_code IN ( '".$_req."'); ";
-        $this->logger->addInfo("SQL: ".$sql);
+        //$this->logger->addInfo("SQL: ".$sql);
         $q = $db->prepare($sql);
 
         $q->execute();

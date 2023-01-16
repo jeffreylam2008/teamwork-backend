@@ -43,40 +43,39 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $res = $q->fetchAll(PDO::FETCH_ASSOC);
         if($q->rowCount() != 0)
         {
-            $sql = "SELECT";
-            $sql = " td.item_code,";
-            $sql = " td.eng_name,";
-            $sql = " td.chi_name,";
-            $sql = " td.qty,";
-            $sql = " td.unit,";
-            $sql = " tw.qty as `stockonhand`";
-            $sql = " FROM `t_transaction_d` as td";
-            $sql = " LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code";
-            $sql = " WHERE td.trans_code = '".$_st_num."';";
+            $sql2 = "SELECT";
+            $sql2 .= " td.item_code,";
+            $sql2 .= " td.eng_name,";
+            $sql2 .= " td.chi_name,";
+            $sql2 .= " td.qty,";
+            $sql2 .= " td.unit,";
+            $sql2 .= " tw.qty as `stockonhand`";
+            $sql2 .= " FROM `t_transaction_d` as td";
+            $sql2 .= " LEFT JOIN `t_warehouse` as tw ON td.item_code = tw.item_code";
+            $sql2 .= " WHERE td.trans_code = '".$_st_num."';";
             // execute SQL statement 2
-            $q = $db->prepare($sql2);
-            $q->execute();
-            $_err[] = $q->errorinfo();
-            $res2 = $q->fetchAll(PDO::FETCH_ASSOC);
+            $q2 = $db->prepare($sql2);
+            $q2->execute();
+            $_err[] = $q2->errorinfo();
+            $res2 = $q2->fetchAll(PDO::FETCH_ASSOC);
 
             $_data = $res[0];        
             foreach ($res2 as $key => $val) {
                 $_data["items"] = $res2;
             }
-            if(!empty($_data["items"]))
-            {
-                foreach($_data["items"] as $k => $v)
-                {
-                    extract($v);
-                    $_data["items"][$k]["subtotal"] = ($qty * $price);
-                }
-            }
+            // if(!empty($_data["items"]))
+            // {
+            //     foreach($_data["items"] as $k => $v)
+            //     {
+            //         extract($v);
+            //         $_data["items"][$k]["subtotal"] = ($qty * $price);
+            //     }
+            // }
         }
         else
         {
             $_result = false;
         }
-
         foreach($_err as $k => $v)
         {
             if($v[0] != "00000")
@@ -113,53 +112,90 @@ $app->group('/api/v1/stocks/stocktake', function () {
 
     /**
     * Get Next stock take number 
+    * @param session_id session id
     */
-    $this->get('/getnextnum/', function (Request $request, Response $response, array $args) {
+    $this->get('/getnextnum/{session_id}', function (Request $request, Response $response, array $args) {
+        $_session_id = $args['session_id'];
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
         $_data = [];
-        $_max = "00";
+        $_prefix = ['prefix' => ""];
+        $insert = false;
 
         $this->logger->addInfo("Entry: stocktake: getnextnum");
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
 
+        if(empty($_session_id))
+        {
+            $_session_id = "";
+        }
         // prefix SQL
         $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '7' LIMIT 1;";
-        $q1 = $db->prepare($sql);
-        $q1->execute();
-        $_err[] = $q1->errorinfo();
-        if($q1->rowCount() != "0")
-        {
-            $_prefix = $q1->fetch();
-        }
-        $sql = "SELECT MAX(trans_code) as max FROM `t_transaction_h` WHERE prefix = '".$_prefix['prefix']."' ORDER BY `create_date` DESC;";
+        // $this->logger->addInfo("SQL = ".$sql);
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
-        $_data = $q->fetch();
+        if($q->rowCount() > 0)
+        {
+            $_prefix = $q->fetch(PDO::FETCH_ASSOC);
+        }
+
+        // Get last number from transaction nummber generator
+        $sql = "SELECT `last`, `prefix`, `suffix`, `session_id` FROM `t_trans_num_generator` WHERE `prefix` in (SELECT prefix FROM t_prefix WHERE uid = 7)  ORDER BY `create_date` DESC LIMIT 1";
+        // $this->logger->addInfo("SQL = ".$sql);
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+        $_data = $q->fetch(PDO::FETCH_ASSOC);
+        // define variable
+        $prefix = $_prefix['prefix'];
+        $suffix = date("ym");
+
+        if(empty($_data['last']))
+        {
+            $_last = 0;
+            $last = $_last + 1;
+            $insert = true;
+        }
+        // session_id is different then give a new one
+        elseif( strcmp($_data['session_id'],$_session_id) != 0 )
+        {
+            // reset counter to zero
+            if($_data['last'] >= 199){
+                $_data['last'] = 0;
+            }
+            $last = $_data['last'] + 1;
+            $insert = true;
+
+        }
+        // remain same id
+        else
+        {
+            $prefix = $_data['prefix'];
+            $suffix = $_data['suffix'];
+            $last = $_data['last'];
+            $insert = false;
+        }
+
+        $last = str_pad($last,3,0,STR_PAD_LEFT);
+        if($insert){
+            $sql = "INSERT INTO `t_trans_num_generator` (`prefix`, `suffix`, `last`, `session_id`, `create_date`, `expiry_date`)  VALUES('".$prefix."', '".$suffix."', '".$last."', '".$_session_id."', '".date('Y-m-d H:i:s')."', null);";
+            // $this->logger->addInfo("SQL = ".$sql);
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+        }
+
+        $_data = $prefix.$suffix.$last;
 
         // disconnect DB session
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
         
-        if(!empty($_data['max']))
-        {
-            $_max = substr($_data['max'],-2);
-            $_max++;
-            if($_max >= 100)
-            {
-                $_max = 00;
-            }
-            $_data = $_prefix['prefix'].date("ym").str_pad($_max, 2, 0, STR_PAD_LEFT);
-        }
-        else
-        {
-            $_result = false;
-        }
         foreach($_err as $k => $v)
         {
             if($v[0] != "00000")
@@ -190,10 +226,9 @@ $app->group('/api/v1/stocks/stocktake', function () {
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
+
     /**
-     * Get Prefix
-     * 
-     * To get prefix
+     * Get Prefix for current transaction
      */
     $this->get('/getprefix/', function (Request $request, Response $response, array $args) {
         $_err = [];
@@ -254,20 +289,20 @@ $app->group('/api/v1/stocks/stocktake', function () {
 
     /**
      * Check Stock and compare stock different
-     * 
+     * @body
      */
      $this->post('/', function (Request $request, Response $response, array $args) {
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
-        
+        $_body = json_decode($request->getBody(), true);
+        extract($_body);
+
         $this->logger->addInfo("Entry: POST: stocktake");
         $pdo = new Database();
 		$db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
-        $body = json_decode($request->getBody(), true);
-        extract($body);
         // Start transaction 
         $db->beginTransaction();
 
@@ -344,14 +379,13 @@ $app->group('/api/v1/stocks/stocktake', function () {
      * @param st_num stocktake transaction number required
      */
     $this->delete('/{st_num}', function (Request $request, Response $response, array $args) {
-        $_trans_code = $args['trans_code'];
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
         $_num = $args['st_num'];
 
-        $this->logger->addInfo("Entry: DELETE: stocktake");
+        $this->logger->addInfo("Entry: DELETE: stocktake ".$_num);
         $pdo = new Database();
         $db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
@@ -360,6 +394,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $db->beginTransaction();
         // sql statement
         $sql = "DELETE FROM `t_transaction_h` WHERE trans_code = '".$_num."';";
+        $this->logger->addInfo("SQL = ".$sql);
         // prepare sql statement
         $q = $db->prepare($sql);
         // execute statement
@@ -367,6 +402,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
         $_err[] = $q->errorinfo();
 
         $sql = "DELETE FROM `t_transaction_d` WHERE trans_code = '".$_num."';";
+        $this->logger->addInfo("SQL = ".$sql);
         // prepare sql statement
         $q = $db->prepare($sql);
         // execute statement
@@ -395,7 +431,7 @@ $app->group('/api/v1/stocks/stocktake', function () {
         if($_result)
         {
             $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "Transaction: ".$_trans_code." - Deleted!";
+            $_callback['error']['message'] = "Transaction: ".$_num." - Deleted!";
             $this->logger->addInfo("SQL execute ".$_msg);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
@@ -413,6 +449,84 @@ $app->group('/api/v1/stocks/stocktake', function () {
      * @param st_num stocktake transaction number required
      */
     $this->patch("/{st_num}",function(Request $request, Response $response, array $args){
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_now = date('Y-m-d H:i:s');
+        $_trans_code = $args['st_num'];
+        $_body = json_decode($request->getBody(), true);
+        extract($_body);
+
+        $this->logger->addInfo("Entry: PATCH: stocktake");
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+        // Start transaction 
+        $db->beginTransaction();
+
+        foreach($items as $k => $v)
+        {
+            if(empty($v['qty'])) $v['qty'] = 0;
+            $sql = "UPDATE t_transaction_d ";
+            $sql .= "SET `qty` = '".$v['qty']."', ";
+            $sql .= "`modify_date` = '".$_now."' ";
+            $sql .= "WHERE `item_code` = '".$v['item_code']."' AND `trans_code` = '".$_trans_code."';";
+
+            // deduct stock base on qty
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+        }
+
+        $sql = "UPDATE t_transaction_h ";
+        $sql .= "SET `modify_date`='".$_now."', ";
+        $sql .= "`remark`='".$remark."' ";
+        $sql .= "WHERE `trans_code`= '".$_trans_code."'; ";
+        // insert record to transaction_h
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+    
+        $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+        
+        // var_dump($_err);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Transaction: ".$_trans_code." - Update OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+    });
+    /**
+     * Update Stocktake record status
+     * @param st_num stocktake transaction number required
+     */
+    $this->patch("/isconvert/{st_num}",function(Request $request, Response $response, array $args){
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
@@ -467,6 +581,104 @@ $app->group('/api/v1/stocks/stocktake', function () {
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
+    /**
+     * View of Stocktake
+     */
+    $this->group('/view',function()
+    {
+        $this->get('/header/username/{username}/', function (Request $request, Response $response, array $args) 
+        {
+            $_err = [];
+            $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+            $_result = true;
+            $_msg = "";
+            $_data['employee'] = [];
+            $_data['menu'] = [];
+            $_data['prefix'] = [];
+            $_param = $request->getQueryParams();
+            $_username = $args['username'];
+            $_result = true;
+            $_msg = "";
 
+            $this->logger->addInfo("Entry: Stocktake: get header");
+            $pdo = new Database();
+            $db = $pdo->connect_db();
+            $this->logger->addInfo("Msg: DB connected");
+            $sql = "SELECT ";
+            $sql .= " te.employee_code as employee_code,";
+            $sql .= " te.username as username,";
+            $sql .= " ts.name as shop_name,";
+            $sql .= " ts.shop_code as shop_code";
+            $sql .= " FROM `t_employee` as te";
+            $sql .= " LEFT JOIN `t_shop` as ts";
+            $sql .= " ON te.default_shopcode = ts.shop_code where te.username = '".$_username."';";
+            // echo $sql."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['employee'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            // SQL2
+            switch($_param['lang'])
+            {
+                case "en-us":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                case "zh-hk":
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+                default:
+                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                    break;
+            }
+            //echo $sql2."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['menu'] = $q->fetchAll(PDO::FETCH_ASSOC);
+
+            //SQL 3
+            $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '7' LIMIT 1;";
+            //echo $sql3."\n";
+            $q = $db->prepare($sql);
+            $q->execute();
+            $_err[] = $q->errorinfo();
+            $_data['prefix'] = $q->fetch(PDO::FETCH_ASSOC);
+
+            //disconnection DB
+            $pdo->disconnect_db();
+            $this->logger->addInfo("Msg: DB connection closed");
+
+            foreach($_err as $k => $v)
+            {
+                if($v[0] != "00000")
+                {
+                    $_result = false;
+                    $_msg .= $v[1]."-".$v[2]."|";
+                }
+                else
+                {
+                    $_msg .= "SQL #".$k.": SQL execute OK! | ";
+                }
+            }
+
+            if($_result)
+            {
+                $_callback['query'] = $_data;
+                $_callback['error']['code'] = "00000";
+                $_callback['error']['message'] = "Header data fetch OK!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+            }
+            else
+            {  
+                $_callback['query'] = "";
+                $_callback['error']['code'] = "99999";
+                $_callback['error']['message'] = "Header data fetch Fail - Please try again!";
+                $this->logger->addInfo("SQL execute ".$_msg);
+                return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+            }
+        });
+    });
     
 });
