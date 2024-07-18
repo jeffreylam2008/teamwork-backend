@@ -1,13 +1,7 @@
 <?php
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-$app->group('/api/v1/systems/backup/', function () {
-    /**
-     * Systems GET Request
-     * systems get
-     * 
-     * To get all items record
-     */
+$app->group('/api/v1/systems/export/', function () {
     $this->get('products/', function (Request $request, Response $response, array $args) {
         $err=[];
         $pdo = new Database();
@@ -20,7 +14,10 @@ $app->group('/api/v1/systems/backup/', function () {
                 ti.desc,
                 ti.price,
                 ti.price_special,
-                tic.desc as category,
+                tic.cate_code as category,
+                ti.type,
+                ti.image_name,
+                ti.image_body,
                 ti.unit
             FROM `t_items` as ti
             LEFT JOIN `t_items_category` as tic ON ti.cate_code = tic.cate_code;
@@ -242,111 +239,120 @@ $app->group('/api/v1/systems/backup/', function () {
             return $response->withJson($callback, 404);
         }
     });
-});
-
-$app->group('/api/v1/systems/restore', function () {
-    $this->post('/products/', function (Request $request, Response $response, array $args) {
-        $body = json_decode($request->getBody(), true);
-        // check code exist, then insert new
-        $callback = [
-            "query" => "",
-            "error" => ["code" => "20022", "message" => "restore completed!"]
-        ];
-
-        return $response->withJson($callback, 200);
+    $this->get('districts/', function (Request $request, Response $response, array $args){
+        $err=[];
+		$pdo = new Database();
+		$db = $pdo->connect_db();
+		$q = $db->prepare("
+            SELECT 
+                td.district_code,
+                td.district_chi,
+                td.district_eng,
+                td.region
+            FROM `t_district` as td;
+        ");
+		$q->execute();
+		$err = $q->errorinfo();
+		// disconnect DB
+		$pdo->disconnect_db();
+		$res = $q->fetchAll(PDO::FETCH_ASSOC);
+        if(!empty($res))
+        {
+            $callback = [
+                "query" => $res,
+                "error" => ["code" => $err, "message" => $err]
+            ];
+            return $response->withJson($callback, 200);
+        }
+		else
+        {
+            $callback = [
+                "error" => ["code" => "99999", "message" => "Not Found!"]
+            ];
+            return $response->withJson($callback, 404);
+        }
     });
 });
-$app->group('/api/v1/systems/master', function () {
-    $this->get('/', function (Request $request, Response $response, array $args) {
+
+$app->group('/api/v1/systems/import', function () {
+    $this->post('/products/', function (Request $request, Response $response, array $args) {
+        // check code exist, then insert new
         $_err = [];
-        $_data['items'] = [];
-        $_data['shops'] = [];
-        $_data['customers'] = [];
-        $_data['paymentmethod'] = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;
         $_msg = "";
+        $_data = [];
+        $_now = date('Y-m-d H:i:s');
+        $counter = 0;
 
-        $this->logger->addInfo("Entry: master: /api/v1/systems/master/");
+        $this->logger->addInfo("Entry: POST: BackupNRestore - Products");
         $pdo = new Database();
-        $db = $pdo->connect_db();
+		$db = $pdo->connect_db();
         $this->logger->addInfo("Msg: DB connected");
+
+        $body = json_decode($request->getBody(), true);
+        $counter = count($body);
         
-        /**
-         * Items
-         */
-        $sql = "SELECT";
-        $sql .= " ti.uid,";
-        $sql .= " ti.item_code,";
-        $sql .= " ti.eng_name,";
-        $sql .= " ti.chi_name,";
-        $sql .= " ti.desc,";
-        $sql .= " ti.price,";
-        $sql .= " ti.price_special,";
-        $sql .= " ti.cate_code,";
-        $sql .= " ti.unit,";
-        $sql .= " tw.qty as 'stockonhand',";
-        $sql .= " tw.type";
-        $sql .= " FROM `t_items` as  ti";
-        $sql .= " LEFT JOIN `t_warehouse` as tw ON ti.item_code = tw.item_code";
-        $sql .= " ORDER BY ti.item_code";
-        // echo $sql1."\n";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $_data['items'] = $q->fetchAll(PDO::FETCH_ASSOC);
+        // echo json_encode($counter);
+     
+        // var_dump($body);
 
-        /**
-         * Shops
-         */
-        $sql = "select * from `t_shop`;";
-        // echo $sql1."\n";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $_data['shops'] = $q->fetchAll(PDO::FETCH_ASSOC);
+        // // Start transaction 
+        $db->beginTransaction();
+        for($i=1; $i < $counter; $i++)
+        {
+            if( $i != 0 )
+            {
+                $sql = "INSERT IGNORE INTO `t_items` (`item_code`, `eng_name`, `chi_name`, `desc`, `price`, `price_special`,";
+                $sql .= "`cate_code`, `type`, `unit`, `image_name`, `image_body`, `create_date`) ";
+                $sql .= "VALUES ( ";
+                $sql .= "'".$body[$i][0]."',";
+                $sql .= "'".$body[$i][1]."',";
+                $sql .= "'".$body[$i][2]."',";
+                $sql .= "'".$body[$i][3]."',";
+                $sql .= "'".$body[$i][4]."',";
+                $sql .= "'".$body[$i][5]."',";
+                $sql .= "'".$body[$i][6]."',";
+                $sql .= "'".$body[$i][7]."',";
+                $sql .= "'".$body[$i][8]."',";
+                $sql .= "'".$body[$i][9]."',";
+                $sql .= "'".$body[$i][10]."',";
+                $sql .= "'".$_now."'";
+                $sql .= ");";
 
-        /**
-         * Customers
-         */ 
-        $sql = "SELECT ";
-        $sql .= " tc.cust_code,";
-        $sql .= " tc.name,";
-        $sql .= " tc.pm_code";
-        $sql .= " FROM `t_customers` as tc";
-        // echo $sql1."\n";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $_data['customers'] = $q->fetchAll(PDO::FETCH_ASSOC);
+                if($i == 30){
+                    $this->logger->addInfo("SQL String: ".$sql);
+                }
+                $q = $db->prepare($sql);
+                $q->execute();
+                $_err[] = $q->errorinfo();
 
-        /**
-         * Payment Method
-         */
-        $sql = "SELECT * FROM `t_payment_method`;";
-        // echo $sql1."\n";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $_data['paymentmethod'] = $q->fetchAll(PDO::FETCH_ASSOC);
+                $sql = "INSERT IGNORE INTO `t_warehouse` (`item_code`, `qty` ,`type`, `create_date`)";
+                $sql .= " VALUES (";
+                $sql .= " '".$body[$i][0]."',";
+                $sql .= " '0',";
+                $sql .= " 'in',";
+                $sql .= " '".$_now."');";
 
-        /**
-         * Suppliers 
-         */
-        $sql = "SELECT * FROM `t_suppliers`;";
-        // echo $sql1."\n";
-        $q = $db->prepare($sql);
-        $q->execute();
-        $_err[] = $q->errorinfo();
-        $_data['suppliers'] = $q->fetchAll(PDO::FETCH_ASSOC);
+                if($i == 30){
+                    $this->logger->addInfo("SQL String: ".$sql);
+                }
+                $q = $db->prepare($sql);
+                $q->execute();
+                $_err[] = $q->errorinfo();
+            }
 
+        }
+        $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
         //disconnection DB
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
 
         foreach($_err as $k => $v)
         {
-            if($v[0] != "00000"){
+            if($v[0] != "00000")
+            {
                 $_result = false;
                 $_msg .= $v[1]."-".$v[2]."|";
             }
@@ -355,26 +361,180 @@ $app->group('/api/v1/systems/master', function () {
                 $_msg .= "SQL #".$k.": SQL execute OK! | ";
             }
         }
-    
         if($_result)
         {
-            $_callback["query"] = $_data;
+            $_callback['query'] = "Successful!";
             $_callback['error']['code'] = "00000";
-            $_callback['error']['message'] = "Master data fetch OK!";
+            $_callback['error']['message'] = "Total $counter Products Records Imported!";
             $this->logger->addInfo("SQL execute ".$_msg);
-            return $response->withJson($_callback, 200);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
-        {
-            $_callback = ["query" => ""];
+        {  
             $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Master data fetch fail!";
-            $this->logger->addInfo("SQL execute ".$_msg);  
-            return $response->withJson($_callback, 404);
+            $_callback['error']['message'] = "Import Products Fail: Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+    });
+    $this->post('/categories/', function (Request $request, Response $response, array $args) {
+        // check code exist, then insert new
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_data = [];
+        $_now = date('Y-m-d H:i:s');
+        $counter = 0;
+
+        $this->logger->addInfo("Entry: POST: BackupNRestore - categories");
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
+        $body = json_decode($request->getBody(), true);
+        $counter = count($body);
+        
+        // echo json_encode($counter);
+        //var_dump($body);
+
+        // // Start transaction 
+        $db->beginTransaction();
+        for($i=1; $i < $counter; $i++)
+        {
+            if( $i != 0 )
+            {
+                $sql = "INSERT IGNORE INTO `t_items_category` (`cate_code`, `desc`, `create_date`) ";
+                $sql .= "VALUES ( ";
+                $sql .= "'".$body[$i][0]."',";
+                $sql .= "'".$body[$i][1]."',";
+                $sql .= "'".$_now."'";
+                $sql .= ");";
+
+                $q = $db->prepare($sql);
+                $q->execute();
+                $_err[] = $q->errorinfo();
+
+                if($i == 2){
+                    $this->logger->addInfo("SQL String: ".$sql);
+                    //$this->actionLogger->addInfo("SQL String: ".$sql);
+                }
+            }
+        }
+        $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['query'] = "Successful!";
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Total $counter Categories Records Imported!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Import Categories Fail: Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+    });
+    $this->post('/customers/', function (Request $request, Response $response, array $args) {
+        // check code exist, then insert new
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_data = [];
+        $_now = date('Y-m-d H:i:s');
+        $counter = 0;
+
+        $this->logger->addInfo("Entry: POST: BackupNRestore - categories");
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
+        $body = json_decode($request->getBody(), true);
+        $counter = count($body);
+        
+        // echo json_encode($counter);
+     
+        //var_dump($body);
+
+        // // Start transaction 
+        $db->beginTransaction();
+        for($i=1; $i < $counter; $i++)
+        {
+            if( $i != 0 )
+            {
+                $sql = "INSERT IGNORE INTO `t_customers` (`cate_code`, `desc`, `create_date`) ";
+                $sql .= "VALUES ( ";
+                $sql .= "'".$body[$i][0]."',";
+                $sql .= "'".$body[$i][1]."',";
+                $sql .= "'".$_now."'";
+                $sql .= ");";
+
+                $q = $db->prepare($sql);
+                $q->execute();
+                $_err[] = $q->errorinfo();
+
+                if($i == 2){
+                    $this->logger->addInfo("SQL String: ".$sql);
+                    //$this->actionLogger->addInfo("SQL String: ".$sql);
+                }
+            }
+        }
+        $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['query'] = "Successful!";
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Total $counter Categories Records Imported!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Import Categories Fail: Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
 });
-
 
 $app->group('/api/v1/network/status', function (){
     $this->get('/', function (Request $request, Response $response, array $args){

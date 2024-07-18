@@ -109,7 +109,7 @@ $app->group('/api/v1/systems/employees', function () {
             return $response->withJson($callback, 200);
         }
     });
-
+    
     /**
      * employee GET request
      * employee-get
@@ -118,52 +118,120 @@ $app->group('/api/v1/systems/employees', function () {
      */
     $this->get('/code/{employee_code}', function (Request $request, Response $response, array $args) {
         $_emp_code = $args['employee_code'];
-        $err1 = [];
-        $err[0] = "";
-        $err[1] = "";
+        $_err = [];
         $_data = "";
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+
+        $this->logger->addInfo("Entry: Employee: Get employee info by emp_code");
         $pdo = new Database();
         $db = $pdo->connect_db();
-        $q = $db->prepare("
-            select emp.employee_code, emp.username, emp.default_shopcode, shp.name as `shop_name`,
-            emp.status, role.role_code, role.access_level, role.name
-            from `t_employee` emp 
-            LEFT JOIN `t_shop` shp 
-            ON emp.default_shopcode = shp.shop_code
-            LEFT JOIN `t_employee_role` role
-            ON emp.role_code = role.role_code
-            where emp.employee_code = '".$_emp_code."';");
+        $sql = "select emp.employee_code, emp.username, emp.default_shopcode, shp.name as `shop_name`, ";
+        $sql .= "emp.status, role.role_code, role.access_level, role.name as role_name ";
+        $sql .= "from `t_employee` emp ";
+        $sql .= "LEFT JOIN `t_shop` shp ";
+        $sql .= "ON emp.default_shopcode = shp.shop_code ";
+        $sql .= "LEFT JOIN `t_employee_role` role ";
+        $sql .= "ON emp.role_code = role.role_code ";
+        $sql .= "where emp.employee_code = '".$_emp_code."';";
+        $q = $db->prepare($sql);
         $q->execute();
-        $err1 = $q->errorinfo();
+        $_data = $q->fetch();
+        $_err[] = $q->errorinfo();
+
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
         
-        // SQL Query success
-        if($err1[0] == "00000")
+        foreach($_err as $k => $v)
         {
-            $err[0] = "00000";
-            $err[1] = "";
-            $_data = $q->fetch();
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
         }
         else
-        {
-            $err[0] = "90002";
-            $err[1] = "Something went wrong on fetch employee API";
-        }
-        // disconnect DB
-        $pdo->disconnect_db();
-
-        if(!empty($_data))
-        {
-            $callback = [
-                "query" => $_data,
-                "error" => [
-                    "code" => $err[0], 
-                    "message" => $err[1]
-                ]
-            ];
-            return $response->withJson($callback, 200);
+        {  
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });
     
+    /**
+     * employee GET request
+     * employee-get
+     * 
+     * To get employee roles information 
+     */
+    $this->get('/roles/', function (Request $request, Response $response, array $args) {
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_data = [];
+        
+        $this->logger->addInfo("Entry: Employee: Get Roles");
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        $sql = "SELECT * FROM `t_employee_role`;";
+    
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_data = $q->fetchAll(PDO::FETCH_ASSOC);
+        $_err[] = $q->errorinfo();
+        
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+        
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+    });
+
     /**
      * employee Patch request
      * employee-patch
@@ -171,15 +239,19 @@ $app->group('/api/v1/systems/employees', function () {
      * To update employee information by employee ID
      */
     $this->patch('/{employee_code}', function (Request $request, Response $response, array $args) {
-        $err1 = [];
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_data = [];
         $_salt = "password";
-        $err[0] = "";
-        $err[1] = "";
-        $_data = "";
         $_pwd = "";
 		$_employee_code = $args['employee_code'];
-		$pdo = new Database();
-		$db = $pdo->connect_db();
+
+        $this->logger->addInfo("Entry: Employee: Patch employee");
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+
 		// POST Data here
         $_body = json_decode($request->getBody(), true);
         //var_dump($body);
@@ -189,66 +261,68 @@ $app->group('/api/v1/systems/employees', function () {
         if(!empty($_body['i-pwd']) && !empty($_body['i-confirm-pwd']))
         {
             $_pwd = crypt($_body['i-pwd'], $_salt);
-            $q1 = $db->prepare("
-                UPDATE `t_employee` SET
-                `employee_code` = '".$_body['i-emp-code']."',
-                `username` = '".$_body['i-username']."',
-                `default_shopcode` = '".$_body['i-shops']."',
-                `password` = '".$_pwd."',
-                `status` = '".$_body['i-status']."',
-                `modify_date` = '".$_now."'
-                WHERE `employee_code` = '".$_employee_code."';
-            ");
-
-            // echo  "UPDATE `t_employee` SET
-            // `employee_code` = '".$_body['i-emp-code']."',
-            // `username` = '".$_body['i-username']."',
-            // `default_shopcode` = '".$_body['i-shops']."',
-            // `password` = '".$_pwd."',
-            // `status` = '".$_body['i-status']."',
-            // `modify_date` = '".$_now."'
-            // WHERE `employee_code` = '".$_employee_code."';";
+            $sql = "UPDATE `t_employee` SET ";
+            $sql .= "`employee_code` = '".$_body['i-emp-code']."', ";
+            $sql .= "`username` = '".$_body['i-username']."', ";
+            $sql .= "`default_shopcode` = '".$_body['i-shops']."', ";
+            $sql .= "`password` = '".$_pwd."', ";
+            $sql .= "`role_code` = '".$_body['i-emp-roles']."',";
+            $sql .= "`status` = '".$_body['i-status']."', ";
+            $sql .= "`modify_date` = '".$_now."' ";
+            $sql .= "WHERE `employee_code` = '".$_employee_code."'; ";
+            
         }
         else
         {
-            $q1 = $db->prepare("
-                UPDATE `t_employee` SET
-                `employee_code` = '".$_body['i-emp-code']."',
-                `username` = '".$_body['i-username']."',
-                `default_shopcode` = '".$_body['i-shops']."',
-                `status` = '".$_body['i-status']."',
-                `modify_date` = '".$_now."'
-                WHERE `employee_code` = '".$_employee_code."';
-            ");
+            $sql = "UPDATE `t_employee` SET ";
+            $sql .= "`employee_code` = '".$_body['i-emp-code']."', ";
+            $sql .= "`username` = '".$_body['i-username']."', ";
+            $sql .= "`default_shopcode` = '".$_body['i-shops']."', ";
+            $sql .= "`role_code` = '".$_body['i-emp-roles']."',";
+            $sql .= "`status` = '".$_body['i-status']."', ";
+            $sql .= "`modify_date` = '".$_now."' ";
+            $sql .= "WHERE `employee_code` = '".$_employee_code."';";
         }
-        
-        $q1->execute();
+        $q = $db->prepare($sql);
+        $q->execute();
 
 		// no fatch on update 
-        $err1 = $q1->errorinfo();
-
+        $_err[] = $q->errorinfo();
         $db->commit();
     
-        // disconnect DB
+        //disconnection DB
         $pdo->disconnect_db();
-
-        if($err1[0] == "00000" )
+        $this->logger->addInfo("Msg: DB connection closed");
+        
+        foreach($_err as $k => $v)
         {
-            $err[0] = $err1[0];
-            $err[1] = "Update Completed!";
-        } 
-        else
-        {
-            $err[0] = $err1[0];
-            $err[1] = "Error! DB: " .$err1[1]. " ".$err1[2];
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
         }
 
-        $callback = [
-			"query" => $_data, 
-			"error" => ["code" => $err[0], "message" => $err[1]]
-        ];
-        
-		return $response->withJson($callback, 200);
+        if($_result)
+        {
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data Update OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data Update Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**
@@ -258,67 +332,125 @@ $app->group('/api/v1/systems/employees', function () {
      * To insert new employee 
      */
     $this->post('/', function (Request $request, Response $response, array $args) {
-        $err1 = [];
         $_salt = "password";
-        $err[0] = "";
-        $err[1] = "";
-        $_data = "";
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_data = [];
         $_pwd = "";
 
-		$pdo = new Database();
-		$db = $pdo->connect_db();
+        $this->logger->addInfo("Entry: Employee: Do Insert");
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
 		// POST Data here
         $_body = json_decode($request->getBody(), true);
-        //var_dump($body);
         $_now = date('Y-m-d H:i:s');
         //start DB transaction
         $db->beginTransaction();
         $_pwd = crypt($_body['i-pwd'], $_salt);
 
-        $q1 = $db->prepare("
-            INSERT INTO `t_employee` (
-                `employee_code`,
-                `username`,
-                `default_shopcode`,
-                `password`,
-                `status`,
-                `create_date`
-            ) VALUES (
-                '".$_body['i-emp-code']."',
-                '".$_body['i-username']."',
-                '".$_body['i-shops']."',
-                '".$_pwd."',
-                '".$_body['i-status']."',
-                '".$_now."'
-            );
-        ");
-        $q1->execute();
+        $sql = "INSERT INTO `t_employee` (";
+        $sql .= " `employee_code`, `username`, `default_shopcode`, `password`, `role_code`, `status`, `create_date`)";
+        $sql .= " VALUES ('".$_body['i-emp-code']."',";
+        $sql .= " '".$_body['i-username']."', ";
+        $sql .= " '".$_body['i-shops']."',";
+        $sql .= " '".$_pwd."',";
+        $sql .= " '".$_body['i-emp-roles']."',";
+        $sql .= " '".$_body['i-status']."',";
+        $sql .= " '".$_now."');";
+        //$this->logger->addInfo($sql);        
+        $q = $db->prepare($sql);
+        $q->execute();
 
 		// no fatch on update 
-        $err1 = $q1->errorinfo();
-
+        $_err[] = $q->errorinfo();
         $db->commit();
-    
         // disconnect DB
         $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
 
-        if($err1[0] == "00000" )
+        foreach($_err as $k => $v)
         {
-            $err[0] = $err1[0];
-            $err[1] = "Update Completed!";
-        } 
-        else
-        {
-            $err[0] = $err1[0];
-            $err[1] = "Error! DB: " .$err1[1]. " ".$err1[2];
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
         }
 
-        $callback = [
-			"query" => $_data, 
-			"error" => ["code" => $err[0], "message" => $err[1]]
-        ];
-        
-		return $response->withJson($callback, 200);
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "User Created - OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Create User Failure - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+    });
+
+    /**
+     * employee DEL request
+     * To delete employee
+     */
+    $this->delete('/{employee_code}', function (Request $request, Response $response, array $args){
+        $_emp_code = $args['employee_code'];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $_err = [];
+        $this->logger->addInfo("Entry: DELETE: employee delete");
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+        $sql = "DELETE FROM t_employee WHERE employee_code = '".$_emp_code."';";
+        $this->logger->addInfo($sql);
+
+        $q = $db->prepare($sql);
+        $q->execute();
+        //disconnect DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Employee: ".$_emp_code." - Deleted!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Delete Failure - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
 
     /**

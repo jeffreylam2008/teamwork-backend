@@ -707,6 +707,7 @@ $app->group('/api/v1/purchases/order', function () {
             $_callback['has'] = false;
             $_callback["error"]["code"] = "99999";
             $_callback["error"]["message"] = "Item not found";
+            $this->logger->addInfo("SQL execute : 404 not found!");
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }
     });

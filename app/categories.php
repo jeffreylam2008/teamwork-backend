@@ -62,6 +62,69 @@ $app->group('/api/v1/products/categories', function() use($app) {
 		];
 		return $response->withJson($callback, 200);
 	});
+	
+	/**
+	 * Categories POST Request
+	 * categories-post
+	 * 
+	 * To create new record
+	 */
+	$app->post('/', function(Request $request, Response $response, array $args){
+		$_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+
+		$this->logger->addInfo("Entry: POST: Category create");
+		$pdo = new Database();
+		$db = $pdo->connect_db();
+		$this->logger->addInfo("Msg: DB connected");
+
+		// POST Data here
+		$body = json_decode($request->getBody(), true);
+		$_now = date('Y-m-d H:i:s');
+
+		$db->beginTransaction();
+		$sql = "INSERT INTO t_items_category (`cate_code`, `desc`, `create_date`)";
+		$sql .= " values ('".$body['i-catecode']."', '".$body['i-desc']."', '".$_now."');";
+		$q = $db->prepare($sql);
+		$q->execute();
+		$_err[] = $q->errorinfo();
+
+		$db->commit();
+		$this->logger->addInfo("Msg: DB commit");
+		// disconnect DB
+        $pdo->disconnect_db();
+		$this->logger->addInfo("Msg: DB connection closed");
+
+		// var_dump($_err);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Category: ".$body['i-catecode']." - Insert OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+	});
 	/**
 	 * Categories PATCH Request
 	 * categories-patch
@@ -69,81 +132,112 @@ $app->group('/api/v1/products/categories', function() use($app) {
 	 * To update current record on DB
 	 */
 	$app->patch('/{cate_code}', function(Request $request, Response $response, array $args){
-		$err = [];
+		$_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
 		$_cate_code = $args['cate_code'];
+
+		$this->logger->addInfo("Entry: PATCH: Category amended");
 		$pdo = new Database();
 		$db = $pdo->connect_db();
+		$this->logger->addInfo("Msg: DB connected");
 		// POST Data here
 		$body = json_decode($request->getBody(), true);
 		$_now = date('Y-m-d H:i:s');
+
 		$db->beginTransaction();
-		$q = $db->prepare("UPDATE `t_items_category` SET `desc` = '".$body["i-desc"]."', `modify_date` = '".$_now."' WHERE `cate_code` = '".$_cate_code."';");
+		$sql = "UPDATE `t_items_category` ";
+		$sql .= "SET `desc` = '".$body["i-desc"]."', ";
+		$sql .= "`modify_date` = '".$_now."' ";
+		$sql .= "WHERE `cate_code` = '".$_cate_code."';";
+		$q = $db->prepare($sql);
 		$q->execute();
-		// no fatch on update 
-		$err = $q->errorinfo();
+		$_err[] = $q->errorinfo();
 		$db->commit();
+		$this->logger->addInfo("Msg: DB commit");
 		// disconnect DB
 		$pdo->disconnect_db();
+		$this->logger->addInfo("Msg: DB connection closed");
 		
-		$callback = [
-			"query" => "",
-			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-		];
-		return $response->withJson($callback,200);
-		
+		foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Category: ".$_cate_code." - Update OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Update Failure - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
 	});
 	/**
-		* Categories POST Request
-		* categories-post
-		* 
-		* To create new record
-		*/
-	$app->post('/', function(Request $request, Response $response, array $args){
-		$err = [];
-		$pdo = new Database();
-		$db = $pdo->connect_db();
-		// POST Data here
-		$body = json_decode($request->getBody(), true);
-		$_now = date('Y-m-d H:i:s');
-		$db->beginTransaction();
-		$q = $db->prepare("insert into t_items_category (`cate_code`, `desc`, `create_date`) values ('".$body['i-catecode']."', '".$body['i-desc']."', '".$_now."');");
-		$q->execute();
-		// no fatch on insert
-		$err = $q->errorinfo();
-		$db->commit();
-		// disconnect DB
-        $pdo->disconnect_db();
-		
-		$callback = [
-			"query" => "", 
-			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-		];
-		return $response->withJson($callback, 200);
-	});
-	/**
-		* Categories DELETE Request
-		* categories-delete
-		* 
-		* To remove record from DB
-		*/
+	 * Categories DELETE Request
+	 * categories-delete
+	 * 
+	 * To remove record from DB
+	 */
 	$app->delete('/{cate_code}', function(Request $request, Response $response, array $args){
-		$err = [];
 		$_cate_code = $args['cate_code'];
+		$_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+		
+		$this->logger->addInfo("Entry: DELETE: Category delete");
 		$pdo = new Database();
 		$db = $pdo->connect_db();
-		$q = $db->prepare("DELETE FROM `t_items_category` WHERE cate_code = '".$_cate_code."';");
+		$this->logger->addInfo("Msg: DB connected");
+		$sql = "DELETE FROM `t_items_category` WHERE cate_code = '".$_cate_code."';";
+		$q = $db->prepare($sql);
 		$q->execute();
-		$dbData = $q->fetch();
-		$err = $q->errorinfo();
+		$_err[] = $q->errorinfo();
+		
 		// disconnect DB
 		$pdo->disconnect_db();
-
-		$callback = [
-			"query" => $dbData,
-			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-		];
-
-		return $response->withJson($callback, 200);
+		$this->logger->addInfo("Msg: DB connection closed");
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Category: ".$_cate_code." - Deleted!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Delete Failure - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
 	});
 
 	/**

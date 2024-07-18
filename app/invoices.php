@@ -31,7 +31,8 @@ $app->group('/api/v1/inventory/invoices', function () {
                 $_where_trans = " AND ( th.trans_code LIKE ('%".$_param['i-invoice-num']."%') ) ";
             }
             // otherwise follow date range as default
-            if(!empty($_param['i-start-date']) && !empty($_param['i-end-date']) )
+            //if(!empty($_param['i-start-date']) && !empty($_param['i-end-date']) )
+            else
             {
                 $_where_date = " AND (date(th.create_date) BETWEEN '".$_param['i-start-date']."' AND '".$_param['i-end-date']."') ";
             }
@@ -48,12 +49,13 @@ $app->group('/api/v1/inventory/invoices', function () {
             $sql .= " LEFT JOIN `t_payment_method` as tpm ON tt.pm_code = tpm.pm_code";
             $sql .= " WHERE th.is_void = 0 AND th.prefix = (SELECT prefix FROM t_prefix WHERE uid = 1)";
             $sql .= $_where_date.$_where_trans.";";
+            
             // t_transaction_h SQL
             $q = $db->prepare($sql);
             $q->execute();
             $_err[] = $q->errorinfo();
             $_data = $q->fetchAll(PDO::FETCH_ASSOC);
-        
+            
             //export data
             $pdo->disconnect_db();
             $this->logger->addInfo("Msg: DB connection closed");
@@ -592,7 +594,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         // To convert money format to decimal
         //$total = filter_var($total,FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         
-        $this->logger->addInfo("Debug: total".$total);
+        //$this->logger->addInfo("Debug: total".$total);
         
         $sql = "SELECT * FROM `t_transaction_d` WHERE trans_code = '".$_trans_code."';";
         //$this->logger->addInfo("SQL: ".$sql);
@@ -721,7 +723,7 @@ $app->group('/api/v1/inventory/invoices', function () {
         else
         {  
             $_callback['error']['code'] = "99999";
-            $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $_callback['error']['message'] = "Update Failure - Please try again!";
             $this->logger->addInfo("SQL execute ".$_msg);
             return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
         }

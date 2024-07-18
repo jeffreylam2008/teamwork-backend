@@ -70,7 +70,7 @@ $app->group('/api/v1/systems/shops', function () {
      * 
      * To get shop record 
      */
-     $this->get('/{shop_code}', function (Request $request, Response $response, array $args) {
+    $this->get('/{shop_code}', function (Request $request, Response $response, array $args) {
         $_err = [];
         $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
         $_result = true;

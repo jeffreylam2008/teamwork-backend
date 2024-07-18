@@ -94,6 +94,7 @@ $app->group('/api/v1/systems/payments',function(){
         // disconnect DB
         $pdo->disconnect_db();
         $this->logger->addInfo("Msg: DB connection closed");
+        
         foreach($_err as $k => $v)
         {
             if($v[0] != "00000")
@@ -132,27 +133,62 @@ $app->group('/api/v1/systems/payments',function(){
      * To insert new record
      */
      $this->post('/methods/', function(Request $request, Response $response, array $args){
-        $err = [];
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+
+        $this->logger->addInfo("Entry: POST: paymentmethod");
         $pdo = new Database();
         $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
         // POST Data here
         $body = json_decode($request->getBody(), true);
         $_now = date('Y-m-d H:i:s');
         $db->beginTransaction();
         // $q = $db->prepare("insert into t_items_category (`cate_code`, `desc`, `create_date`) values ('".$body['i-catecode']."', '".$body['i-desc']."', '".$_now."');");
-        $q = $db->prepare("insert into t_payment_method (`pm_code`, `payment_method`, `create_date`) values ('".$body['i-pm-code']."', '".$body['i-pm']."', '".$_now."');");
+        $sql = "insert into t_payment_method";
+        $sql .= "(`pm_code`, `payment_method`, `create_date`) ";
+        $sql .= "values ('".$body['i-pm-code']."', '".$body['i-pm']."', '".$_now."');";
+
+        $q = $db->prepare($sql);
         $q->execute();
-        // no fatch on insert
-        $err = $q->errorinfo();
+        $_err[] = $q->errorinfo();
+
         $db->commit();
-        // disconnect DB
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
         $pdo->disconnect_db();
-        
-        $callback = [
-            "query" => "", 
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-        ];
-        return $response->withJson($callback, 200);
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        // var_dump($_err);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Payment Method: ".$body['i-pm-code']." - Create OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 201);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 202);
+        }
     });
 
     /**
@@ -163,30 +199,116 @@ $app->group('/api/v1/systems/payments',function(){
 	 */
 	$this->patch('/methods/{code}', function(Request $request, Response $response, array $args){
 		$err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
 		$_pm_code = $args['code'];
-		$pdo = new Database();
-		$db = $pdo->connect_db();
+        $_result = true;
+        $_msg = "";
+
+        $this->logger->addInfo("Entry: PATCH: paymentmethod");
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
 		// POST Data here
 		$body = json_decode($request->getBody(), true);
         $_now = date('Y-m-d H:i:s');
         // transaction began
 		$db->beginTransaction();
-		$q = $db->prepare("UPDATE `t_payment_method` SET `payment_method` = '".$body["i-payment-method"]."', `modify_date` = '".$_now."' WHERE `pm_code` = '".$_pm_code."';");
-		$q->execute();
-		// no fatch on update 
-        $err = $q->errorinfo();
+
+        $sql = "UPDATE `t_payment_method` SET ";
+        $sql .= "`payment_method` = '".$body["i-payment-method"]."', ";
+        $sql .= "`modify_date` = '".$_now."' ";
+        $sql .= "WHERE `pm_code` = '".$_pm_code."';";
+		$q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+
         // commit transaction
-		$db->commit();
-		// disconnect DB
-		$pdo->disconnect_db();
+        $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
 		
-		$callback = [
-			"query" => "",
-			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-		];
-		return $response->withJson($callback,200);
+        // var_dump($_err);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Payment Method: ".$_pm_code." - Updated!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Update Failure - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
     
+    /**
+     * Delete request
+     * To delete record
+     */
+    $this->delete('/methods/{pm_code}', function (Request $request, Response $response, array $args) {
+        $_pm_code = $args['pm_code'];
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $this->logger->addInfo("Entry: DELETE: PaymentMethod delete");
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+        $sql = "DELETE FROM `t_payment_method` WHERE pm_code = '".$_pm_code."';";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+
+        //disconnect DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Payment Method: ".$_pm_code." - Deleted!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Delete Failure - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+    });
+
     /**
      * Payment term GET Request
      * Payment term-get
@@ -249,24 +371,64 @@ $app->group('/api/v1/systems/payments',function(){
      * To get all payment record 
      */
     $this->get('/terms/{code}', function (Request $request, Response $response, array $args) {
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_data = [];
+        $_result = true;
+        $_msg = "";
         $_ptcode = $args['code'];
+        $this->logger->addInfo("Entry: GET: paymentterms item by ID");
         $pdo = new Database();
-		$db = $pdo->connect_db();
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
         $sql = "SELECT * FROM `t_payment_term` WHERE `pt_code` = '".$_ptcode."';";
         $q = $db->prepare($sql);
         $q->execute();
-        $err = $q->errorinfo();
-        $result = $q->fetch();
+        $_err[] = $q->errorinfo();
+        if($q->rowCount() != 0)
+        {
+            $_data = $q->fetch();
+        }
+        else
+        {
+            $_result = false;
+        }
         //var_dump($result);
 
-        // disconnect DB
+        //disconnection DB
         $pdo->disconnect_db();
-        
-        $callback = [
-            "query" => $result,
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-        ];
-        return $response->withJson($callback,200);
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+
+        if($_result)
+        {
+            $_callback['query'] = $_data;
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Data fetch OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {
+            $_callback['query'] = "";
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Data fetch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
     });
     
     /**
@@ -276,27 +438,60 @@ $app->group('/api/v1/systems/payments',function(){
      * To insert new record
      */
      $this->post('/terms/', function(Request $request, Response $response, array $args){
-        $err = [];
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        
+        $this->logger->addInfo("Entry: POST: paymentterms");
         $pdo = new Database();
         $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
         // POST Data here
         $body = json_decode($request->getBody(), true);
         $_now = date('Y-m-d H:i:s');
         $db->beginTransaction();
         // $q = $db->prepare("insert into t_items_category (`cate_code`, `desc`, `create_date`) values ('".$body['i-catecode']."', '".$body['i-desc']."', '".$_now."');");
-        $q = $db->prepare("insert into t_payment_term (`pt_code`, `terms`, `create_date`) values ('".$body['i-pt-code']."', '".$body['i-pt']."', '".$_now."');");
+        $sql = "insert into t_payment_term (`pt_code`, `terms`, `create_date`)";
+        $sql .= " values ('".$body['i-pt-code']."', '".$body['i-pt']."', '".$_now."');";
+        $q = $db->prepare($sql);
         $q->execute();
-        // no fatch on insert
-        $err = $q->errorinfo();
-        $db->commit();
-        // disconnect DB
-        $pdo->disconnect_db();
+        $_err[] = $q->errorinfo();
         
-        $callback = [
-            "query" => "", 
-            "error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-        ];
-        return $response->withJson($callback, 200);
+        $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+
+        // var_dump($_err);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Payment Terms: ".$body['i-pt-code']." - Create OK!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 201);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Insert Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 202);
+        }
     });
 
     /**
@@ -306,30 +501,115 @@ $app->group('/api/v1/systems/payments',function(){
 	 * To update current record on DB
 	 */
 	$this->patch('/terms/{code}', function(Request $request, Response $response, array $args){
-		$err = [];
+		$_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
 		$_pt_code = $args['code'];
-		$pdo = new Database();
-		$db = $pdo->connect_db();
+
+        $this->logger->addInfo("Entry: PATCH: paymentterms");
+        $pdo = new Database();
+        $db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+
 		// POST Data here
 		$body = json_decode($request->getBody(), true);
         $_now = date('Y-m-d H:i:s');
         // transaction began
 		$db->beginTransaction();
-		$q = $db->prepare("UPDATE `t_payment_term` SET `terms` = '".$body["i-payment-term"]."', `modify_date` = '".$_now."' WHERE `pt_code` = '".$_pt_code."';");
+        $sql = "UPDATE `t_payment_term` SET ";
+        $sql .= "`terms` = '".$body["i-payment-term"]."', ";
+        $sql .= "`modify_date` = '".$_now."' ";
+        $sql .= " WHERE `pt_code` = '".$_pt_code."';";
+		$q = $db->prepare($sql);
 		$q->execute();
 		// no fatch on update
-        $err = $q->errorinfo();
-        // commit transaction
-		$db->commit();
-		// disconnect DB
-		$pdo->disconnect_db();
-		
-		$callback = [
-			"query" => "",
-			"error" => ["code" => $err[0], "message" => $err[1]." ".$err[2]]
-		];
-		return $response->withJson($callback,200);
+        $_err[] = $q->errorinfo();
+
+        $db->commit();
+        $this->logger->addInfo("Msg: DB commit");
+        //disconnection DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+        // var_dump($_err);
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Payment Terms: ".$_pt_code." - Data Edited!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {  
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Patch Fail - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 202);
+        }
     });
+
+        /**
+     * Delete request
+     * To delete record
+     */
+    $this->delete('/terms/{code}', function (Request $request, Response $response, array $args) {
+        $_pt_code = $args['code'];
+        $_err = [];
+        $_callback = ['query' => "" , 'error' => ["code" => "", "message" => ""]];
+        $_result = true;
+        $_msg = "";
+        $this->logger->addInfo("Entry: DELETE: Payment term delete");
+        $pdo = new Database();
+		$db = $pdo->connect_db();
+        $this->logger->addInfo("Msg: DB connected");
+        $sql = "DELETE FROM `t_payment_term` WHERE pt_code = '".$_pt_code."';";
+        $q = $db->prepare($sql);
+        $q->execute();
+        $_err[] = $q->errorinfo();
+
+        //disconnect DB
+        $pdo->disconnect_db();
+        $this->logger->addInfo("Msg: DB connection closed");
+        foreach($_err as $k => $v)
+        {
+            if($v[0] != "00000")
+            {
+                $_result = false;
+                $_msg .= $v[1]."-".$v[2]."|";
+            }
+            else
+            {
+                $_msg .= "SQL #".$k.": SQL execute OK! | ";
+            }
+        }
+        if($_result)
+        {
+            $_callback['error']['code'] = "00000";
+            $_callback['error']['message'] = "Payment Method: ".$_pt_code." - Deleted!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 200);
+        }
+        else
+        {
+            $_callback['error']['code'] = "99999";
+            $_callback['error']['message'] = "Delete Failure - Please try again!";
+            $this->logger->addInfo("SQL execute ".$_msg);
+            return $response->withHeader('Connection', 'close')->withJson($_callback, 404);
+        }
+    });
+
 
     /**
      * View of Items

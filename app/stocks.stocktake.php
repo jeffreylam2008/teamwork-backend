@@ -619,24 +619,25 @@ $app->group('/api/v1/stocks/stocktake', function () {
             $_data['employee'] = $q->fetch(PDO::FETCH_ASSOC);
 
             // SQL2
-            switch($_param['lang'])
-            {
-                case "en-us":
-                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
-                    break;
-                case "zh-hk":
-                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
-                    break;
-                default:
-                    $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
-                    break;
+            if(!empty($_param['lang'])){
+                switch($_param['lang'])
+                {
+                    case "en-us":
+                        $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                        break;
+                    case "zh-hk":
+                        $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang1 as `name`, slug, `param` FROM `t_menu`;";
+                        break;
+                    default:
+                        $sql = "SELECT m_order as `order`, `id`, `parent_id`, lang2 as `name`, slug, `param` FROM `t_menu`;";
+                        break;
+                }
+                //echo $sql2."\n";
+                $q = $db->prepare($sql);
+                $q->execute();
+                $_err[] = $q->errorinfo();
+                $_data['menu'] = $q->fetchAll(PDO::FETCH_ASSOC);
             }
-            //echo $sql2."\n";
-            $q = $db->prepare($sql);
-            $q->execute();
-            $_err[] = $q->errorinfo();
-            $_data['menu'] = $q->fetchAll(PDO::FETCH_ASSOC);
-
             //SQL 3
             $sql = "SELECT prefix FROM `t_prefix` WHERE `uid` = '7' LIMIT 1;";
             //echo $sql3."\n";

@@ -30,7 +30,12 @@ $c['logger'] = function($c) {
     $logger->pushHandler($file_handler);
     return $logger;
 };
-
+$c['actionLogger'] = function($c) {
+    $logger = new \Monolog\Logger('log');
+    $file_handler = new \Monolog\Handler\StreamHandler('logs/action.log');
+    $logger->pushHandler($file_handler);
+    return $logger;
+};
 $app = new \Slim\App($c);
 
 /**
@@ -138,6 +143,10 @@ require './app/stocks.adj.php';
  */
 require './app/stocks.stocktake.php';
 
+/**
+ *  Common Headers 
+ */
+require './app/headers.php';
 /**
  * test
  */
