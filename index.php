@@ -151,6 +151,9 @@ require './app/headers.php';
  * test
  */
 require './app/test.php';
-
+/*
+* network
+*/
+require './app/network.php';
 
 $app->run();

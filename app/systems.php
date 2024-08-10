@@ -536,10 +536,4 @@ $app->group('/api/v1/systems/import', function () {
     });
 });
 
-$app->group('/api/v1/network/status', function (){
-    $this->get('/', function (Request $request, Response $response, array $args){
-        $_callback = ["Error" => "network health","Code"=> 0 ];
-        return $response->withJson( $_callback , 200);
-    });
-});
 

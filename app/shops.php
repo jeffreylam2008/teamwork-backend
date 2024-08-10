@@ -21,6 +21,7 @@ $app->group('/api/v1/systems/shops', function () {
         $this->logger->addInfo("Msg: DB connected");
 
         $sql = "select * from `t_shop`;";
+
         $q = $db->prepare($sql);
         $q->execute();
         $_err[] = $q->errorinfo();
